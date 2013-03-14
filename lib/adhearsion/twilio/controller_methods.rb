@@ -14,15 +14,15 @@ module Adhearsion
       private
 
       def notify_status(url = nil, options = {})
-        url ||= Adhearsion.config[:twilio].voice_request_url
+        url ||= config.voice_request_url
         uri = URI.parse(url)
-        username = uri.user || Adhearsion.config[:twilio].voice_request_user
-        password = uri.password || Adhearsion.config[:twilio].voice_request_password
+        username = uri.user || config.voice_request_user
+        password = uri.password || config.voice_request_password
         uri.user = nil
         uri.password = nil
         url = uri.to_s
 
-        method = options.delete("method") || Adhearsion.config[:twilio].voice_request_method
+        method = options.delete("method") || config.voice_request_method
         method = Adhearsion.config[:twilio].voice_request_method unless method.downcase == "get"
 
         status = TWILIO_CALL_STATUSES[options.delete(:status) || :in_progress]
@@ -115,6 +115,10 @@ module Adhearsion
 
       def normalized_destination(raw_destination)
         "+#{Mail::Address.new(raw_destination).local}"
+      end
+
+      def config
+        Adhearsion.config[:twilio]
       end
 
       def not_yet_supported!

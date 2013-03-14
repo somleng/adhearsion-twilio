@@ -1,6 +1,6 @@
 require "adhearsion"
 require "mail"
-require "mail/elements/address"
+require "httparty"
 
 require "adhearsion/twilio/version"
 require "adhearsion/twilio/plugin"
