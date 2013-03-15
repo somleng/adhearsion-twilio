@@ -35,3 +35,4 @@ http_interactions:
       string: <?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>
     http_version: '1.1'
   recorded_at: Thu, 14 Mar 2013 15:01:49 GMT
+recorded_with: VCR 2.4.0

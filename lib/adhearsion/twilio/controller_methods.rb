@@ -22,8 +22,8 @@ module Adhearsion
         uri.password = nil
         url = uri.to_s
 
-        method = options.delete("method") || config.voice_request_method
-        method = Adhearsion.config[:twilio].voice_request_method unless method.downcase == "get"
+        method = (options.delete("method") || config.voice_request_method).downcase
+        method = Adhearsion.config[:twilio].voice_request_method unless method == "get"
 
         status = TWILIO_CALL_STATUSES[options.delete(:status) || :in_progress]
 

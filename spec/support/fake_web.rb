@@ -5,6 +5,10 @@ FakeWeb.allow_net_connect = false
 
 module FakeWebHelpers
   def last_request
-    @last_request ||= Rack::Utils.parse_query(FakeWeb.last_request.body)
+    FakeWeb.last_request
+  end
+
+  def last_request_body
+    @last_request ||= Rack::Utils.parse_query(last_request.body)
   end
 end

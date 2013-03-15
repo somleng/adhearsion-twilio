@@ -32,7 +32,7 @@ module Adhearsion
         end
 
         before do
-          TestController.any_instance.stub(:hangup)
+          subject.stub(:hangup)
         end
 
         subject { TestController.new(call) }
@@ -47,30 +47,116 @@ module Adhearsion
         end
 
         def generate_erb(options = {})
-          url = options.delete(:url) || default_config[:voice_request_url]
-          uri = URI.parse(url)
-          uri.user ||= default_config[:voice_request_user]
-          uri.password ||= default_config[:voice_request_password]
-          url = uri.to_s
-
+          uri = uri_with_authentication(options.delete(:url) || default_config[:voice_request_url])
           {
             :user => uri.user,
             :password => uri.password,
-            :url => url,
+            :url => uri.to_s,
             :method => default_config[:voice_request_method]
           }.merge(options)
         end
 
-        describe "#redirect(url = nil, options ={})" do
+        def uri_with_authentication(url)
+          uri = URI.parse(url)
+          uri.user ||= default_config[:voice_request_user]
+          uri.password ||= default_config[:voice_request_password]
+          uri
+        end
+
+        def expect_call_status_update(options = {}, &block)
+          cassette = options.delete(:cassette) || "hangup"
+          VCR.use_cassette(cassette, :erb => generate_erb(options)) do
+            yield
+          end
+        end
+
+        describe "posting call status updates" do
           it "should post the correct parameters to the call status voice request url" do
-            VCR.use_cassette("redirect", :erb => generate_erb) do
-              subject.run
+            expect_call_status_update { subject.run }
+            last_request_body["From"].should == "+#{call_params[:from]}"
+            last_request_body["To"].should == "+#{call_params[:to]}"
+            last_request_body["CallSid"].should == call_params[:id]
+            last_request_body["CallStatus"].should == "in-progress"
+          end
+        end
+
+        describe "hanging up" do
+          # http://www.twilio.com/docs/api/twiml/hangup
+          #
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Hangup/>
+          # </Response>
+
+          it "should hang up the call" do
+            subject.should_receive(:hangup)
+            expect_call_status_update { subject.run }
+          end
+        end
+
+        describe "redirecting" do
+          # http://www.twilio.com/docs/api/twiml/redirect
+
+          context "with no url" do
+            # Note: this feature is not implemented in twilio
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Redirect/>
+            # </Response>
+
+            it "should redirect to the default voice request url" do
+              expect_call_status_update(:cassette => :redirect_no_url) { subject.run }
+              last_request.path.should == URI.parse(default_config[:voice_request_url]).path
+              last_request.method.downcase.should == default_config[:voice_request_method]
+            end
+          end
+
+          context "with a url" do
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+            # </Response>
+
+            let(:redirect_url) do
+              uri_with_authentication("http://localhost:5000/some_other_endpoint.xml").to_s
             end
 
-            last_request["From"].should == "+#{call_params[:from]}"
-            last_request["To"].should == "+#{call_params[:to]}"
-            last_request["CallSid"].should == call_params[:id]
-            last_request["CallStatus"].should == "in-progress"
+            it "should redirect to the specified url" do
+              expect_call_status_update(:cassette => :redirect_with_url, :redirect_url => redirect_url) do
+                subject.run
+              end
+              last_request.path.should == URI.parse(redirect_url).path
+              last_request.method.downcase.should == default_config[:voice_request_method]
+            end
+
+            context "and a GET method" do
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Redirect method="GET">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+              # </Response>
+
+              it "should redirect to the specified url using a 'GET' request" do
+                expect_call_status_update(:cassette => :redirect_with_get_url, :redirect_url => redirect_url, :redirect_method => "get") do
+                  subject.run
+                end
+              end
+            end
+          end
+        end
+
+        describe "dialing" do
+          # http://www.twilio.com/docs/api/twiml/dial
+
+          context "without specifying an action" do
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Dial>+415-123-4567</Dial>
+            # </Response
+
+            it "should continue after the dial" do
+              pending
+            end
           end
         end
       end
