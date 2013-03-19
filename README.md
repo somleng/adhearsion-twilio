@@ -1,24 +1,22 @@
 # adhearsion-twilio
 
-Provides a simple way to use Adhearsion with your existing apps build for Twilio
+Provides a simple way to use Adhearsion with your existing apps built for Twilio
+
+[![Build Status](https://travis-ci.org/dwilkie/adhearsion-twilio.png)](https://travis-ci.org/dwilkie/adhearsion-twilio)
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'adhearsion-twilio'
+    gem 'adhearsion-twilio', :git => git://github.com/dwilkie/adhearsion-twilio.git
 
 And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install adhearsion-twilio
-
 ## Configuration
 
-Configure your *voice_request* endpoint in `config/adhearsion.rb` or use the envirnoment variables.
+Configure your *voice_request* endpoint in `config/adhearsion.rb` or use the environment variables.
 
     Adhearsion.config do |config|
       # Retrieve and execute the TwiML using this http method [AHN_TWILIO_VOICE_REQUEST_METHOD]
