@@ -257,15 +257,49 @@ module Adhearsion
           let(:number_to_dial) { "+415-123-4567" }
           let(:dial_status) { mock(Adhearsion::CallController::DialStatus, :result => :answer ) }
 
+          def expect_call_status_update(options = {}, &block)
+            super({:to => number_to_dial}.merge(options), &block)
+          end
+
+          def assert_dial(options = {})
+            subject.should_receive(:dial) do |number, params|
+              number.should == number_to_dial
+              options.each do |option, value|
+                params[option].should == value
+              end
+              dial_status
+            end
+          end
+
           before do
             subject.stub(:dial).and_return(dial_status)
           end
 
-          context "to a number" do
-            it "should dial to the specified number" do
-              subject.should_receive(:dial).with(number_to_dial, {})
-              expect_call_status_update(:cassette => :dial_no_action, :to => number_to_dial) do
-                subject.run
+          describe "Nouns" do
+            # From: http://www.twilio.com/docs/api/twiml/dial
+
+            # Nouns
+
+            # "The "noun" of a TwiML verb is the stuff nested within the verb that's not a verb itself;
+            # it's the stuff the verb acts upon. These are the nouns for <Dial>:"
+
+            # | Noun         | Description                                                       |
+            # | plain text   | A string representing a valid phone number to call.               |
+            # | <Number>     | A nested XML element that describes                               |
+            # |              | a phone number with more complex attributes.                      |
+            # | <Client>     | A nested XML element that describes a Twilio Client connection.   |
+            # | <Sip>        | A nested XML element that describes a SIP connection.             |
+            # | <Conference> | A nested XML element that describes a conference                  |
+            # |              | allowing two or more parties to talk.                             |
+            # | <Queue>      | A nested XML element identifying a queue                          |
+            # |              | that this call should be connected to.                            |
+
+            context "plain text" do
+              it "should dial to the specified number" do
+                assert_dial
+                expect_call_status_update(:cassette => :dial_no_action, :to => number_to_dial) do
+                  subject.run
+                end
               end
             end
           end
@@ -364,7 +398,7 @@ module Adhearsion
                 def expect_call_status_update(options = {}, &block)
                   super({
                     :cassette => :dial_hangup_with_action,
-                    :to => number_to_dial, :action => redirect_url}.merge(options), &block
+                    :action => redirect_url}.merge(options), &block
                   )
                 end
 
@@ -405,18 +439,121 @@ module Adhearsion
 
                 describe "'method'" do
                   context "'GET'" do
+                    # From: http://www.twilio.com/docs/api/twiml/dial
+
                     # <?xml version="1.0" encoding="UTF-8"?>
                     # <Response>
                     #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
                     #     +415-123-4567
                     #   </Dial>
                     # </Response
-                    it "should send a 'GET' request to te 'action' param" do
+
+                    it "should send a 'GET' request to the 'action' param" do
                       expect_call_status_update(:cassette => :dial_with_get_action, :action_method => alternate_redirect_method) do
                         subject.run
                       end
                       last_request(:method).downcase.should == alternate_redirect_method
                     end
+                  end
+                end
+              end
+            end
+
+            describe "'callerId'" do
+              # From: http://www.twilio.com/docs/api/twiml/dial
+
+              # "The 'callerId' attribute lets you specify the caller ID that will appear
+              # to the called party when Twilio calls. By default,
+              # when you put a <Dial> in your TwiML response to Twilio's inbound call request,
+              # the caller ID that the dialed party sees is the inbound caller's caller ID."
+
+              # "For example, an inbound caller to your Twilio number has the caller ID 1-415-123-4567.
+              # You tell Twilio to execute a <Dial> verb to 1-858-987-6543 to handle the inbound call.
+              # The called party (1-858-987-6543) will see 1-415-123-4567 as the caller ID
+              # on the incoming call."
+
+              # "If you are dialing to a <Client>, you can set a client identifier
+              # as the callerId attribute. For instance, if you've set up a client
+              # for incoming calls and you are dialing to it, you could set the callerId
+              # attribute to client:tommy."
+
+              # "If you are dialing a phone number from a Twilio Client connection,
+              # you must specify a valid phone number as the callerId or the call will fail."
+
+              # "You are allowed to change the phone number that the called party
+              # sees to one of the following:"
+
+              # - either the 'To' or 'From' number provided in Twilio's TwiML request to your app
+              # - any incoming phone number you have purchased from Twilio
+              # - any phone number you have verified with Twilio
+
+              # | Attribute | Allowed Values                             | Default Value     |
+              # | callerId  | a valid phone number, or client identifier | Caller's callerId |
+              # |           | if you are dialing a <Client>.             |                   |
+
+              context "specified" do
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial callerId="2442">+415-123-4567</Dial>
+                # </Response
+
+                let(:caller_id) { "2442" }
+
+                it "should dial from the specified 'callerId'" do
+                  assert_dial(:from => caller_id)
+                  expect_call_status_update(:cassette => :dial_with_caller_id, :caller_id => caller_id) do
+                    subject.run
+                  end
+                end
+              end
+
+              context "not specified" do
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial>+415-123-4567</Dial>
+                # </Response
+
+                it "should not dial with any callerId" do
+                  assert_dial(:from => nil)
+                  expect_call_status_update(:cassette => :dial_no_action) do
+                    subject.run
+                  end
+                end
+              end
+            end
+
+            describe "'timeout'" do
+              # From: http://www.twilio.com/docs/api/twiml/dial
+
+              # "The 'timeout' attribute sets the limit in seconds that <Dial>
+              # waits for the called party to answer the call.
+              # Basically, how long should Twilio let the call ring before giving up and
+              # reporting 'no-answer' as the 'DialCallStatus'."
+
+              # | Attribute | Allowed Values   | Default Value |
+              # | timeout   | positive integer | 30 seconds    |
+
+              context "specified" do
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial timeout="10">+415-123-4567</Dial>
+                # </Response
+
+                let(:timeout) { "10" }
+
+                it "should dial with the specified 'timeout'" do
+                  assert_dial(:for => timeout.to_i.seconds)
+                  expect_call_status_update(:cassette => :dial_with_timeout, :timeout => timeout) do
+                    subject.run
+                  end
+                end
+              end
+
+              context "not specified" do
+                it "should dial with a timeout of 30.seconds" do
+                  assert_dial(:for => 30.seconds)
+                  expect_call_status_update(:cassette => :dial_no_action) do
+                    subject.run
                   end
                 end
               end

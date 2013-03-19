@@ -78,7 +78,7 @@ module Adhearsion
       def twilio_dial(to, options = {})
         params = {}
         params[:from] = options["callerId"] if options["callerId"]
-        params[:for] = options["timeout"] if options["timeout"]
+        params[:for] = options["timeout"] ? options["timeout"].to_i.seconds : 30.seconds
 
         dial_status = dial(to, params).result
 
