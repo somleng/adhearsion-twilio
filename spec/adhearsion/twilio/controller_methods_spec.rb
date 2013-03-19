@@ -16,9 +16,9 @@ module Adhearsion
 
         let(:call_params) do
           {
-            :to => "85512456789",
+            :to => "85512456869",
             :from => "1000",
-            :id => "5460696c-8cb4-11e2-99cd-1f3f1cd7995c"
+            :id => "5150691c-3db4-11e2-99cd-1f3f1cd7995d"
           }
         end
 
@@ -31,8 +31,13 @@ module Adhearsion
           )
         end
 
+        let(:redirect_url) do
+          uri_with_authentication("http://localhost:3000/some_other_endpoint.xml").to_s
+        end
+
         before do
           subject.stub(:hangup)
+          call.stub(:alive?)
         end
 
         subject { TestController.new(call) }
@@ -118,10 +123,6 @@ module Adhearsion
             #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
             # </Response>
 
-            let(:redirect_url) do
-              uri_with_authentication("http://localhost:5000/some_other_endpoint.xml").to_s
-            end
-
             it "should redirect to the specified url" do
               expect_call_status_update(:cassette => :redirect_with_url, :redirect_url => redirect_url) do
                 subject.run
@@ -140,6 +141,7 @@ module Adhearsion
                 expect_call_status_update(:cassette => :redirect_with_get_url, :redirect_url => redirect_url, :redirect_method => "get") do
                   subject.run
                 end
+                last_request.method.downcase.should == "get"
               end
             end
           end
@@ -148,14 +150,155 @@ module Adhearsion
         describe "dialing" do
           # http://www.twilio.com/docs/api/twiml/dial
 
+          def stub_dial_status(status)
+            dial_status.stub(:result).and_return(status)
+          end
+
+          let(:number_to_dial) { "+415-123-4567" }
+          let(:dial_status) { mock(Adhearsion::CallController::DialStatus, :result => :answer ) }
+
+          before do
+            subject.stub(:dial).and_return(dial_status)
+          end
+
+          context "to a number" do
+            it "should dial to the specified number" do
+              subject.should_receive(:dial).with(number_to_dial, {})
+              expect_call_status_update(:cassette => :dial_no_action, :to => number_to_dial) do
+                subject.run
+              end
+            end
+          end
+
           context "without specifying an action" do
+            # From: http://www.twilio.com/docs/api/twiml/dial
+
+            # "If no 'action' is provided, <Dial> will finish and Twilio will move on
+            # to the next TwiML verb in the document. If there is no next verb,
+            # Twilio will end the phone call.
+            # Note that this is different from the behavior of <Record> and <Gather>.
+            # <Dial> does not make a request to the current document's URL by default
+            # if no 'action' URL is provided.
+            # Instead the call flow falls through to the next TwiML verb."
+
             # <?xml version="1.0" encoding="UTF-8"?>
             # <Response>
             #   <Dial>+415-123-4567</Dial>
+            #   <Hangup/>
             # </Response
 
-            it "should continue after the dial" do
-              pending
+            it "should continue processing the twiml after the dial" do
+              subject.should_receive(:hangup)
+              expect_call_status_update(:cassette => :dial_hangup_no_action, :to => number_to_dial) do
+                subject.run
+              end
+            end
+
+            context "and with no next verb" do
+              # From: http://www.twilio.com/docs/api/twiml/dial
+
+              # "If there is no next verb, Twilio will end the phone call."
+
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Dial>+415-123-4567</Dial>
+              # </Response
+
+              it "should hangup after the dial" do
+                subject.should_receive(:hangup)
+                expect_call_status_update(:cassette => :dial_no_action, :to => number_to_dial) do
+                  subject.run
+                end
+              end
+            end
+          end
+
+          context "specifying an action" do
+            # From: http://www.twilio.com/docs/api/twiml/dial
+
+            # "The 'action' attribute takes a URL as an argument.
+            # When the dialed call ends, Twilio will make a GET or POST
+            # request to this URL including the parameters below.
+
+            # If you provide an 'action' URL, Twilio will continue the current call
+            # after the dialed party has hung up, using the TwiML
+            # received in your response to the 'action' URL request.
+            # Any TwiML verbs occurring after a which specifies an 'action' attribute are unreachable."
+
+            # Request Parameters
+
+            # "Twilio will pass the following parameters in addition to the standard
+            # TwiML Voice request parameters with its request to the 'action' URL:"
+
+            # | Parameter        | Description                                              |
+            # | DialCallStatus   | The outcome of the <Dial> attempt.                       |
+            # |                  | See the DialCallStatus section below for details.        |
+            # | DialCallSid      | The call sid of the new call leg.                        |
+            # |                  | This parameter is not sent after dialing a conference.   |
+            # | DialCallDuration | The duration in seconds of the dialed call.              |
+            # |                  | This parameter is not sent after dialing a conference.   |
+            # | RecordingUrl     | The URL of the recorded audio.                           |
+            # |                  | This parameter is only sent if record="true" is set      |
+            # |                  | on the <Dial> verb, and does not include recordings      |
+            # |                  | from the <Record> verb or Record=True on REST API calls. |
+
+            # DialCallStatus Values
+
+            # | Value     | Description                                                               |
+            # | completed | The called party answered the call and was connected to the caller.       |
+            # | busy      | Twilio received a busy signal when trying to connect to the called party. |
+            # | no-answer | The called party did not pick up before the timeout period passed.        |
+            # | failed    | Twilio was unable to route to the given phone number.                     |
+            # |           | This is frequently caused by dialing                                      |
+            # |           | a properly formatted but non-existent phone number.                       |
+            # | canceled  | The call was canceled via the REST API before it was answered.            |
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Dial action="http://localhost:3000/some_other_endpoint.xml">+415-123-4567</Dial>
+            #   <Play>foo.mp3</Play>
+            # </Response
+
+            def expect_call_status_update(options = {}, &block)
+              super(
+                :cassette => :dial_hangup_with_action,
+                :to => number_to_dial, :action => redirect_url, &block
+              )
+            end
+
+            it "should redirect to the 'action' param and not continue with the current TwiML" do
+              subject.should_not_receive(:play_audio)
+              subject.should_receive(:hangup)
+              expect_call_status_update do
+                subject.run
+              end
+              last_request.path.should == URI.parse(redirect_url).path
+              last_request.method.downcase.should == default_config[:voice_request_method]
+            end
+
+            context "where the Adhearsion dial status is" do
+              # Adhearsion -> Twilio dial statuses:
+              ahn_twilio_dial_statuses = {
+                :no_answer => "no-answer",
+                :answer => "completed",
+                :timeout => "no-answer",
+                :error => "failed"
+              }
+
+              ahn_twilio_dial_statuses.each do |ahn_status, twilio_status|
+                context ":#{ahn_status}" do
+                  before do
+                    stub_dial_status(ahn_status)
+                  end
+
+                  it "should post a DialCallStatus of '#{twilio_status}'" do
+                    expect_call_status_update do
+                      subject.run
+                    end
+                    last_request_body["DialCallStatus"].should == twilio_status
+                  end
+                end
+              end
             end
           end
         end

@@ -43,10 +43,10 @@ module Adhearsion
       end
 
       def execute_twiml(response)
-        with_twiml(response) do |command, content, options|
-          case command
+        with_twiml(response) do |verb, content, options, next_verb|
+          case verb
           when 'Play'
-            play(content, options)
+            twilio_play(content, options)
           when 'Gather'
             not_yet_supported!
           when 'Redirect'
@@ -60,19 +60,24 @@ module Adhearsion
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            break unless dial(content, options)
+            if twilio_dial(content, options)
+              # continue
+              hangup unless next_verb
+            else
+              break
+            end
           else
-            raise ArgumentError "Invalid element '#{command}'"
+            raise ArgumentError "Invalid element '#{verb}'"
           end
         end
       end
 
-      def dial(to, options = {})
+      def twilio_dial(to, options = {})
         params = {}
         params[:from] = options["callerId"] if options["callerId"]
         params[:for] = options["timeout"] if options["timeout"]
 
-        dial_status = super(to, params).result
+        dial_status = dial(to, params).result
 
         continue = true
 
@@ -84,16 +89,16 @@ module Adhearsion
         continue
       end
 
-      def play(path, options = {})
+      def twilio_play(path, options = {})
         # not yet fully implemented
         play_audio(path, :renderer => :native)
       end
 
       def with_twiml(raw_response, &block)
         raise(ArgumentError, "The root element must be the '<Response>' element") unless raw_response
-        raw_response.each do |command, options|
+        raw_response.each_with_index do |(verb, options), index|
           options = normalize_options(options)
-          yield command, options.delete(ELEMENT_CONTENT_KEY), options
+          yield verb, options.delete(ELEMENT_CONTENT_KEY), options, raw_response[index + 1]
         end
       end
 
