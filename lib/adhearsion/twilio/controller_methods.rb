@@ -97,8 +97,9 @@ module Adhearsion
       end
 
       def twilio_play(path, options = {})
-        # not yet fully implemented
-        play_audio(path, :renderer => :native)
+        (options["loop"].to_s == "0" ? loop : (options["loop"] || 1).to_i.times).each do
+          play_audio(path, :renderer => :native)
+        end
       end
 
       def with_twiml(raw_response, &block)
