@@ -83,7 +83,11 @@ module Adhearsion
 
         if options["action"]
           continue = false
-          redirect(options["action"], :DialCallStatus => TWILIO_CALL_STATUSES[dial_status])
+          redirect(
+            options["action"],
+            "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status],
+            "method" => options["method"]
+          )
         end
 
         continue

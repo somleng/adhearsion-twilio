@@ -35,6 +35,8 @@ module Adhearsion
           uri_with_authentication("http://localhost:3000/some_other_endpoint.xml").to_s
         end
 
+        let(:alternate_redirect_method) { "get" }
+
         before do
           subject.stub(:hangup)
           call.stub(:alive?)
@@ -75,13 +77,21 @@ module Adhearsion
           end
         end
 
+        def assert_voice_request_params(options = {})
+          options["From"] ||= "+#{call_params[:from]}"
+          options["To"] ||= "+#{call_params[:to]}"
+          options["CallSid"] ||= call_params[:id]
+          options["CallStatus"] ||= "in-progress"
+
+          last_request_body.each do |param, value|
+            value.should == options[param]
+          end
+        end
+
         describe "posting call status updates" do
           it "should post the correct parameters to the call status voice request url" do
             expect_call_status_update { subject.run }
-            last_request_body["From"].should == "+#{call_params[:from]}"
-            last_request_body["To"].should == "+#{call_params[:to]}"
-            last_request_body["CallSid"].should == call_params[:id]
-            last_request_body["CallStatus"].should == "in-progress"
+            assert_voice_request_params
           end
         end
 
@@ -138,10 +148,10 @@ module Adhearsion
               # </Response>
 
               it "should redirect to the specified url using a 'GET' request" do
-                expect_call_status_update(:cassette => :redirect_with_get_url, :redirect_url => redirect_url, :redirect_method => "get") do
+                expect_call_status_update(:cassette => :redirect_with_get_url, :redirect_url => redirect_url, :redirect_method => alternate_redirect_method) do
                   subject.run
                 end
-                last_request.method.downcase.should == "get"
+                last_request.method.downcase.should == alternate_redirect_method
               end
             end
           end
@@ -260,13 +270,13 @@ module Adhearsion
             # </Response
 
             def expect_call_status_update(options = {}, &block)
-              super(
+              super({
                 :cassette => :dial_hangup_with_action,
-                :to => number_to_dial, :action => redirect_url, &block
+                :to => number_to_dial, :action => redirect_url}.merge(options), &block
               )
             end
 
-            it "should redirect to the 'action' param and not continue with the current TwiML" do
+            it "should send a POST' request to the 'action' param and stop continuing with the current TwiML" do
               subject.should_not_receive(:play_audio)
               subject.should_receive(:hangup)
               expect_call_status_update do
@@ -274,6 +284,21 @@ module Adhearsion
               end
               last_request.path.should == URI.parse(redirect_url).path
               last_request.method.downcase.should == default_config[:voice_request_method]
+            end
+
+            context "and specifying a 'GET' method" do
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
+              #     +415-123-4567
+              #   </Dial>
+              # </Response
+              it "should send a 'GET' request to te 'action' param" do
+                expect_call_status_update(:cassette => :dial_with_get_action, :action_method => alternate_redirect_method) do
+                  subject.run
+                end
+                last_request.method.downcase.should == alternate_redirect_method
+              end
             end
 
             context "where the Adhearsion dial status is" do
@@ -295,7 +320,7 @@ module Adhearsion
                     expect_call_status_update do
                       subject.run
                     end
-                    last_request_body["DialCallStatus"].should == twilio_status
+                    assert_voice_request_params("DialCallStatus" => twilio_status)
                   end
                 end
               end
