@@ -11,7 +11,7 @@ module Adhearsion
       #
       config :twilio do
         voice_request_url(
-          "http://localhost:3000",
+          "http://localhost:3000/",
           :desc => "Retrieve and execute the TwiML at this URL when a phone call is received"
         )
 

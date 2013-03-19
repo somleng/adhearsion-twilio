@@ -46,7 +46,7 @@ module Adhearsion
 
         def default_config
           {
-            :voice_request_url => ENV["AHN_TWILIO_VOICE_REQUEST_URL"] || "http://localhost:3000",
+            :voice_request_url => ENV["AHN_TWILIO_VOICE_REQUEST_URL"] || "http://localhost:3000/",
             :voice_request_method => ENV["AHN_TWILIO_VOICE_REQUEST_METHOD"] || "post",
             :voice_request_user => ENV["AHN_TWILIO_VOICE_REQUEST_USER"] || "user",
             :voice_request_password => ENV["AHN_TWILIO_VOICE_REQUEST_PASSWORD"] || "secret"
@@ -71,7 +71,7 @@ module Adhearsion
         end
 
         def expect_call_status_update(options = {}, &block)
-          cassette = options.delete(:cassette) || "hangup"
+          cassette = options.delete(:cassette) || :hangup
           VCR.use_cassette(cassette, :erb => generate_erb(options)) do
             yield
           end
