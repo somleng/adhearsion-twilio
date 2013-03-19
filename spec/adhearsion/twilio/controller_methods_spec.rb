@@ -199,6 +199,27 @@ module Adhearsion
                 end
               end
             end
+
+            context "relative url" do
+              let(:relative_url) { "../relative_endpoint.xml" }
+              let(:redirect_url) do
+                uri_with_authentication(URI.join(default_config[:voice_request_url], relative_url).to_s).to_s
+              end
+
+              # From: http://www.twilio.com/docs/api/twiml/redirect
+
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Redirect>../relative_endpoint.xml</Redirect>
+              # </Response>
+
+              it "should redirect to the relative url" do
+                expect_call_status_update(:cassette => :redirect_with_relative_url, :relative_url => relative_url, :redirect_url => redirect_url) do
+                  subject.run
+                end
+                last_request(:url).should == redirect_url
+              end
+            end
           end
         end
 

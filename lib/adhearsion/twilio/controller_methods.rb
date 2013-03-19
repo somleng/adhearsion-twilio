@@ -13,14 +13,17 @@ module Adhearsion
 
       private
 
-      def notify_status(url = nil, options = {})
-        url ||= config.voice_request_url
-        uri = URI.parse(url)
-        username = uri.user || config.voice_request_user
-        password = uri.password || config.voice_request_password
-        uri.user = nil
-        uri.password = nil
-        url = uri.to_s
+      def notify_status(new_request_url = nil, options = {})
+        @last_request_url ||= config.voice_request_url
+        new_request_url ||= config.voice_request_url
+
+        new_request_uri = URI.parse(new_request_url)
+        username = new_request_uri.user || config.voice_request_user
+        password = new_request_uri.password || config.voice_request_password
+        new_request_uri.user = nil
+        new_request_uri.password = nil
+
+        @last_request_url = URI.join(@last_request_url, new_request_url).to_s
 
         method = (options.delete("method") || config.voice_request_method).downcase
         method = Adhearsion.config[:twilio].voice_request_method unless method == "get"
@@ -29,7 +32,7 @@ module Adhearsion
 
         HTTParty.send(
           method,
-          url,
+          @last_request_url,
           :body => {
             :From => normalized_from,
             :To => normalized_to,
