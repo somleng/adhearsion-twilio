@@ -4,7 +4,7 @@ module Adhearsion
   module Twilio
     describe ControllerMethods do
       describe "mixed in to a CallController" do
-        include FakeWebHelpers
+        include WebMockHelpers
 
         class TestController < Adhearsion::CallController
           include Twilio::ControllerMethods
@@ -35,7 +35,7 @@ module Adhearsion
           uri_with_authentication("http://localhost:3000/some_other_endpoint.xml").to_s
         end
 
-        let(:alternate_redirect_method) { "get" }
+        let(:alternate_redirect_method) { :get }
 
         before do
           subject.stub(:hangup)
@@ -47,7 +47,7 @@ module Adhearsion
         def default_config
           {
             :voice_request_url => ENV["AHN_TWILIO_VOICE_REQUEST_URL"] || "http://localhost:3000/",
-            :voice_request_method => ENV["AHN_TWILIO_VOICE_REQUEST_METHOD"] || "post",
+            :voice_request_method => ENV["AHN_TWILIO_VOICE_REQUEST_METHOD"] || :post,
             :voice_request_user => ENV["AHN_TWILIO_VOICE_REQUEST_USER"] || "user",
             :voice_request_password => ENV["AHN_TWILIO_VOICE_REQUEST_PASSWORD"] || "secret"
           }
@@ -83,7 +83,7 @@ module Adhearsion
           options["CallSid"] ||= call_params[:id]
           options["CallStatus"] ||= "in-progress"
 
-          last_request_body.each do |param, value|
+          last_request(:body).each do |param, value|
             value.should == options[param]
           end
         end
@@ -122,8 +122,8 @@ module Adhearsion
 
             it "should redirect to the default voice request url" do
               expect_call_status_update(:cassette => :redirect_no_url) { subject.run }
-              last_request.path.should == URI.parse(default_config[:voice_request_url]).path
-              last_request.method.downcase.should == default_config[:voice_request_method]
+              last_request(:url).should == uri_with_authentication(default_config[:voice_request_url]).to_s
+              last_request(:method).downcase.should == default_config[:voice_request_method]
             end
           end
 
@@ -137,8 +137,8 @@ module Adhearsion
               expect_call_status_update(:cassette => :redirect_with_url, :redirect_url => redirect_url) do
                 subject.run
               end
-              last_request.path.should == URI.parse(redirect_url).path
-              last_request.method.downcase.should == default_config[:voice_request_method]
+              last_request(:url).should == redirect_url
+              last_request(:method).downcase.should == default_config[:voice_request_method]
             end
 
             context "and a GET method" do
@@ -151,7 +151,7 @@ module Adhearsion
                 expect_call_status_update(:cassette => :redirect_with_get_url, :redirect_url => redirect_url, :redirect_method => alternate_redirect_method) do
                   subject.run
                 end
-                last_request.method.downcase.should == alternate_redirect_method
+                last_request(:method).downcase.should == alternate_redirect_method
               end
             end
           end
@@ -282,8 +282,8 @@ module Adhearsion
               expect_call_status_update do
                 subject.run
               end
-              last_request.path.should == URI.parse(redirect_url).path
-              last_request.method.downcase.should == default_config[:voice_request_method]
+              last_request(:url).should == redirect_url
+              last_request(:method).downcase.should == default_config[:voice_request_method]
             end
 
             context "and specifying a 'GET' method" do
@@ -297,7 +297,7 @@ module Adhearsion
                 expect_call_status_update(:cassette => :dial_with_get_action, :action_method => alternate_redirect_method) do
                   subject.run
                 end
-                last_request.method.downcase.should == alternate_redirect_method
+                last_request(:method).downcase.should == alternate_redirect_method
               end
             end
 
