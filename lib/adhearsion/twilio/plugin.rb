@@ -27,6 +27,14 @@ module Adhearsion
         voice_request_password(
           "secret", :desc => "HTTP Basic Auth Password for the voice request url"
         )
+
+        default_male_voice(
+          nil, :desc => "The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values)"
+        )
+
+        default_female_voice(
+          nil, :desc => "The default voice to use for a female speaker (see 'config.punchblock.default_voice' for allowed values)"
+        )
       end
 
       # Defining a Rake task is easy

@@ -17,8 +17,15 @@ And then execute:
 ## Configuration
 
 Configure your *voice_request* endpoint in `config/adhearsion.rb` or use the environment variables.
+This should be the same endpoint that you point to in your Twilio configuration and should return valid TwiML.
 
     Adhearsion.config do |config|
+      # The default voice to use for a female speaker (see 'config.punchblock.default_voice' for allowed values) [AHN_TWILIO_DEFAULT_FEMALE_VOICE]
+      config.twilio.default_female_voice   = nil
+
+      # The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values) [AHN_TWILIO_DEFAULT_MALE_VOICE]
+      config.twilio.default_male_voice     = nil
+
       # Retrieve and execute the TwiML using this http method [AHN_TWILIO_VOICE_REQUEST_METHOD]
       config.twilio.voice_request_method   = "post"
 
@@ -26,13 +33,11 @@ Configure your *voice_request* endpoint in `config/adhearsion.rb` or use the env
       config.twilio.voice_request_password = "secret"
 
       # Retrieve and execute the TwiML at this URL when a phone call is received [AHN_TWILIO_VOICE_REQUEST_URL]
-       config.twilio.voice_request_url      = "http://localhost:3000"
+      config.twilio.voice_request_url      = "http://localhost:3000"
 
       # HTTP Basic Auth Username for the voice request url [AHN_TWILIO_VOICE_REQUEST_USER]
       config.twilio.voice_request_user     = "user"
     end
-
-This should be the same endpoint that you point to in your Twilio configuration and should return valid TwiML.
 
 ## Usage
 

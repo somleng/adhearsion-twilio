@@ -57,7 +57,7 @@ module Adhearsion
           when 'Hangup'
             hangup
           when 'Say'
-            say(content, options)
+            twilio_say(content, options)
           when 'Pause'
             not_yet_supported!
           when 'Bridge'
@@ -73,6 +73,13 @@ module Adhearsion
             raise ArgumentError "Invalid element '#{verb}'"
           end
         end
+      end
+
+      def twilio_say(words, options = {})
+        params = {}
+        voice = options["voice"].to_s.downcase == "woman" ? config.default_female_voice : config.default_male_voice
+        params[:voice] = voice if voice
+        say(words, params)
       end
 
       def twilio_dial(to, options = {})
