@@ -54,6 +54,38 @@ In your controller include `Adhearsion::Twilio::ControllerMethods`, answer the c
 
 The redirect method will post to your server at `voice_request_url` then execute any Twiml you supply back
 
+## Documentation
+
+[Read the specification](https://github.com/dwilkie/adhearsion-twilio/blob/master/spec/adhearsion/twilio/controller_methods_spec.rb#L100)
+
+## Already Implemented
+
+The following verbs have been already implemented:
+
+* Play
+* Dial
+    * Number
+* Redirect
+* Hangup
+
+## Todo
+
+The following verbs are not yet fully implemented:
+
+* Dial
+    * Sip
+    * Client
+    * Conference
+    * Queue
+* Say
+* Gather
+* Record
+* SMS
+* Enqueue
+* Leave
+* Reject
+* Pause
+
 ## Contributing
 
 1. Fork it
