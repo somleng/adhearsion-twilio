@@ -32,12 +32,12 @@ http_interactions:
       - thin 1.5.0 codename Knife
     body:
       encoding: US-ASCII
-      string: <?xml version="1.0" encoding="UTF-8"?><Response><Redirect method=<%="\"#{redirect_method.upcase}\""%>><%=redirect_url%></Redirect></Response>
+      string: <?xml version="1.0" encoding="UTF-8"?><Response><Redirect method=<%="\"#{redirect_method.upcase}\""%>/></Response>
     http_version: '1.1'
   recorded_at: Thu, 14 Mar 2013 15:01:49 GMT
 - request:
     method: <%=redirect_method%>
-    uri: <%=redirect_url%>
+    uri: <%=url%>
     body:
       encoding: US-ASCII
       string: From=%2B1000&To=%2B85512456789&CallSid=5460696c-8cb4-11e2-99cd-1f3f1cd7995c&CallStatus=in-progress

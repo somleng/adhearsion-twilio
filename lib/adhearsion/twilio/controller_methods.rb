@@ -26,7 +26,7 @@ module Adhearsion
         @last_request_url = URI.join(@last_request_url, new_request_url).to_s
 
         method = (options.delete("method") || config.voice_request_method).downcase
-        method = Adhearsion.config[:twilio].voice_request_method unless method == "get"
+        method = Adhearsion.config[:twilio].voice_request_method unless method == "get" || "post"
 
         status = TWILIO_CALL_STATUSES[options.delete(:status) || :in_progress]
 

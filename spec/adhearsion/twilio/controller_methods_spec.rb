@@ -35,8 +35,6 @@ module Adhearsion
           uri_with_authentication("http://localhost:3000/some_other_endpoint.xml").to_s
         end
 
-        let(:alternate_redirect_method) { :get }
-
         before do
           subject.stub(:hangup)
           call.stub(:alive?)
@@ -100,10 +98,10 @@ module Adhearsion
         describe "<Hangup>" do
           # From: http://www.twilio.com/docs/api/twiml/hangup
 
-          # "The <Hangup> verb ends a call.
+          # The <Hangup> verb ends a call.
           # If used as the first verb in a TwiML response it
           # does not prevent Twilio from answering the call and billing your account.
-          # The only way to not answer a call and prevent billing is to use the <Reject> verb."
+          # The only way to not answer a call and prevent billing is to use the <Reject> verb.
 
           # <?xml version="1.0" encoding="UTF-8"?>
           # <Response>
@@ -119,31 +117,18 @@ module Adhearsion
         describe "<Redirect>" do
           # From: http://www.twilio.com/docs/api/twiml/redirect
 
-          # "The <Redirect> verb transfers control of a call to the TwiML at a different URL.
-          # All verbs after <Redirect> are unreachable and ignored."
-
-          # Verb Attributes
-
-          # "The <Redirect> verb supports the following attributes that modify its behavior:
-
-          # | Attribute Name | Allowed Values | Default Value |
-          # | method         | GET, POST      | POST          |
-
-          # "The 'method' attribute takes the value 'GET' or 'POST'.
-          # This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST.
-          # 'POST' is the default."
-
-          # Nouns
-
-          # The "noun" of a TwiML verb is the stuff nested within the verb that's not a verb itself;
-          # it's the stuff the verb acts upon. These are the nouns for <Redirect>:
-
-          # | Noun       | TwiML Interpretation                                        |
-          # | plain text | An absolute or relative URL for a different TwiML document. |
+          # The <Redirect> verb transfers control of a call to the TwiML at a different URL.
+          # All verbs after <Redirect> are unreachable and ignored.
 
           describe "Nouns" do
+            # The "noun" of a TwiML verb is the stuff nested within the verb that's not a verb itself;
+            # it's the stuff the verb acts upon. These are the nouns for <Redirect>:
+
+            # | Noun       | TwiML Interpretation                                        |
+            # | plain text | An absolute or relative URL for a different TwiML document. |
+
             context "empty (Not implemented in Twilio)" do
-              # Note: this feature is not implemented in twilio
+              # Note: this feature is not implemented in Twilio
 
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
@@ -151,59 +136,30 @@ module Adhearsion
               # </Response>
 
               it "should redirect to the default voice request url" do
-                expect_call_status_update(:cassette => :redirect_no_url) { subject.run }
+                expect_call_status_update(:cassette => :redirect) { subject.run }
                 last_request(:url).should == uri_with_authentication(default_config[:voice_request_url]).to_s
-                last_request(:method).downcase.should == default_config[:voice_request_method]
               end
             end
 
-            context "absolute url (differs from Twilio)" do
+            context "absolute url" do
               # From: http://www.twilio.com/docs/api/twiml/redirect
-
-              # "'POST' is the default."
-
-              # Note: The behaviour differs slightly here from the behaviour or Twilio.
-              # If not method is given, it will default to
-              # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
 
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
               # </Response>
 
-              it "should redirect to the absolute url using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method (defaults to 'POST')" do
-                expect_call_status_update(:cassette => :redirect_with_url, :redirect_url => redirect_url) do
+              it "should redirect to the absolute url" do
+                expect_call_status_update(:cassette => :redirect_with_absolute_url, :redirect_url => redirect_url) do
                   subject.run
                 end
                 last_request(:url).should == redirect_url
-                last_request(:method).downcase.should == default_config[:voice_request_method]
-              end
-
-              describe "Verb Attributes" do
-                describe "'method'" do
-                  context "'GET'" do
-                    # From: http://www.twilio.com/docs/api/twiml/redirect
-
-                    # "This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST."
-
-                    # <?xml version="1.0" encoding="UTF-8"?>
-                    # <Response>
-                    #   <Redirect method="GET">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
-                    # </Response>
-
-                    it "should redirect to the absolute url using a 'GET' request" do
-                      expect_call_status_update(:cassette => :redirect_with_get_url, :redirect_url => redirect_url, :redirect_method => alternate_redirect_method) do
-                        subject.run
-                      end
-                      last_request(:method).downcase.should == alternate_redirect_method
-                    end
-                  end
-                end
               end
             end
 
             context "relative url" do
               let(:relative_url) { "../relative_endpoint.xml" }
+
               let(:redirect_url) do
                 uri_with_authentication(URI.join(default_config[:voice_request_url], relative_url).to_s).to_s
               end
@@ -220,6 +176,88 @@ module Adhearsion
                   subject.run
                 end
                 last_request(:url).should == redirect_url
+              end
+            end
+
+            describe "Verb Attributes" do
+              # From: http://www.twilio.com/docs/api/twiml/redirect
+
+              # The <Redirect> verb supports the following attributes that modify its behavior:
+
+              # | Attribute Name | Allowed Values | Default Value |
+              # | method         | GET, POST      | POST          |
+
+              describe "'method'" do
+                # From: http://www.twilio.com/docs/api/twiml/redirect
+
+                # The 'method' attribute takes the value 'GET' or 'POST'.
+                # This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST.
+                # 'POST' is the default.
+
+                context "not supplied (Differs from Twilio)" do
+                  # From: http://www.twilio.com/docs/api/twiml/redirect
+
+                  # "'POST' is the default."
+
+                  # Note: The behaviour differs here from the behaviour or Twilio.
+                  # If the method is not given, it will default to
+                  # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
+
+                  before do
+                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                  end
+
+                  it "should redirect using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
+                    expect_call_status_update(:cassette => :redirect) do
+                      subject.run
+                    end
+                    last_request(:method).should == default_config[:voice_request_method].to_sym
+                  end
+                end
+
+                context "'GET'" do
+                  # From: http://www.twilio.com/docs/api/twiml/redirect
+
+                  # "This tells Twilio whether to request the <Redirect> URL via HTTP GET."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Redirect method="GET">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+                  # </Response>
+
+                  before do
+                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+                  end
+
+                  it "should redirect using a 'GET' request" do
+                    expect_call_status_update(:cassette => :redirect_with_method, :redirect_method => "get") do
+                      subject.run
+                    end
+                    last_request(:method).should == :get
+                  end
+                end
+
+                context "'POST'" do
+                  # From: http://www.twilio.com/docs/api/twiml/redirect
+
+                  # "This tells Twilio whether to request the <Redirect> URL via HTTP POST."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Redirect method="POST">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+                  # </Response>
+
+                  before do
+                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                  end
+
+                  it "should redirect using a 'POST' request" do
+                    expect_call_status_update(:cassette => :redirect_with_method, :redirect_method => "post") do
+                      subject.run
+                    end
+                    last_request(:method).should == :post
+                  end
+                end
               end
             end
           end
@@ -444,15 +482,12 @@ module Adhearsion
             describe "'loop'" do
               # From: http://www.twilio.com/docs/api/twiml/play
 
-              # "The 'loop' attribute specifies how many times the audio file is played.
+              # The 'loop' attribute specifies how many times the audio file is played.
               # The default behavior is to play the audio once.
-              # Specifying '0' will cause the the <Play> verb to loop until the call is hung up."
-
-              # | Attribute Name | Allowed Values | Default Value |
-              # | loop           | integer >= 0   | 1             |
+              # Specifying '0' will cause the the <Play> verb to loop until the call is hung up.
 
               context "not specified" do
-                # From: http://www.twilio.com/docs/api/twiml/dial
+                # From: http://www.twilio.com/docs/api/twiml/play
 
                 # "The default behavior is to play the audio once."
 
@@ -517,29 +552,15 @@ module Adhearsion
         describe "<Dial>" do
           # From: http://www.twilio.com/docs/api/twiml/dial
 
-          # "The <Dial> verb connects the current caller to another phone.
+          # The <Dial> verb connects the current caller to another phone.
           # If the called party picks up, the two parties are connected and can
           # communicate until one hangs up. If the called party does not pick up,
           # if a busy signal is received, or if the number doesn't exist,
-          # the dial verb will finish."
+          # the dial verb will finish.
 
-          # "When the dialed call ends, Twilio makes a GET or POST request
+          # When the dialed call ends, Twilio makes a GET or POST request
           # to the 'action' URL if provided.
-          # Call flow will continue using the TwiML received in response to that request."
-
-          # Verb Attributes
-
-          # The <Dial> verb supports the following attributes that modify its behavior:
-
-          # | Attribute    | Allowed Values                             | Default Value              |
-          # | action       | relative or absolute URL                   | no default action for Dial |
-          # | method       | GET, POST                                  | POST                       |
-          # | timeout      | positive integer                           | 30 seconds                 |
-          # | hangupOnStar | true, false                                | false                      |
-          # | timeLimit    | positive integer (seconds)                 | 14400 seconds (4 hours)    |
-          # | callerId     | a valid phone number, or client identifier | Caller's callerId          |
-          # |              | if you are dialing a <Client>.             |                            |
-          # | record       | true, false                                | false                      |
+          # Call flow will continue using the TwiML received in response to that request.
 
           def stub_dial_status(status)
             dial_status.stub(:result).and_return(status)
@@ -569,8 +590,6 @@ module Adhearsion
           describe "Nouns" do
             # From: http://www.twilio.com/docs/api/twiml/dial
 
-            # Nouns
-
             # "The "noun" of a TwiML verb is the stuff nested within the verb that's not a verb itself;
             # it's the stuff the verb acts upon. These are the nouns for <Dial>:"
 
@@ -588,7 +607,7 @@ module Adhearsion
             context "plain text" do
               it "should dial to the specified number" do
                 assert_dial
-                expect_call_status_update(:cassette => :dial_no_action, :to => number_to_dial) do
+                expect_call_status_update(:cassette => :dial, :to => number_to_dial) do
                   subject.run
                 end
               end
@@ -596,17 +615,49 @@ module Adhearsion
           end
 
           describe "Verb Attributes" do
+            # The <Dial> verb supports the following attributes that modify its behavior:
+
+            # | Attribute    | Allowed Values                             | Default Value              |
+            # | action       | relative or absolute URL                   | no default action for Dial |
+            # | method       | GET, POST                                  | POST                       |
+            # | timeout      | positive integer                           | 30 seconds                 |
+            # | hangupOnStar | true, false                                | false                      |
+            # | timeLimit    | positive integer (seconds)                 | 14400 seconds (4 hours)    |
+            # | callerId     | a valid phone number, or client identifier | Caller's callerId          |
+            # |              | if you are dialing a <Client>.             |                            |
+            # | record       | true, false                                | false                      |
+
             describe "'action'" do
+              # From: http://www.twilio.com/docs/api/twiml/dial
+
+              # The 'action' attribute takes a URL as an argument.
+              # When the dialed call ends, Twilio will make a GET or POST request to
+              # this URL including the parameters below.
+
+              # If you provide an 'action' URL, Twilio will continue the current call after
+              # the dialed party has hung up, using the TwiML received
+              # in your response to the 'action' URL request.
+              # Any TwiML verbs occurring after a which specifies
+              # an 'action' attribute are unreachable.
+
+              # If no 'action' is provided, <Dial> will finish and Twilio will move on
+              # to the next TwiML verb in the document. If there is no next verb,
+              # Twilio will end the phone call.
+              # Note that this is different from the behavior of <Record> and <Gather>.
+              # <Dial> does not make a request to the current document's URL by default
+              # if no 'action' URL is provided.
+              # Instead the call flow falls through to the next TwiML verb.
+
               context "not specified" do
                 # From: http://www.twilio.com/docs/api/twiml/dial
 
-                # "If no 'action' is provided, <Dial> will finish and Twilio will move on
+                # If no 'action' is provided, <Dial> will finish and Twilio will move on
                 # to the next TwiML verb in the document. If there is no next verb,
                 # Twilio will end the phone call.
                 # Note that this is different from the behavior of <Record> and <Gather>.
                 # <Dial> does not make a request to the current document's URL by default
                 # if no 'action' URL is provided.
-                # Instead the call flow falls through to the next TwiML verb."
+                # Instead the call flow falls through to the next TwiML verb.
 
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
@@ -616,7 +667,7 @@ module Adhearsion
 
                 it "should continue processing the twiml after the dial" do
                   subject.should_receive(:hangup)
-                  expect_call_status_update(:cassette => :dial_hangup_no_action, :to => number_to_dial) do
+                  expect_call_status_update(:cassette => :dial_hangup, :to => number_to_dial) do
                     subject.run
                   end
                 end
@@ -633,7 +684,7 @@ module Adhearsion
 
                   it "should hangup after the dial" do
                     subject.should_receive(:hangup)
-                    expect_call_status_update(:cassette => :dial_no_action, :to => number_to_dial) do
+                    expect_call_status_update(:cassette => :dial, :to => number_to_dial) do
                       subject.run
                     end
                   end
@@ -643,14 +694,14 @@ module Adhearsion
               context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/dial
 
-                # "The 'action' attribute takes a URL as an argument.
+                # The 'action' attribute takes a URL as an argument.
                 # When the dialed call ends, Twilio will make a GET or POST
                 # request to this URL including the parameters below.
 
-                # "If you provide an 'action' URL, Twilio will continue the current call
+                # If you provide an 'action' URL, Twilio will continue the current call
                 # after the dialed party has hung up, using the TwiML
                 # received in your response to the 'action' URL request.
-                # Any TwiML verbs occurring after a which specifies an 'action' attribute are unreachable."
+                # Any TwiML verbs occurring after a which specifies an 'action' attribute are unreachable.
 
                 # Request Parameters
 
@@ -688,19 +739,18 @@ module Adhearsion
 
                 def expect_call_status_update(options = {}, &block)
                   super({
-                    :cassette => :dial_hangup_with_action,
+                    :cassette => :dial_with_action_then_hangup,
                     :action => redirect_url}.merge(options), &block
                   )
                 end
 
-                it "should send a POST request to the 'action' param and stop continuing with the current TwiML" do
+                it "should redirect to the 'action' param and stop continuing with the current TwiML" do
                   subject.should_not_receive(:play_audio)
                   subject.should_receive(:hangup)
                   expect_call_status_update do
                     subject.run
                   end
                   last_request(:url).should == redirect_url
-                  last_request(:method).downcase.should == default_config[:voice_request_method]
                 end
 
                 context "Adhearsion::CallController::DialStatus#result returns" do
@@ -727,25 +777,90 @@ module Adhearsion
                     end
                   end
                 end
+              end
+            end
 
-                describe "'method'" do
-                  context "'GET'" do
-                    # From: http://www.twilio.com/docs/api/twiml/dial
+            describe "'method'" do
+              # From: http://www.twilio.com/docs/api/twiml/dial
 
-                    # <?xml version="1.0" encoding="UTF-8"?>
-                    # <Response>
-                    #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
-                    #     +415-123-4567
-                    #   </Dial>
-                    # </Response
+              # The 'method' attribute takes the value 'GET' or 'POST'.
+              # This tells Twilio whether to request the 'action' URL via HTTP GET or POST.
+              # This attribute is modeled after the HTML form 'method' attribute.
+              # 'POST' is the default value.
 
-                    it "should send a 'GET' request to the 'action' param" do
-                      expect_call_status_update(:cassette => :dial_with_get_action, :action_method => alternate_redirect_method) do
-                        subject.run
-                      end
-                      last_request(:method).downcase.should == alternate_redirect_method
-                    end
+              def expect_call_status_update(options = {}, &block)
+                super({
+                  :cassette => :dial_with_method,
+                  :action => redirect_url}.merge(options), &block
+                )
+              end
+
+              context "not specified (Differs from Twilio)" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # "'POST' is the default value."
+
+                # Note: The behaviour differs here from the behaviour or Twilio.
+                # If the method is not given, it will default to
+                # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
+
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                end
+
+                it "should send a request using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
+                  expect_call_status_update(:cassette => :dial_with_action_then_hangup) do
+                    subject.run
                   end
+                  last_request(:method).should == default_config[:voice_request_method].to_sym
+                end
+              end
+
+              context "'GET'" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # "This tells Twilio whether to request the 'action' URL via HTTP GET"
+
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
+                #     +415-123-4567
+                #   </Dial>
+                # </Response
+
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+                end
+
+                it "should send a 'GET' request to the 'action' param" do
+                  expect_call_status_update(:action_method => "get") do
+                    subject.run
+                  end
+                  last_request(:method).should == :get
+                end
+              end
+
+              context "'POST'" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # "This tells Twilio whether to request the 'action' URL via HTTP POST"
+
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="POST">
+                #     +415-123-4567
+                #   </Dial>
+                # </Response
+
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                end
+
+                it "should send a 'POST' request to the 'action' param" do
+                  expect_call_status_update(:action_method => "post") do
+                    subject.run
+                  end
+                  last_request(:method).should == :post
                 end
               end
             end
@@ -753,26 +868,26 @@ module Adhearsion
             describe "'callerId'" do
               # From: http://www.twilio.com/docs/api/twiml/dial
 
-              # "The 'callerId' attribute lets you specify the caller ID that will appear
+              # The 'callerId' attribute lets you specify the caller ID that will appear
               # to the called party when Twilio calls. By default,
               # when you put a <Dial> in your TwiML response to Twilio's inbound call request,
-              # the caller ID that the dialed party sees is the inbound caller's caller ID."
+              # the caller ID that the dialed party sees is the inbound caller's caller ID.
 
-              # "For example, an inbound caller to your Twilio number has the caller ID 1-415-123-4567.
+              # For example, an inbound caller to your Twilio number has the caller ID 1-415-123-4567.
               # You tell Twilio to execute a <Dial> verb to 1-858-987-6543 to handle the inbound call.
               # The called party (1-858-987-6543) will see 1-415-123-4567 as the caller ID
-              # on the incoming call."
+              # on the incoming call.
 
-              # "If you are dialing to a <Client>, you can set a client identifier
+              # If you are dialing to a <Client>, you can set a client identifier
               # as the callerId attribute. For instance, if you've set up a client
               # for incoming calls and you are dialing to it, you could set the callerId
-              # attribute to client:tommy."
+              # attribute to client:tommy.
 
-              # "If you are dialing a phone number from a Twilio Client connection,
-              # you must specify a valid phone number as the callerId or the call will fail."
+              # If you are dialing a phone number from a Twilio Client connection,
+              # you must specify a valid phone number as the callerId or the call will fail.
 
-              # "You are allowed to change the phone number that the called party
-              # sees to one of the following:"
+              # You are allowed to change the phone number that the called party
+              # sees to one of the following:
 
               # - either the 'To' or 'From' number provided in Twilio's TwiML request to your app
               # - any incoming phone number you have purchased from Twilio
@@ -806,7 +921,7 @@ module Adhearsion
 
                 it "should not dial with any callerId" do
                   assert_dial(:from => nil)
-                  expect_call_status_update(:cassette => :dial_no_action) do
+                  expect_call_status_update(:cassette => :dial) do
                     subject.run
                   end
                 end
@@ -816,13 +931,27 @@ module Adhearsion
             describe "'timeout'" do
               # From: http://www.twilio.com/docs/api/twiml/dial
 
-              # "The 'timeout' attribute sets the limit in seconds that <Dial>
+              # The 'timeout' attribute sets the limit in seconds that <Dial>
               # waits for the called party to answer the call.
               # Basically, how long should Twilio let the call ring before giving up and
-              # reporting 'no-answer' as the 'DialCallStatus'."
+              # reporting 'no-answer' as the 'DialCallStatus'.
 
               # | Attribute | Allowed Values   | Default Value |
               # | timeout   | positive integer | 30 seconds    |
+
+              context "not specified" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # | Attribute | Allowed Values   | Default Value |
+                # | timeout   | positive integer | 30 seconds    |
+
+                it "should dial with a timeout of 30.seconds" do
+                  assert_dial(:for => 30.seconds)
+                  expect_call_status_update(:cassette => :dial) do
+                    subject.run
+                  end
+                end
+              end
 
               context "specified" do
                 # <?xml version="1.0" encoding="UTF-8"?>
@@ -835,15 +964,6 @@ module Adhearsion
                 it "should dial with the specified 'timeout'" do
                   assert_dial(:for => timeout.to_i.seconds)
                   expect_call_status_update(:cassette => :dial_with_timeout, :timeout => timeout) do
-                    subject.run
-                  end
-                end
-              end
-
-              context "not specified" do
-                it "should dial with a timeout of 30.seconds" do
-                  assert_dial(:for => 30.seconds)
-                  expect_call_status_update(:cassette => :dial_no_action) do
                     subject.run
                   end
                 end
