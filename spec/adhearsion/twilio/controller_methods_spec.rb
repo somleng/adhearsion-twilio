@@ -207,6 +207,11 @@ module Adhearsion
                     ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
                   end
 
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   </Redirect>
+                  # </Response>
+
                   it "should redirect using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
                     expect_call_status_update(:cassette => :redirect) do
                       subject.run
@@ -220,14 +225,14 @@ module Adhearsion
 
                   # "This tells Twilio whether to request the <Redirect> URL via HTTP GET."
 
+                  before do
+                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+                  end
+
                   # <?xml version="1.0" encoding="UTF-8"?>
                   # <Response>
                   #   <Redirect method="GET">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
                   # </Response>
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
-                  end
 
                   it "should redirect using a 'GET' request" do
                     expect_call_status_update(:cassette => :redirect_with_method, :redirect_method => "get") do
@@ -242,14 +247,14 @@ module Adhearsion
 
                   # "This tells Twilio whether to request the <Redirect> URL via HTTP POST."
 
+                  before do
+                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                  end
+
                   # <?xml version="1.0" encoding="UTF-8"?>
                   # <Response>
                   #   <Redirect method="POST">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
                   # </Response>
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                  end
 
                   it "should redirect using a 'POST' request" do
                     expect_call_status_update(:cassette => :redirect_with_method, :redirect_method => "post") do
@@ -510,14 +515,14 @@ module Adhearsion
 
                   # "Specifying '0' will cause the the <Play> verb to loop until the call is hung up."
 
+                  before do
+                    stub_infinite_loop
+                  end
+
                   # <?xml version="1.0" encoding="UTF-8" ?>
                   # <Response>
                   #   <Play loop="0">http://api.twilio.com/cowbell.mp3</Play>
                   # </Response>
-
-                  before do
-                    stub_infinite_loop
-                  end
 
                   it "should keep playing the audio until the call is hung up" do
                     assert_playback(:loop => infinity)
@@ -605,6 +610,12 @@ module Adhearsion
             # |              | that this call should be connected to.                            |
 
             context "plain text" do
+
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Dial>+415-123-4567</Dial>
+              # </Response
+
               it "should dial to the specified number" do
                 assert_dial
                 expect_call_status_update(:cassette => :dial, :to => number_to_dial) do
@@ -731,18 +742,18 @@ module Adhearsion
                 # |           | a properly formatted but non-existent phone number.                       |
                 # | canceled  | The call was canceled via the REST API before it was answered.            |
 
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial action="http://localhost:3000/some_other_endpoint.xml">+415-123-4567</Dial>
-                #   <Play>foo.mp3</Play>
-                # </Response
-
                 def expect_call_status_update(options = {}, &block)
                   super({
                     :cassette => :dial_with_action_then_hangup,
                     :action => redirect_url}.merge(options), &block
                   )
                 end
+
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial action="http://localhost:3000/some_other_endpoint.xml">+415-123-4567</Dial>
+                #   <Play>foo.mp3</Play>
+                # </Response
 
                 it "should redirect to the 'action' param and stop continuing with the current TwiML" do
                   subject.should_not_receive(:play_audio)
@@ -767,6 +778,12 @@ module Adhearsion
                       before do
                         stub_dial_status(ahn_status)
                       end
+
+                      # <?xml version="1.0" encoding="UTF-8"?>
+                      # <Response>
+                      #   <Dial action="http://localhost:3000/some_other_endpoint.xml">+415-123-4567</Dial>
+                      #   <Play>foo.mp3</Play>
+                      # </Response
 
                       it "should post a DialCallStatus of '#{twilio_status}'" do
                         expect_call_status_update do
@@ -808,6 +825,13 @@ module Adhearsion
                   ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
                 end
 
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial action="http://localhost:3000/some_other_endpoint.xml">
+                #     +415-123-4567
+                #   </Dial>
+                # </Response
+
                 it "should send a request using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
                   expect_call_status_update(:cassette => :dial_with_action_then_hangup) do
                     subject.run
@@ -821,16 +845,16 @@ module Adhearsion
 
                 # "This tells Twilio whether to request the 'action' URL via HTTP GET"
 
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+                end
+
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
                 #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
                 #     +415-123-4567
                 #   </Dial>
                 # </Response
-
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
-                end
 
                 it "should send a 'GET' request to the 'action' param" do
                   expect_call_status_update(:action_method => "get") do
@@ -845,16 +869,16 @@ module Adhearsion
 
                 # "This tells Twilio whether to request the 'action' URL via HTTP POST"
 
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                end
+
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
                 #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="POST">
                 #     +415-123-4567
                 #   </Dial>
                 # </Response
-
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                end
 
                 it "should send a 'POST' request to the 'action' param" do
                   expect_call_status_update(:action_method => "post") do
@@ -897,23 +921,13 @@ module Adhearsion
               # | callerId  | a valid phone number, or client identifier | Caller's callerId |
               # |           | if you are dialing a <Client>.             |                   |
 
-              context "specified" do
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial callerId="2442">+415-123-4567</Dial>
-                # </Response
-
-                let(:caller_id) { "2442" }
-
-                it "should dial from the specified 'callerId'" do
-                  assert_dial(:from => caller_id)
-                  expect_call_status_update(:cassette => :dial_with_caller_id, :caller_id => caller_id) do
-                    subject.run
-                  end
-                end
-              end
-
               context "not specified" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # "By default, when you put a <Dial> in your TwiML response to Twilio's
+                # inbound call request, the caller ID that the dialed party sees
+                # is the inbound caller's caller ID."
+
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
                 #   <Dial>+415-123-4567</Dial>
@@ -922,6 +936,31 @@ module Adhearsion
                 it "should not dial with any callerId" do
                   assert_dial(:from => nil)
                   expect_call_status_update(:cassette => :dial) do
+                    subject.run
+                  end
+                end
+              end
+
+              context "specified" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # You are allowed to change the phone number that the called party
+                # sees to one of the following:
+
+                # - either the 'To' or 'From' number provided in Twilio's TwiML request to your app
+                # - any incoming phone number you have purchased from Twilio
+                # - any phone number you have verified with Twilio
+
+                let(:caller_id) { "2442" }
+
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial callerId="2442">+415-123-4567</Dial>
+                # </Response
+
+                it "should dial from the specified 'callerId'" do
+                  assert_dial(:from => caller_id)
+                  expect_call_status_update(:cassette => :dial_with_caller_id, :caller_id => caller_id) do
                     subject.run
                   end
                 end
@@ -945,6 +984,11 @@ module Adhearsion
                 # | Attribute | Allowed Values   | Default Value |
                 # | timeout   | positive integer | 30 seconds    |
 
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Dial>+415-123-4567</Dial>
+                # </Response
+
                 it "should dial with a timeout of 30.seconds" do
                   assert_dial(:for => 30.seconds)
                   expect_call_status_update(:cassette => :dial) do
@@ -954,12 +998,12 @@ module Adhearsion
               end
 
               context "specified" do
+                let(:timeout) { "10" }
+
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
                 #   <Dial timeout="10">+415-123-4567</Dial>
                 # </Response
-
-                let(:timeout) { "10" }
 
                 it "should dial with the specified 'timeout'" do
                   assert_dial(:for => timeout.to_i.seconds)
