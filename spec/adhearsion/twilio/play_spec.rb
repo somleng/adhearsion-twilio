@@ -13,14 +13,9 @@ module Adhearsion
           # Twilio retrieves the file from a URL that you provide."
 
           let(:file_url) { "http://api.twilio.com/cowbell.mp3" }
-          let(:infinity) { 20 }
 
           def expect_call_status_update(options = {}, &block)
             super({:file_url => file_url}.merge(options), &block)
-          end
-
-          def stub_infinite_loop
-            subject.stub(:loop).and_return(infinity.times)
           end
 
           def assert_playback(options = {})

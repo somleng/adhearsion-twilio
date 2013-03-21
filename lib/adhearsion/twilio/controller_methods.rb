@@ -79,7 +79,9 @@ module Adhearsion
         params = {}
         voice = options["voice"].to_s.downcase == "woman" ? config.default_female_voice : config.default_male_voice
         params[:voice] = voice if voice
-        say(words, params)
+        with_twilio_loop(options) do
+          say(words, params)
+        end
       end
 
       def twilio_dial(to, options = {})
@@ -104,7 +106,7 @@ module Adhearsion
       end
 
       def twilio_play(path, options = {})
-        (options["loop"].to_s == "0" ? loop : (options["loop"] || 1).to_i.times).each do
+        with_twilio_loop(options) do
           play_audio(path, :renderer => :native)
         end
       end
@@ -119,6 +121,12 @@ module Adhearsion
 
       def redirect(url = nil, options = {})
         execute_twiml(notify_status(url, options))
+      end
+
+      def with_twilio_loop(options, &block)
+        (options["loop"].to_s == "0" ? loop : (options["loop"] || 1).to_i.times).each do
+          yield
+        end
       end
 
       def normalize_options(options)

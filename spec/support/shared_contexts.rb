@@ -36,9 +36,15 @@ shared_context 'twilio' do
     uri_with_authentication("http://localhost:3000/some_other_endpoint.xml").to_s
   end
 
+  let(:infinity) { 20 }
+
   before do
     subject.stub(:hangup)
     call.stub(:alive?)
+  end
+
+  def stub_infinite_loop
+    subject.stub(:loop).and_return(infinity.times)
   end
 
   def default_config

@@ -1,0 +1,38 @@
+---
+http_interactions:
+- request:
+    method: <%=method%>
+    uri: <%=url%>
+    body:
+      encoding: US-ASCII
+      string: From=%2B1000&To=%2B85512456789&CallSid=5460696c-8cb4-11e2-99cd-1f3f1cd7995c&CallStatus=in-progress
+    headers:
+      authorization:
+      - Basic <%= Base64.encode64("#{user}:#{password}").gsub(/\s/, "") %>
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      content-type:
+      - application/xml; charset=utf-8
+      x-ua-compatible:
+      - IE=Edge
+      etag:
+      - ! '"afa93b579fb322c8e700305a8c4cb2d8"'
+      cache-control:
+      - max-age=0, private, must-revalidate
+      x-request-id:
+      - bad9832bc20ba4c85e2dbd0e74997513
+      x-runtime:
+      - '1.399996'
+      connection:
+      - close
+      server:
+      - thin 1.5.0 codename Knife
+    body:
+      encoding: US-ASCII
+      string: <?xml version="1.0" encoding="UTF-8"?><Response><Say language=<%="\"#{language}\""%>><%=words%></Say></Response>
+    http_version: '1.1'
+  recorded_at: Thu, 14 Mar 2013 15:01:49 GMT
+recorded_with: VCR 2.4.0
