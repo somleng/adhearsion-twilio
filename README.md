@@ -56,7 +56,7 @@ The redirect method will post to your server at `voice_request_url` then execute
 
 ## Documentation
 
-[Read the specification](https://github.com/dwilkie/adhearsion-twilio/blob/master/spec/adhearsion/twilio/controller_methods_spec.rb#L100)
+Read [the specs](https://github.com/dwilkie/adhearsion-twilio/tree/master/spec/adhearsion/twilio). Each spec contains a TwiML examples for each Verb Attribute and Noun along with the relevant documentation from Twilio.
 
 ## Already Implemented
 
