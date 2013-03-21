@@ -148,7 +148,7 @@ module Adhearsion
               # <Response>
               #   <Gather>
               #     <Play>
-              #       Please enter your account number, followed by the pound sign
+              #       http://api.twilio.com/cowbell.mp3
               #     </Play>
               #   </Gather>
               # </Response>
