@@ -144,6 +144,10 @@ module Adhearsion
               # We also add a nested <Play> verb.
               # This means that input can be gathered at any time during <Play>."
 
+              def expect_call_status_update(options = {}, &block)
+                super({:file_url => file_url}.merge(options), &block)
+              end
+
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Gather>
@@ -152,6 +156,77 @@ module Adhearsion
               #     </Play>
               #   </Gather>
               # </Response>
+
+              it "should ask by playing the file specified in <Play>" do
+                assert_ask(:output => file_url)
+                expect_call_status_update(:cassette => :gather_play) do
+                  subject.run
+                end
+              end
+
+              describe "Verb Attributes" do
+                # From: http://www.twilio.com/docs/api/twiml/play
+
+                # The <Play> verb supports the following attributes that modify its behavior:
+
+                # | Attribute Name | Allowed Values | Default Value |
+                # | loop           | integer >= 0   | 1             |
+
+                describe "'loop'" do
+                  # From: http://www.twilio.com/docs/api/twiml/play
+
+                  # The 'loop' attribute specifies how many times the audio file is played.
+                  # The default behavior is to play the audio once.
+                  # Specifying '0' will cause the the <Play> verb to loop until the call is hung up.
+
+                  context "specified" do
+                    context "'0' (Differs from Twilio)" do
+                      # From: http://www.twilio.com/docs/api/twiml/play
+
+                      # "Specifying '0' will cause the the <Play> verb to loop until the call is hung up."
+
+                      # Note this behaviour is different from Twilio
+                      # If there is a <Play> with an infinite loop nested within a <Gather>
+                      # adhearsion-twilio will try to play the file a maximum of 100 times
+
+                      # <?xml version="1.0" encoding="UTF-8" ?>
+                      # <Response>
+                      #   <Gather>
+                      #     <Play loop="0">http://api.twilio.com/cowbell.mp3</Play>
+                      #   </Gather>
+                      # </Response>
+
+                      it "should repeat asking 100 times using the audio specified" do
+                        assert_ask(:output => file_url, :loop => 100)
+                        expect_call_status_update(:cassette => :gather_play_with_loop, :loop => "0") do
+                          subject.run
+                        end
+                      end
+                    end # context "'0'"
+
+                    context "'5'" do
+                      # From: http://www.twilio.com/docs/api/twiml/play
+
+                      # "The 'loop' attribute specifies how many times the audio file is played."
+
+                      # <?xml version="1.0" encoding="UTF-8" ?>
+                      # <Response>
+                      #   <Gather>
+                      #     <Play loop="5">http://api.twilio.com/cowbell.mp3</Play>
+                      #   </Gather>
+                      # </Response>
+
+                      it "should repeat asking 5 times using the audion specified" do
+                        assert_ask(:output => file_url, :loop => 5)
+                        expect_call_status_update(:cassette => :gather_play_with_loop, :loop => "5") do
+                          subject.run
+                        end
+                      end
+                    end # context "'5'"
+                  end # context "specified"
+                end # describe "'loop'"
+              end # describe "Verb Attributes"
+
             end # context "<Play>"
 
             context "<Pause>" do

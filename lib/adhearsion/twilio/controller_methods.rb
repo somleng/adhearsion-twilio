@@ -113,6 +113,10 @@ module Adhearsion
         params
       end
 
+      def options_for_twilio_play(options = {})
+        {}
+      end
+
       def twilio_dial(to, options = {})
         params = {}
         params[:from] = options["callerId"] if options["callerId"]

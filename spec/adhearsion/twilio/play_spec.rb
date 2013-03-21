@@ -12,8 +12,6 @@ module Adhearsion
           # "The <Play> verb plays an audio file back to the caller.
           # Twilio retrieves the file from a URL that you provide."
 
-          let(:file_url) { "http://api.twilio.com/cowbell.mp3" }
-
           def expect_call_status_update(options = {}, &block)
             super({:file_url => file_url}.merge(options), &block)
           end
@@ -64,8 +62,8 @@ module Adhearsion
                   subject.run
                 end
               end
-            end
-          end
+            end # context "plain text"
+          end # describe "Nouns"
 
           describe "Verb Attributes" do
             # From: http://www.twilio.com/docs/api/twiml/play
@@ -98,7 +96,7 @@ module Adhearsion
                     subject.run
                   end
                 end
-              end
+              end # context "not specified"
 
               context "specified" do
                 context "'0'" do
@@ -121,7 +119,7 @@ module Adhearsion
                       subject.run
                     end
                   end
-                end
+                end # context "'0'"
 
                 context "'5'" do
                   # From: http://www.twilio.com/docs/api/twiml/play
@@ -139,12 +137,12 @@ module Adhearsion
                       subject.run
                     end
                   end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-end
+                end # context "'5'"
+              end # context "specified"
+            end # describe "'loop'"
+          end # describe "Verb Attributes"
+        end # describe "<Play>"
+      end # describe "mixed in to a CallController"
+    end # describe "ControllerMethods"
+  end # module Twilio
+end # module Adhearsion

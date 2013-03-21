@@ -38,6 +38,7 @@ shared_context 'twilio' do
 
   let(:infinity) { 20 }
   let(:words) { "Hello World" }
+  let(:file_url) { "http://api.twilio.com/cowbell.mp3" }
 
   before do
     subject.stub(:hangup)
