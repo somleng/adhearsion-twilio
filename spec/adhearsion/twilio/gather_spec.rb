@@ -25,7 +25,6 @@ module Adhearsion
           def assert_ask(options = {})
             if output = options.delete(:output)
               loop = options.delete(:loop) || 1
-              loop = 100 if loop == 0
               ask_args = Array.new(loop, output)
             else
               ask_args = [nil]
@@ -108,7 +107,7 @@ module Adhearsion
                       # </Response>
 
                       it "should repeat asking 100 times using the words specified in <Say>" do
-                        assert_ask(:output => words, :loop => 0, :voice => default_config[:default_male_voice])
+                        assert_ask(:output => words, :loop => 100, :voice => default_config[:default_male_voice])
                         expect_call_status_update(:cassette => :gather_say_with_loop, :loop => "0") do
                           subject.run
                         end
