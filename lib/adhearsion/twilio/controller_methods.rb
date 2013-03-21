@@ -102,7 +102,7 @@ module Adhearsion
       def twilio_say(words, options = {})
         params = options_for_twilio_say(options)
         twilio_loop(options).each do
-          say(words, options)
+          say(words, params)
         end
       end
 
