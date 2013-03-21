@@ -63,6 +63,7 @@ Read [the specs](https://github.com/dwilkie/adhearsion-twilio/tree/master/spec/a
 The following verbs have been already implemented:
 
 * Play
+* Say
 * Dial
     * Number
 * Redirect
@@ -77,7 +78,6 @@ The following verbs are not yet fully implemented:
     * Client
     * Conference
     * Queue
-* Say
 * Gather
 * Record
 * SMS
