@@ -58,7 +58,7 @@ module Adhearsion
                   subject.run
                 end
               end
-            end
+            end # context "none"
 
             context "<Say>" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -91,7 +91,7 @@ module Adhearsion
               context "Verb Attributes" do
                 context "'loop'" do
                   context "specified" do
-                    context '0 (Differs from Twilio)' do
+                    context "'0' (Differs from Twilio)" do
 
                       # Note this behaviour is different from Twilio
                       # If there is a say with an infinite loop nested within a <Gather>
@@ -112,7 +112,7 @@ module Adhearsion
                           subject.run
                         end
                       end
-                    end
+                    end # context "'0' (Differs from Twilio)"
 
                     context "'5'" do
                       # <?xml version="1.0" encoding="UTF-8"?>
@@ -130,11 +130,11 @@ module Adhearsion
                           subject.run
                         end
                       end
-                    end
-                  end
-                end
-              end
-            end
+                    end # context "'5'"
+                  end # context "specified"
+                end # context "'loop'"
+              end # context "Verb Attributes"
+            end # context "<Say>"
 
             context "<Play>" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -152,11 +152,11 @@ module Adhearsion
               #     </Play>
               #   </Gather>
               # </Response>
-            end
+            end # context "<Play>"
 
             context "<Pause>" do
-            end
-          end
+            end # context "<Pause>"
+          end # content "Nested Verbs"
 
           describe "Verb Attributes" do
             # From: http://www.twilio.com/docs/api/twiml/gather
@@ -210,7 +210,7 @@ module Adhearsion
                 # <Response>
                 #   <Gather/>
                 # </Response>
-              end
+              end # context "not specified"
 
               context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
@@ -222,7 +222,7 @@ module Adhearsion
 
                   # "Any TwiML verbs occuring after a <Gather> are unreachable,
                   # unless the caller enters no digits."
-                end
+                end # context "no timeout"
 
                 context "timeout" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
@@ -231,7 +231,7 @@ module Adhearsion
                   # Twilio will not make a request to the 'action' URL but instead
                   # continue processing the current TwiML document with the verb immediately
                   # following the <Gather>."
-                end
+                end # context "timeout"
 
                 context "finishOnKey pressed" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
@@ -240,7 +240,7 @@ module Adhearsion
                   # Twilio will not make a request to the 'action' URL but instead
                   # continue processing the current TwiML document with the verb immediately
                   # following the <Gather>.
-                end
+                end # context "finishOnKey"
 
                 context "absolute url" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
@@ -251,7 +251,7 @@ module Adhearsion
                   # <Response>
                   #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
                   # </Response>
-                end
+                end # context "absolute url"
 
                 context "relative url" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
@@ -262,9 +262,9 @@ module Adhearsion
                   # <Response>
                   #   <Gather action="../relative_endpoint.xml"/>
                   # </Response>
-                end
-              end
-            end
+                end # context "relative url"
+              end # context "specified"
+            end # describe "'action'"
 
             describe "'method'" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -291,7 +291,7 @@ module Adhearsion
                 # <Response>
                 #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
                 # </Response>
-              end
+              end # context "not specified (Differs from Twilio)"
 
               context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
@@ -310,7 +310,7 @@ module Adhearsion
                   # <Response>
                   #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="GET"/>
                   # </Response>
-                end
+                end # context "'GET'"
 
                 context "'POST'" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
@@ -325,9 +325,9 @@ module Adhearsion
                   # <Response>
                   #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="POST"/>
                   # </Response>
-                end
-              end
-            end
+                end # context "'POST'"
+              end # context "specified"
+            end # describe "'method'"
 
             describe "'timeout'" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -351,7 +351,7 @@ module Adhearsion
                 # <Response>
                 #   <Gather/>
                 # </Response>
-              end
+              end # context "not specified"
 
               context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
@@ -371,9 +371,9 @@ module Adhearsion
                   # <Response>
                   #   <Gather timeout="10"/>
                   # </Response>
-                end
-              end
-            end
+                end # context "'10'"
+              end # context "specified"
+            end # describe "'timeout'"
 
             describe "'finishOnKey'" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -391,111 +391,111 @@ module Adhearsion
               # In this case Twilio will submit the entered digits to the 'action' URL only
               # after the timeout has been reached.
               # The default 'finishOnKey' value is '#'. The value can only be a single character.
-            end
 
-            context "not specified" do
-              # From: http://www.twilio.com/docs/api/twiml/gather
-
-              # | Attribute Name | Allowed Values           | Default Value        |
-              # | finishOnKey    | any digit, #, *          | #                    |
-
-              # "The default 'finishOnKey' value is '#'."
-
-              # "For example, if you set 'finishOnKey' to '#' and the user enters '1234#',
-              # Twilio will immediately stop waiting for more input when the '#' is received
-              # and will submit "Digits=1234" to the 'action' URL."
-
-              # <?xml version="1.0" encoding="UTF-8"?>
-              # <Response>
-              #   <Gather/>
-              # </Response>
-            end
-
-            context "specified" do
-              # From: http://www.twilio.com/docs/api/twiml/gather
-
-              # "The 'finishOnKey' attribute lets you choose one value that submits
-              # the received data when entered."
-
-              context "'empty string'" do
-                # From: http://www.twilio.com/docs/api/twiml/gather
-
-                # "(set 'finishOnKey' to '')"
-
-                # "If the empty string is used, <Gather> captures all input and no key will
-                # end the <Gather> when pressed.
-                # In this case Twilio will submit the entered digits to the 'action' URL only
-                # after the timeout has been reached."
-
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Gather finishOnKey=""/>
-                # </Response>
-              end
-
-              context "'*'" do
+              context "not specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
 
                 # | Attribute Name | Allowed Values           | Default Value        |
                 # | finishOnKey    | any digit, #, *          | #                    |
 
-                # "The allowed values are '*'."
+                # "The default 'finishOnKey' value is '#'."
 
-                # "For example, if you set 'finishOnKey' to '*' and the user enters '1234*',
-                # Twilio will immediately stop waiting for more input when the '*' is received
+                # "For example, if you set 'finishOnKey' to '#' and the user enters '1234#',
+                # Twilio will immediately stop waiting for more input when the '#' is received
                 # and will submit "Digits=1234" to the 'action' URL."
 
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
-                #   <Gather finishOnKey="*"/>
+                #   <Gather/>
                 # </Response>
-              end
-            end
-          end
+              end # context "not specified"
 
-          describe "'numDigits'" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
-
-            # The 'numDigits' attribute lets you set the number of digits you are expecting,
-            # and submits the data to the 'action' URL once the caller enters that number of digits.
-            # For example, one might set 'numDigits' to '5' and ask the caller
-            # to enter a 5 digit zip code. When the caller enters the fifth digit of '94117',
-            # Twilio will immediately submit the data to the 'action' URL.
-
-            context "not specified" do
-              # From: http://www.twilio.com/docs/api/twiml/gather
-
-              # | Attribute Name | Allowed Values           | Default Value        |
-              # | numDigits      | integer >= 1             | unlimited            |
-
-              # <?xml version="1.0" encoding="UTF-8"?>
-              # <Response>
-              #   <Gather/>
-              # </Response>
-            end
-
-            context "specified" do
-              # From: http://www.twilio.com/docs/api/twiml/gather
-
-              # "The 'numDigits' attribute lets you set the number of digits you are expecting,
-              # and submits the data to the 'action' URL once the caller enters that number of digits."
-
-              context "'5'" do
+              context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
 
-                # "For example, one might set 'numDigits' to '5' and ask the caller
-                # to enter a 5 digit zip code. When the caller enters the fifth digit of '94117',
-                # Twilio will immediately submit the data to the 'action' URL."
+                # "The 'finishOnKey' attribute lets you choose one value that submits
+                # the received data when entered."
+
+                context "empty string" do
+                  # From: http://www.twilio.com/docs/api/twiml/gather
+
+                  # "(set 'finishOnKey' to '')"
+
+                  # "If the empty string is used, <Gather> captures all input and no key will
+                  # end the <Gather> when pressed.
+                  # In this case Twilio will submit the entered digits to the 'action' URL only
+                  # after the timeout has been reached."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Gather finishOnKey=""/>
+                  # </Response>
+                end # context "empty string"
+
+                context "'*'" do
+                  # From: http://www.twilio.com/docs/api/twiml/gather
+
+                  # | Attribute Name | Allowed Values           | Default Value        |
+                  # | finishOnKey    | any digit, #, *          | #                    |
+
+                  # "The allowed values are '*'."
+
+                  # "For example, if you set 'finishOnKey' to '*' and the user enters '1234*',
+                  # Twilio will immediately stop waiting for more input when the '*' is received
+                  # and will submit "Digits=1234" to the 'action' URL."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Gather finishOnKey="*"/>
+                  # </Response>
+                end # context "'*'"
+              end # context "specified"
+            end # describe "'finishOnKey'"
+
+            describe "'numDigits'" do
+              # From: http://www.twilio.com/docs/api/twiml/gather
+
+              # The 'numDigits' attribute lets you set the number of digits you are expecting,
+              # and submits the data to the 'action' URL once the caller enters that number of digits.
+              # For example, one might set 'numDigits' to '5' and ask the caller
+              # to enter a 5 digit zip code. When the caller enters the fifth digit of '94117',
+              # Twilio will immediately submit the data to the 'action' URL.
+
+              context "not specified" do
+                # From: http://www.twilio.com/docs/api/twiml/gather
+
+                # | Attribute Name | Allowed Values           | Default Value        |
+                # | numDigits      | integer >= 1             | unlimited            |
 
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
-                #   <Gather numDigits="5"/>
+                #   <Gather/>
                 # </Response>
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-end
+              end # context "not specified"
+
+              context "specified" do
+                # From: http://www.twilio.com/docs/api/twiml/gather
+
+                # "The 'numDigits' attribute lets you set the number of digits you are expecting,
+                # and submits the data to the 'action' URL once the caller enters that number of digits."
+
+                context "'5'" do
+                  # From: http://www.twilio.com/docs/api/twiml/gather
+
+                  # "For example, one might set 'numDigits' to '5' and ask the caller
+                  # to enter a 5 digit zip code. When the caller enters the fifth digit of '94117',
+                  # Twilio will immediately submit the data to the 'action' URL."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Gather numDigits="5"/>
+                  # </Response>
+                end # context "'5'"
+              end # context "specified"
+            end # describe "'numDigits'"
+          end # describe "Verb Attributes"
+        end # describe "<Gather>"
+      end # describe "mixed in to a CallController"
+    end # describe "ControllerMethods"
+  end # module Twilio
+end # module Adhearsion
