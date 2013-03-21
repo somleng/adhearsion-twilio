@@ -37,10 +37,16 @@ shared_context 'twilio' do
   end
 
   let(:infinity) { 20 }
+  let(:words) { "Hello World" }
 
   before do
     subject.stub(:hangup)
     call.stub(:alive?)
+  end
+
+  def set_default_voices
+    ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"] = "default_male_voice"
+    ENV["AHN_TWILIO_DEFAULT_FEMALE_VOICE"] = "default_female_voice"
   end
 
   def stub_infinite_loop

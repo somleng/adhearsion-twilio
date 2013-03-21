@@ -12,8 +12,6 @@ module Adhearsion
           # The <Say> verb converts text to speech that is read back to the caller.
           # <Say> is useful for development or saying dynamic text that is difficult to pre-record.
 
-          let(:words) { "Hello World" }
-
           def expect_call_status_update(options = {}, &block)
             super({:words => words}.merge(options), &block)
           end
@@ -76,8 +74,7 @@ module Adhearsion
               # | voice          | man, woman     | man           |
 
               before do
-                ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"] = "default_male_voice"
-                ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"] = "default_female_voice"
+                set_default_voices
               end
 
               shared_examples_for "a male voice" do

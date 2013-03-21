@@ -10,6 +10,7 @@ module Adhearsion
       }
 
       ELEMENT_CONTENT_KEY = "__content__"
+      INFINITY = 100
 
       private
 
@@ -42,16 +43,18 @@ module Adhearsion
           :basic_auth => {
             :username => username, :password => password
           }
-        )["Response"]
+        ).body
       end
 
       def execute_twiml(response)
-        with_twiml(response) do |verb, content, options, next_verb|
-          case verb
+        with_twiml(response) do |node, next_node|
+          content = node.content
+          options = twilio_options(node)
+          case node.name
           when 'Play'
             twilio_play(content, options)
           when 'Gather'
-            not_yet_supported!
+            twilio_gather(node, options)
           when 'Redirect'
             redirect(content, options)
           when 'Hangup'
@@ -65,7 +68,7 @@ module Adhearsion
           when 'Dial'
             if twilio_dial(content, options)
               # continue
-              hangup unless next_verb
+              hangup unless next_node
             else
               break
             end
@@ -75,13 +78,39 @@ module Adhearsion
         end
       end
 
+      def twilio_gather(node, options = {})
+        ask_params = []
+        ask_options = {}
+
+        node.children.each do |nested_verb_node|
+          verb = nested_verb_node.name
+          raise(
+            ArgumentError,
+            "Nested verb '<#{verb}>' not allowed within '<#{node.name}>'"
+          ) unless ["Say", "Play", "Pause"].include?(verb)
+
+          nested_verb_options = twilio_options(nested_verb_node)
+          output_count = twilio_loop(nested_verb_options, :finite => true).count
+          ask_options.merge!(send("options_for_twilio_#{verb.downcase}", nested_verb_options))
+          ask_params << Array.new(output_count, nested_verb_node.content)
+        end
+
+        ask_params << nil if ask_params.empty?
+        ask(*ask_params.flatten, ask_options.merge(:terminator => "#", :timeout => 5.seconds))
+      end
+
       def twilio_say(words, options = {})
+        params = options_for_twilio_say(options)
+        twilio_loop(options).each do
+          say(words, options)
+        end
+      end
+
+      def options_for_twilio_say(options = {})
         params = {}
         voice = options["voice"].to_s.downcase == "woman" ? config.default_female_voice : config.default_male_voice
         params[:voice] = voice if voice
-        with_twilio_loop(options) do
-          say(words, params)
-        end
+        params
       end
 
       def twilio_dial(to, options = {})
@@ -97,8 +126,7 @@ module Adhearsion
           continue = false
           redirect(
             options["action"],
-            "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status],
-            "method" => options["method"]
+            "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status], "method" => options["method"]
           )
         end
 
@@ -106,16 +134,22 @@ module Adhearsion
       end
 
       def twilio_play(path, options = {})
-        with_twilio_loop(options) do
+        twilio_loop(options).each do
           play_audio(path, :renderer => :native)
         end
       end
 
+      def parse_twiml(xml)
+        doc = ::Nokogiri::XML(xml)
+        raise doc.errors.first if doc.errors.length > 0
+        raise(ArgumentError, "The root element must be the '<Response>' element") unless doc.root.name == "Response"
+        doc.root.children
+      end
+
       def with_twiml(raw_response, &block)
-        raise(ArgumentError, "The root element must be the '<Response>' element") unless raw_response
-        raw_response.each_with_index do |(verb, options), index|
-          options = normalize_options(options)
-          yield verb, options.delete(ELEMENT_CONTENT_KEY), options, raw_response[index + 1]
+        doc = parse_twiml(raw_response)
+        doc.each_with_index do |node, index|
+          yield node, doc[index + 1]
         end
       end
 
@@ -123,14 +157,17 @@ module Adhearsion
         execute_twiml(notify_status(url, options))
       end
 
-      def with_twilio_loop(options, &block)
-        (options["loop"].to_s == "0" ? loop : (options["loop"] || 1).to_i.times).each do
-          yield
-        end
+      def twilio_loop(twilio_options, options = {})
+        infinite_loop = options.delete(:finite) ? INFINITY.times : loop
+        twilio_options["loop"].to_s == "0" ? infinite_loop : (twilio_options["loop"] || 1).to_i.times
       end
 
-      def normalize_options(options)
-        options.is_a?(Hash) ? options : {ELEMENT_CONTENT_KEY => options}
+      def twilio_options(node)
+        options = {}
+        node.attributes.each do |key, attribute|
+          options[key] = attribute.value
+        end
+        options
       end
 
       def normalized_from

@@ -22,6 +22,18 @@ module Adhearsion
           # while letting her enter a menu selection at any time.
           # After the first digit is received the audio will stop playing.
 
+          def assert_ask(options = {})
+            if output = options.delete(:output)
+              loop = options.delete(:loop) || 1
+              loop = 100 if loop == 0
+              ask_args = Array.new(loop, output)
+            else
+              ask_args = [nil]
+            end
+
+            subject.should_receive(:ask).with(*ask_args, options.merge(:terminator => "#", :timeout => 5.seconds))
+          end
+
           describe "Nested Verbs" do
             context "none" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -30,10 +42,23 @@ module Adhearsion
               # When Twilio executes this TwiML the application will pause for up to five seconds,
               # waiting for the caller to enter digits on her keypad.
 
+              # The <Gather> verb supports the following attributes that modify its behavior:
+
+              # | Attribute Name | Allowed Values           | Default Value        |
+              # | timeout        | positive integer         | 5 seconds            |
+              # | finishOnKey    | any digit, #, *          | #                    |
+
               # <?xml version="1.0" encoding="UTF-8" ?>
               # <Response>
               #   <Gather/>
               # </Response>
+
+              it "should ask with a timeout of 5 seconds and a terminator of '#'" do
+                assert_ask
+                expect_call_status_update(:cassette => :gather) do
+                  subject.run
+                end
+              end
             end
 
             context "<Say>" do
@@ -44,14 +69,72 @@ module Adhearsion
               # We also add a nested <Say> verb.
               # This means that input can be gathered at any time during <Say>."
 
+              before do
+                set_default_voices
+              end
+
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Gather>
-              #     <Say>
-              #       Please enter your account number, followed by the pound sign
+              #     <Say voice="woman", language="de">
+              #       Hello World
               #     </Say>
               #   </Gather>
               # </Response>
+
+              it "should ask using the words specified in <Say>" do
+                assert_ask(:output => words, :voice => default_config[:default_female_voice])
+                expect_call_status_update(:cassette => :gather_say, :language => "de", :voice => "woman") do
+                  subject.run
+                end
+              end
+
+              context "Verb Attributes" do
+                context "'loop'" do
+                  context "specified" do
+                    context '0 (Differs from Twilio)' do
+
+                      # Note this behaviour is different from Twilio
+                      # If there is a say with an infinite loop nested within a <Gather>
+                      # adhearsion-twilio will try to ask for the input a maximum of 100 times
+
+                      # <?xml version="1.0" encoding="UTF-8"?>
+                      # <Response>
+                      #   <Gather>
+                      #     <Say loop="0">
+                      #       Hello World
+                      #     </Say>
+                      #   </Gather>
+                      # </Response>
+
+                      it "should repeat asking 100 times using the words specified in <Say>" do
+                        assert_ask(:output => words, :loop => 0, :voice => default_config[:default_male_voice])
+                        expect_call_status_update(:cassette => :gather_say_with_loop, :loop => "0") do
+                          subject.run
+                        end
+                      end
+                    end
+
+                    context "'5'" do
+                      # <?xml version="1.0" encoding="UTF-8"?>
+                      # <Response>
+                      #   <Gather>
+                      #     <Say loop="5">
+                      #       Hello World
+                      #     </Say>
+                      #   </Gather>
+                      # </Response>
+
+                      it "should repeat asking 5 times using the words specified in <Say>" do
+                        assert_ask(:output => words, :loop => 5, :voice => default_config[:default_male_voice])
+                        expect_call_status_update(:cassette => :gather_say_with_loop, :loop => "5") do
+                          subject.run
+                        end
+                      end
+                    end
+                  end
+                end
+              end
             end
 
             context "<Play>" do
