@@ -403,17 +403,19 @@ module Adhearsion
                 # - any incoming phone number you have purchased from Twilio
                 # - any phone number you have verified with Twilio
 
-                let(:caller_id) { "2442" }
+                context "'2442'" do
+                  let(:caller_id) { "2442" }
 
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial callerId="2442">+415-123-4567</Dial>
-                # </Response
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial callerId="2442">+415-123-4567</Dial>
+                  # </Response
 
-                it "should dial from the specified 'callerId'" do
-                  assert_dial(:from => caller_id)
-                  expect_call_status_update(:cassette => :dial_with_caller_id, :caller_id => caller_id) do
-                    subject.run
+                  it "should dial from the specified 'callerId'" do
+                    assert_dial(:from => caller_id)
+                    expect_call_status_update(:cassette => :dial_with_caller_id, :caller_id => caller_id) do
+                      subject.run
+                    end
                   end
                 end
               end
@@ -450,17 +452,20 @@ module Adhearsion
               end
 
               context "specified" do
-                let(:timeout) { "10" }
+                context "'10'" do
 
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial timeout="10">+415-123-4567</Dial>
-                # </Response
+                  let(:timeout) { "10" }
 
-                it "should dial with the specified 'timeout'" do
-                  assert_dial(:for => timeout.to_i.seconds)
-                  expect_call_status_update(:cassette => :dial_with_timeout, :timeout => timeout) do
-                    subject.run
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial timeout="10">+415-123-4567</Dial>
+                  # </Response
+
+                  it "should dial with the specified 'timeout'" do
+                    assert_dial(:for => timeout.to_i.seconds)
+                    expect_call_status_update(:cassette => :dial_with_timeout, :timeout => timeout) do
+                      subject.run
+                    end
                   end
                 end
               end
