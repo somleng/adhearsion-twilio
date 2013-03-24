@@ -122,36 +122,23 @@ module Adhearsion
                 # if no 'action' URL is provided.
                 # Instead the call flow falls through to the next TwiML verb.
 
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial>+415-123-4567</Dial>
-                #   <Hangup/>
-                # </Response
+                it_should_behave_like "continuing to process the current TwiML" do
 
-                it "should continue processing the twiml after the dial" do
-                  subject.should_receive(:hangup)
-                  expect_call_status_update(:cassette => :dial_hangup, :to => number_to_dial) do
-                    subject.run
-                  end
-                end
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial>+415-123-4567</Dial>
+                  #   <Play>foo.mp3</Play>
+                  # </Response
 
-                context "with no next verb" do
                   # From: http://www.twilio.com/docs/api/twiml/dial
-
                   # "If there is no next verb, Twilio will end the phone call."
 
                   # <?xml version="1.0" encoding="UTF-8"?>
                   # <Response>
                   #   <Dial>+415-123-4567</Dial>
                   # </Response
-
-                  it "should hangup after the dial" do
-                    subject.should_receive(:hangup)
-                    expect_call_status_update(:cassette => :dial, :to => number_to_dial) do
-                      subject.run
-                    end
-                  end
-                end # context "with no next verb"
+                  let(:cassette_options) { { :cassette => :dial } }
+                end
               end # context "not specified"
 
               context "specified" do
@@ -224,7 +211,7 @@ module Adhearsion
                 # </Response
 
                 it "should stop continuing with the current TwiML" do
-                  subject.should_not_receive(:play_audio)
+                  assert_next_verb_not_reached
                   subject.should_receive(:hangup)
                   expect_call_status_update do
                     subject.run

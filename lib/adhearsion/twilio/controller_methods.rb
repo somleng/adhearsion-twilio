@@ -17,11 +17,9 @@ module Adhearsion
       private
 
       def notify_status(new_request_url = nil, options = {})
-        if new_request_url
-          # assumes at least one request
-          # if @last_request is nil URI.join will fail (parhaps raise a better exception here)
+        if @last_request_url
           method = options.delete("method") || "post"
-          @last_request_url = URI.join(@last_request_url, new_request_url).to_s
+          @last_request_url = URI.join(@last_request_url, new_request_url.to_s).to_s
         else
           method = config.voice_request_method
           @last_request_url = config.voice_request_url
@@ -49,7 +47,7 @@ module Adhearsion
           when 'Play'
             twilio_play(content, options)
           when 'Gather'
-            twilio_gather(node, options)
+            break unless twilio_gather(node, options)
           when 'Redirect'
             redirect(content, options)
           when 'Hangup'
@@ -61,16 +59,12 @@ module Adhearsion
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            if twilio_dial(content, options)
-              # continue
-              hangup unless next_node
-            else
-              break
-            end
+            break unless twilio_dial(content, options)
           else
             raise ArgumentError "Invalid element '#{verb}'"
           end
         end
+        hangup
       end
 
       def twilio_gather(node, options = {})
@@ -80,7 +74,7 @@ module Adhearsion
         node.children.each do |nested_verb_node|
           verb = nested_verb_node.name
           raise(
-            ArgumentError,
+            TwimlError,
             "Nested verb '<#{verb}>' not allowed within '<#{node.name}>'"
           ) unless ["Say", "Play", "Pause"].include?(verb)
 
@@ -91,7 +85,17 @@ module Adhearsion
         end
 
         ask_params << nil if ask_params.empty?
-        ask(*ask_params.flatten, ask_options.merge(:terminator => "#", :timeout => 5.seconds))
+        result = ask(*ask_params.flatten, ask_options.merge(:terminator => "#", :timeout => 5.seconds))
+        digits = result.response
+
+        continue = true
+
+        unless digits.empty?
+          continue = false
+          redirect(options["action"], "Digits" => digits, "method" => options["method"])
+        end
+
+        continue
       end
 
       def twilio_say(words, options = {})

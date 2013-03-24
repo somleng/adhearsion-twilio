@@ -22,8 +22,17 @@ module Adhearsion
           # while letting her enter a menu selection at any time.
           # After the first digit is received the audio will stop playing.
 
+          def stub_ask_result(options = {})
+            ask_result.stub(:response).and_return(options[:response] || digits)
+            ask_result.stub(:status).and_return(options[:status] || :terminated)
+          end
+
+          let(:ask_result) { mock(Adhearsion::CallController::Input::Result, :response => "", :status => :timeout) }
+
+          let(:digits) { "32" }
+
           before do
-            subject.stub(:ask)
+            subject.stub(:ask).and_return(ask_result)
           end
 
           def assert_ask(options = {})
@@ -36,6 +45,94 @@ module Adhearsion
 
             subject.should_receive(:ask).with(*ask_args, options.merge(:terminator => "#", :timeout => 5.seconds))
           end
+
+          context "no timeout" do
+            before do
+              stub_ask_result
+            end
+
+            # From: http://www.twilio.com/docs/api/twiml/gather
+
+            # "When the caller is done entering data,
+            # Twilio submits that data to the provided 'action' URL in an HTTP GET or POST request,
+            # just like a web browser submits data from an HTML form."
+
+            # Twilio will pass the following parameters in addition to the
+            # standard TwiML Voice request parameters with its request to the 'action' URL:
+
+            # | Parameter | Description                                                             |
+            # | Digits    | The digits the caller pressed, excluding the finishOnKey digit if used. |
+
+            # <?xml version="1.0" encoding="UTF-8" ?>
+            # <Response>
+            #   <Gather/>
+            #   <Play>foo.mp3</Play>
+            # </Response>
+
+            it "should submit the data to the current URL or the provided 'action' URL" do
+              expect_call_status_update(:cassette => :gather_with_result_then_hangup) do
+                subject.run
+              end
+              last_request(:body)["Digits"].should == digits
+            end
+
+            # "Any TwiML verbs occuring after a <Gather> are unreachable,
+            # unless the caller enters no digits."
+
+            # <?xml version="1.0" encoding="UTF-8" ?>
+            # <Response>
+            #   <Gather/>
+            #   <Play>foo.mp3</Play>
+            # </Response>
+
+            it "should not reach any new verbs" do
+              assert_next_verb_not_reached
+              subject.should_receive(:hangup)
+              expect_call_status_update(:cassette => :gather_with_result_then_hangup) do
+                subject.run
+              end
+            end
+          end # context "no timeout"
+
+          context "timeout" do
+            before do
+              stub_ask_result(:response => "", :status => :timeout)
+            end
+
+            # From: http://www.twilio.com/docs/api/twiml/gather
+
+            # "If no input is received before timeout, <Gather>
+            # falls through to the next verb in the TwiML document."
+
+            # "If the 'timeout' is reached before the caller enters any digits,
+            # Twilio will not make a request to the 'action' URL but instead
+            # continue processing the current TwiML document with the verb immediately
+            # following the <Gather>."
+
+            it_should_behave_like "continuing to process the current TwiML" do
+
+              # <?xml version="1.0" encoding="UTF-8" ?>
+              # <Response>
+              #   <Gather/>
+              #   <Play>foo.mp3</Play>
+              # </Response>
+
+              # <?xml version="1.0" encoding="UTF-8" ?>
+              # <Response>
+              #   <Gather/>
+              # </Response>
+              let(:cassette_options) { {:cassette => :gather} }
+            end
+          end # context "timeout"
+
+          context "finishOnKey pressed" do
+            # From: http://www.twilio.com/docs/api/twiml/gather
+
+            # If the caller enters the 'finishOnKey' value before entering any other digits,
+            # Twilio will not make a request to the 'action' URL but instead
+            # continue processing the current TwiML document with the verb immediately
+            # following the <Gather>.
+          end # context "finishOnKey"
 
           describe "Nested Verbs" do
             context "none" do
@@ -279,81 +376,55 @@ module Adhearsion
               # | Parameter | Description                                                             |
               # | Digits    | The digits the caller pressed, excluding the finishOnKey digit if used. |
 
+              before do
+                stub_ask_result
+              end
+
               context "not specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
 
                 # "If no 'action' is provided, Twilio will by default make a
                 # POST request to the current document's URL."
 
-                # <?xml version="1.0" encoding="UTF-8" ?>
-                # <Response>
-                #   <Gather/>
-                # </Response>
-
                 before do
                   ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
                 end
 
+                # <?xml version="1.0" encoding="UTF-8" ?>
+                # <Response>
+                #   <Gather/>
+                #   <Play>foo.mp3</Play>
+                # </Response>
+
                 it "should make a 'POST' request to the current document's URL" do
-                  expect_call_status_update(:cassette => :redirect_gather, :redirect_url => redirect_url) do
+                  expect_call_status_update(:cassette => :gather_with_result_then_hangup) do
                     subject.run
                   end
-                  last_request(:url).should == redirect_url
+                  # assert there were 2 requests made
+                  requests.count.should == 2
+                  last_request(:url).should == default_config[:voice_request_url]
                   last_request(:method).should == :post
                 end
               end # context "not specified"
 
               context "specified" do
-                # From: http://www.twilio.com/docs/api/twiml/gather
-
-                # "The 'action' attribute takes an absolute or relative URL as a value."
-
-                context "no timeout" do
+                it_should_behave_like "a TwiML 'action' attribute" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
 
-                  # "Any TwiML verbs occuring after a <Gather> are unreachable,
-                  # unless the caller enters no digits."
-                end # context "no timeout"
-
-                context "timeout" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
-
-                  # "If the 'timeout' is reached before the caller enters any digits,
-                  # Twilio will not make a request to the 'action' URL but instead
-                  # continue processing the current TwiML document with the verb immediately
-                  # following the <Gather>."
-                end # context "timeout"
-
-                context "finishOnKey pressed" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
-
-                  # If the caller enters the 'finishOnKey' value before entering any other digits,
-                  # Twilio will not make a request to the 'action' URL but instead
-                  # continue processing the current TwiML document with the verb immediately
-                  # following the <Gather>.
-                end # context "finishOnKey"
-
-                context "absolute url" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
-
-                  # "The 'action' attribute takes an absolute URL as a value."
+                  # "The 'action' attribute takes an absolute or relative URL as a value."
 
                   # <?xml version="1.0" encoding="UTF-8"?>
                   # <Response>
                   #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
                   # </Response>
-                end # context "absolute url"
-
-                context "relative url" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
-
-                  # "The 'action' attribute takes a relative URL as a value."
 
                   # <?xml version="1.0" encoding="UTF-8"?>
                   # <Response>
                   #   <Gather action="../relative_endpoint.xml"/>
                   # </Response>
-                end # context "relative url"
+
+                  let(:cassette_options) { {:cassette => :gather_with_action_then_hangup } }
+                end
               end # context "specified"
             end # describe "'action'"
 

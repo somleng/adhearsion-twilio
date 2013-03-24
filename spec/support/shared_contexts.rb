@@ -74,6 +74,16 @@ shared_context 'twilio' do
     end
   end
 
+  def assert_next_verb_not_reached
+    # assumes next verb is <Play>
+    subject.should_not_receive(:play_audio)
+  end
+
+  def assert_next_verb_reached
+    # assumes next verb is <Play>
+    subject.should_receive(:play_audio)
+  end
+
   def assert_voice_request_params(options = {})
     options["From"] ||= "+#{call_params[:from]}"
     options["To"] ||= "+#{call_params[:to]}"
