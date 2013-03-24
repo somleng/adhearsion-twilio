@@ -74,8 +74,8 @@ module Adhearsion
                   subject.run
                 end
               end
-            end
-          end
+            end # context "plain text"
+          end # describe "Nouns"
 
           describe "Verb Attributes" do
             # The <Dial> verb supports the following attributes that modify its behavior:
@@ -151,8 +151,8 @@ module Adhearsion
                       subject.run
                     end
                   end
-                end
-              end
+                end # context "with no next verb"
+              end # context "not specified"
 
               context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/dial
@@ -243,103 +243,105 @@ module Adhearsion
                         end
                         assert_voice_request_params("DialCallStatus" => twilio_status)
                       end
+                    end # context "ahn_status"
+                  end # context "Adhearsion::CallController::DialStatus#result returns"
+                end # context "specified"
+              end # describe "'action'"
+
+              describe "'method'" do
+                # From: http://www.twilio.com/docs/api/twiml/dial
+
+                # The 'method' attribute takes the value 'GET' or 'POST'.
+                # This tells Twilio whether to request the 'action' URL via HTTP GET or POST.
+                # This attribute is modeled after the HTML form 'method' attribute.
+                # 'POST' is the default value.
+
+                def expect_call_status_update(options = {}, &block)
+                  super({
+                    :cassette => :dial_with_method,
+                    :action => redirect_url}.merge(options), &block
+                  )
+                end
+
+                context "not specified (Differs from Twilio)" do
+                  # From: http://www.twilio.com/docs/api/twiml/dial
+
+                  # "'POST' is the default value."
+
+                  # Note: The behaviour differs here from the behaviour or Twilio.
+                  # If the method is not given, it will default to
+                  # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
+
+                  before do
+                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                  end
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial action="http://localhost:3000/some_other_endpoint.xml">
+                  #     +415-123-4567
+                  #   </Dial>
+                  # </Response
+
+                  it "should send a request using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
+                    expect_call_status_update(:cassette => :dial_with_action_then_hangup) do
+                      subject.run
+                    end
+                    last_request(:method).should == default_config[:voice_request_method].to_sym
+                  end
+                end # context "not specified"
+
+                context "specified" do
+                  context "'GET'" do
+                    # From: http://www.twilio.com/docs/api/twiml/dial
+
+                    # "This tells Twilio whether to request the 'action' URL via HTTP GET"
+
+                    before do
+                      ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+                    end
+
+                    # <?xml version="1.0" encoding="UTF-8"?>
+                    # <Response>
+                    #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
+                    #     +415-123-4567
+                    #   </Dial>
+                    # </Response
+
+                    it "should send a 'GET' request to the 'action' param" do
+                      expect_call_status_update(:action_method => "get") do
+                        subject.run
+                      end
+                      last_request(:method).should == :get
+                    end
+                  end # context "'GET'"
+
+                  context "'POST'" do
+                    # From: http://www.twilio.com/docs/api/twiml/dial
+
+                    # "This tells Twilio whether to request the 'action' URL via HTTP POST"
+
+                    before do
+                      ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                    end
+
+                    # <?xml version="1.0" encoding="UTF-8"?>
+                    # <Response>
+                    #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="POST">
+                    #     +415-123-4567
+                    #   </Dial>
+                    # </Response
+
+                    it "should send a 'POST' request to the 'action' param" do
+                      expect_call_status_update(:action_method => "post") do
+                        subject.run
+                      end
+                      last_request(:method).should == :post
                     end
                   end
-                end
-              end
-            end
-
-            describe "'method'" do
-              # From: http://www.twilio.com/docs/api/twiml/dial
-
-              # The 'method' attribute takes the value 'GET' or 'POST'.
-              # This tells Twilio whether to request the 'action' URL via HTTP GET or POST.
-              # This attribute is modeled after the HTML form 'method' attribute.
-              # 'POST' is the default value.
-
-              def expect_call_status_update(options = {}, &block)
-                super({
-                  :cassette => :dial_with_method,
-                  :action => redirect_url}.merge(options), &block
-                )
-              end
-
-              context "not specified (Differs from Twilio)" do
-                # From: http://www.twilio.com/docs/api/twiml/dial
-
-                # "'POST' is the default value."
-
-                # Note: The behaviour differs here from the behaviour or Twilio.
-                # If the method is not given, it will default to
-                # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
-
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                end
-
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial action="http://localhost:3000/some_other_endpoint.xml">
-                #     +415-123-4567
-                #   </Dial>
-                # </Response
-
-                it "should send a request using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
-                  expect_call_status_update(:cassette => :dial_with_action_then_hangup) do
-                    subject.run
-                  end
-                  last_request(:method).should == default_config[:voice_request_method].to_sym
-                end
-              end
-
-              context "'GET'" do
-                # From: http://www.twilio.com/docs/api/twiml/dial
-
-                # "This tells Twilio whether to request the 'action' URL via HTTP GET"
-
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
-                end
-
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="GET">
-                #     +415-123-4567
-                #   </Dial>
-                # </Response
-
-                it "should send a 'GET' request to the 'action' param" do
-                  expect_call_status_update(:action_method => "get") do
-                    subject.run
-                  end
-                  last_request(:method).should == :get
-                end
-              end
-
-              context "'POST'" do
-                # From: http://www.twilio.com/docs/api/twiml/dial
-
-                # "This tells Twilio whether to request the 'action' URL via HTTP POST"
-
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                end
-
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Dial action="http://localhost:3000/some_other_endpoint.xml" method="POST">
-                #     +415-123-4567
-                #   </Dial>
-                # </Response
-
-                it "should send a 'POST' request to the 'action' param" do
-                  expect_call_status_update(:action_method => "post") do
-                    subject.run
-                  end
-                  last_request(:method).should == :post
-                end
-              end
-            end
+                end # context "POST'"
+              end # context "specified"
+            end # describe "'method'"
 
             describe "'callerId'" do
               # From: http://www.twilio.com/docs/api/twiml/dial
@@ -391,7 +393,7 @@ module Adhearsion
                     subject.run
                   end
                 end
-              end
+              end # context "not specified"
 
               context "specified" do
                 # From: http://www.twilio.com/docs/api/twiml/dial
@@ -417,9 +419,9 @@ module Adhearsion
                       subject.run
                     end
                   end
-                end
-              end
-            end
+                end # context "'2442'"
+              end # context "specified"
+            end # describe "'callerId'"
 
             describe "'timeout'" do
               # From: http://www.twilio.com/docs/api/twiml/dial
@@ -449,7 +451,7 @@ module Adhearsion
                     subject.run
                   end
                 end
-              end
+              end # context "not specified"
 
               context "specified" do
                 context "'10'" do
@@ -467,12 +469,12 @@ module Adhearsion
                       subject.run
                     end
                   end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-end
+                end # context "'10'"
+              end # context "specified"
+            end # describe "'timeout'"
+          end # describe "Verb Actions"
+        end # describe "<Dial>"
+      end # describer "mixed in to a CallController"
+    end # describe ControllerMethods
+  end # module Twilio
+end # module Adhearsion
