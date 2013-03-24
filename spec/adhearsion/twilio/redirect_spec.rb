@@ -32,43 +32,19 @@ module Adhearsion
               end
             end # context "empty"
 
-            context "absolute url" do
-              # From: http://www.twilio.com/docs/api/twiml/redirect
+            it_should_behave_like "a TwiML 'action' attribute" do
 
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
               # </Response>
 
-              it "should redirect to the absolute url" do
-                expect_call_status_update(:cassette => :redirect_with_absolute_url, :redirect_url => redirect_url) do
-                  subject.run
-                end
-                last_request(:url).should == redirect_url
-              end
-            end # context "absolute url"
-
-            context "relative url" do
-              let(:relative_url) { "../relative_endpoint.xml" }
-
-              let(:redirect_url) do
-                URI.join(default_config[:voice_request_url], relative_url).to_s
-              end
-
-              # From: http://www.twilio.com/docs/api/twiml/redirect
-
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Redirect>../relative_endpoint.xml</Redirect>
               # </Response>
-
-              it "should redirect to the relative url" do
-                expect_call_status_update(:cassette => :redirect_with_relative_url, :relative_url => relative_url, :redirect_url => redirect_url) do
-                  subject.run
-                end
-                last_request(:url).should == redirect_url
-              end
-            end # context "relative url"
+              let(:cassette_options) { {:cassette => :redirect_with_action } }
+            end
           end # describe "Nouns"
 
           describe "Verb Attributes" do
@@ -80,7 +56,7 @@ module Adhearsion
             # | method         | GET, POST      | POST          |
 
             def expect_call_status_update(options = {}, &block)
-              super({:redirect_url => redirect_url}.merge(options), &block)
+              super({:redirect_url => redirect_url, :action => redirect_url}.merge(options), &block)
             end
 
             describe "'method'" do
@@ -105,7 +81,7 @@ module Adhearsion
                 # </Response>
 
                 it "should redirect using a 'POST'" do
-                  expect_call_status_update(:cassette => :redirect_with_absolute_url) do
+                  expect_call_status_update(:cassette => :redirect_with_action) do
                     subject.run
                   end
                   last_request(:method).should == :post

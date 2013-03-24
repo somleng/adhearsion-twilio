@@ -197,8 +197,24 @@ module Adhearsion
                 def expect_call_status_update(options = {}, &block)
                   super({
                     :cassette => :dial_with_action_then_hangup,
-                    :action => redirect_url}.merge(options), &block
+                    :action => redirect_url, :redirect_url => redirect_url}.merge(options), &block
                   )
+                end
+
+                it_should_behave_like "a TwiML 'action' attribute" do
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial action="http://localhost:3000/some_other_endpoint.xml">+415-123-4567</Dial>
+                  #   <Play>foo.mp3</Play>
+                  # </Response
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial action="../relative_endpoint.xml">+415-123-4567</Dial>
+                  #   <Play>foo.mp3</Play>
+                  # </Response
+                  let(:cassette_options) { {} }
                 end
 
                 # <?xml version="1.0" encoding="UTF-8"?>
@@ -207,13 +223,12 @@ module Adhearsion
                 #   <Play>foo.mp3</Play>
                 # </Response
 
-                it "should redirect to the 'action' param and stop continuing with the current TwiML" do
+                it "should stop continuing with the current TwiML" do
                   subject.should_not_receive(:play_audio)
                   subject.should_receive(:hangup)
                   expect_call_status_update do
                     subject.run
                   end
-                  last_request(:url).should == redirect_url
                 end
 
                 context "Adhearsion::CallController::DialStatus#result returns" do
@@ -259,7 +274,7 @@ module Adhearsion
                 def expect_call_status_update(options = {}, &block)
                   super({
                     :cassette => :dial_with_method,
-                    :action => redirect_url}.merge(options), &block
+                    :action => redirect_url, :redirect_url => redirect_url}.merge(options), &block
                   )
                 end
 

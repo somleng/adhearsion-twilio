@@ -34,7 +34,7 @@ http_interactions:
   recorded_at: Tue, 19 Mar 2013 05:01:04 GMT
 - request:
     method: "post"
-    uri: <%=action%>
+    uri: <%= redirect_url %>
     body:
       encoding: US-ASCII
       string: From=%2B1000&To=%2B85512456869&CallSid=5150691c-3db4-11e2-99cd-1f3f1cd7995d&CallStatus=in-progress&DialCallStatus=completed
