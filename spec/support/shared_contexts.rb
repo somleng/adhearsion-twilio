@@ -32,10 +32,7 @@ shared_context 'twilio' do
     )
   end
 
-  let(:redirect_url) do
-    uri_with_authentication("http://localhost:3000/some_other_endpoint.xml").to_s
-  end
-
+  let(:redirect_url) { "http://localhost:3000/some_other_endpoint.xml" }
   let(:infinity) { 20 }
   let(:words) { "Hello World" }
   let(:file_url) { "http://api.twilio.com/cowbell.mp3" }
@@ -58,28 +55,16 @@ shared_context 'twilio' do
     {
       :voice_request_url => ENV["AHN_TWILIO_VOICE_REQUEST_URL"] || "http://localhost:3000/",
       :voice_request_method => ENV["AHN_TWILIO_VOICE_REQUEST_METHOD"] || :post,
-      :voice_request_user => ENV["AHN_TWILIO_VOICE_REQUEST_USER"] || "user",
-      :voice_request_password => ENV["AHN_TWILIO_VOICE_REQUEST_PASSWORD"] || "secret",
       :default_male_voice => ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"],
       :default_female_voice => ENV["AHN_TWILIO_DEFAULT_FEMALE_VOICE"]
     }
   end
 
   def generate_erb(options = {})
-    uri = uri_with_authentication(options.delete(:url) || default_config[:voice_request_url])
     {
-      :user => uri.user,
-      :password => uri.password,
-      :url => uri.to_s,
+      :url => default_config[:voice_request_url],
       :method => default_config[:voice_request_method]
     }.merge(options)
-  end
-
-  def uri_with_authentication(url)
-    uri = URI.parse(url)
-    uri.user ||= default_config[:voice_request_user]
-    uri.password ||= default_config[:voice_request_password]
-    uri
   end
 
   def expect_call_status_update(options = {}, &block)

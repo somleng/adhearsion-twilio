@@ -20,14 +20,6 @@ module Adhearsion
           :desc => "Retrieve and execute the TwiML using this http method"
         )
 
-        voice_request_user(
-          "user", :desc => "HTTP Basic Auth Username for the voice request url"
-        )
-
-        voice_request_password(
-          "secret", :desc => "HTTP Basic Auth Password for the voice request url"
-        )
-
         default_male_voice(
           nil, :desc => "The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values)"
         )

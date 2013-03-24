@@ -1,48 +1,43 @@
 module Adhearsion
   module Twilio
+    TwimlError = Class.new Adhearsion::Error # Represents a failure to pass valid TwiML
+
+    TWILIO_CALL_STATUSES = {
+      :no_answer => "no-answer",
+      :answer => "completed",
+      :timeout => "no-answer",
+      :error => "failed",
+      :in_progress => "in-progress"
+    }
+
+    ELEMENT_CONTENT_KEY = "__content__"
+    INFINITY = 100
+
     module ControllerMethods
-      TWILIO_CALL_STATUSES = {
-        :no_answer => "no-answer",
-        :answer => "completed",
-        :timeout => "no-answer",
-        :error => "failed",
-        :in_progress => "in-progress"
-      }
-
-      ELEMENT_CONTENT_KEY = "__content__"
-      INFINITY = 100
-
       private
 
       def notify_status(new_request_url = nil, options = {})
-        @last_request_url ||= config.voice_request_url
-        new_request_url ||= config.voice_request_url
-
-        new_request_uri = URI.parse(new_request_url)
-        username = new_request_uri.user || config.voice_request_user
-        password = new_request_uri.password || config.voice_request_password
-        new_request_uri.user = nil
-        new_request_uri.password = nil
-
-        @last_request_url = URI.join(@last_request_url, new_request_url).to_s
-
-        method = (options.delete("method") || config.voice_request_method).downcase
-        method = Adhearsion.config[:twilio].voice_request_method unless method == "get" || "post"
+        if new_request_url
+          # assumes at least one request
+          # if @last_request is nil URI.join will fail (parhaps raise a better exception here)
+          method = options.delete("method") || "post"
+          @last_request_url = URI.join(@last_request_url, new_request_url).to_s
+        else
+          method = config.voice_request_method
+          @last_request_url = config.voice_request_url
+        end
 
         status = TWILIO_CALL_STATUSES[options.delete(:status) || :in_progress]
 
         HTTParty.send(
-          method,
+          method.downcase,
           @last_request_url,
           :body => {
             :From => normalized_from,
             :To => normalized_to,
             :CallSid => call.id,
             :CallStatus => status
-          }.merge(options),
-          :basic_auth => {
-            :username => username, :password => password
-          }
+          }.merge(options)
         ).body
       end
 
@@ -158,6 +153,7 @@ module Adhearsion
       end
 
       def redirect(url = nil, options = {})
+        raise TwimlError, "invalid redirect url" if url && url.empty?
         execute_twiml(notify_status(url, options))
       end
 

@@ -6,9 +6,6 @@ http_interactions:
     body:
       encoding: US-ASCII
       string: From=%2B1000&To=%2B85512456869&CallSid=5150691c-3db4-11e2-99cd-1f3f1cd7995d&CallStatus=in-progress
-    headers:
-      authorization:
-      - Basic <%= Base64.encode64("#{user}:#{password}").gsub(/\s/, "") %>
   response:
     status:
       code: 200
@@ -41,9 +38,6 @@ http_interactions:
     body:
       encoding: US-ASCII
       string: From=%2B1000&To=%2B85512456869&CallSid=5150691c-3db4-11e2-99cd-1f3f1cd7995d&CallStatus=in-progress&DialCallStatus=completed
-    headers:
-      authorization:
-      - Basic <%= Base64.encode64("#{user}:#{password}").gsub(/\s/, "") %>
   response:
     status:
       code: 200

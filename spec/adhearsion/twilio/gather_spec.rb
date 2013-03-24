@@ -22,6 +22,10 @@ module Adhearsion
           # while letting her enter a menu selection at any time.
           # After the first digit is received the audio will stop playing.
 
+          before do
+            subject.stub(:ask)
+          end
+
           def assert_ask(options = {})
             if output = options.delete(:output)
               loop = options.delete(:loop) || 1
@@ -285,6 +289,18 @@ module Adhearsion
                 # <Response>
                 #   <Gather/>
                 # </Response>
+
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                end
+
+                it "should make a 'POST' request to the current document's URL" do
+                  expect_call_status_update(:cassette => :redirect_gather, :redirect_url => redirect_url) do
+                    subject.run
+                  end
+                  last_request(:url).should == redirect_url
+                  last_request(:method).should == :post
+                end
               end # context "not specified"
 
               context "specified" do

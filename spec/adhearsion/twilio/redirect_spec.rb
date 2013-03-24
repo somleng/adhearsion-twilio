@@ -19,19 +19,18 @@ module Adhearsion
             # | Noun       | TwiML Interpretation                                        |
             # | plain text | An absolute or relative URL for a different TwiML document. |
 
-            context "empty (Not implemented in Twilio)" do
-              # Note: this feature is not implemented in Twilio
-
+            context "empty" do
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Redirect/>
               # </Response>
 
-              it "should redirect to the default voice request url" do
-                expect_call_status_update(:cassette => :redirect) { subject.run }
-                last_request(:url).should == uri_with_authentication(default_config[:voice_request_url]).to_s
+              it "should raise a TWimlError" do
+                expect {
+                  expect_call_status_update(:cassette => :redirect) { subject.run }
+                 }.to raise_error(Adhearsion::Twilio::TwimlError, "invalid redirect url")
               end
-            end
+            end # context "empty"
 
             context "absolute url" do
               # From: http://www.twilio.com/docs/api/twiml/redirect
@@ -47,13 +46,13 @@ module Adhearsion
                 end
                 last_request(:url).should == redirect_url
               end
-            end
+            end # context "absolute url"
 
             context "relative url" do
               let(:relative_url) { "../relative_endpoint.xml" }
 
               let(:redirect_url) do
-                uri_with_authentication(URI.join(default_config[:voice_request_url], relative_url).to_s).to_s
+                URI.join(default_config[:voice_request_url], relative_url).to_s
               end
 
               # From: http://www.twilio.com/docs/api/twiml/redirect
@@ -69,49 +68,51 @@ module Adhearsion
                 end
                 last_request(:url).should == redirect_url
               end
+            end # context "relative url"
+          end # describe "Nouns"
+
+          describe "Verb Attributes" do
+            # From: http://www.twilio.com/docs/api/twiml/redirect
+
+            # The <Redirect> verb supports the following attributes that modify its behavior:
+
+            # | Attribute Name | Allowed Values | Default Value |
+            # | method         | GET, POST      | POST          |
+
+            def expect_call_status_update(options = {}, &block)
+              super({:redirect_url => redirect_url}.merge(options), &block)
             end
 
-            describe "Verb Attributes" do
+            describe "'method'" do
               # From: http://www.twilio.com/docs/api/twiml/redirect
 
-              # The <Redirect> verb supports the following attributes that modify its behavior:
+              # The 'method' attribute takes the value 'GET' or 'POST'.
+              # This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST.
+              # 'POST' is the default.
 
-              # | Attribute Name | Allowed Values | Default Value |
-              # | method         | GET, POST      | POST          |
-
-              describe "'method'" do
+              context "not supplied" do
                 # From: http://www.twilio.com/docs/api/twiml/redirect
 
-                # The 'method' attribute takes the value 'GET' or 'POST'.
-                # This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST.
-                # 'POST' is the default.
+                # "'POST' is the default."
 
-                context "not supplied (Differs from Twilio)" do
-                  # From: http://www.twilio.com/docs/api/twiml/redirect
-
-                  # "'POST' is the default."
-
-                  # Note: The behaviour differs here from the behaviour or Twilio.
-                  # If the method is not given, it will default to
-                  # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                  end
-
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   </Redirect>
-                  # </Response>
-
-                  it "should redirect using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
-                    expect_call_status_update(:cassette => :redirect) do
-                      subject.run
-                    end
-                    last_request(:method).should == default_config[:voice_request_method].to_sym
-                  end
+                before do
+                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
                 end
 
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+                # </Response>
+
+                it "should redirect using a 'POST'" do
+                  expect_call_status_update(:cassette => :redirect_with_absolute_url) do
+                    subject.run
+                  end
+                  last_request(:method).should == :post
+                end
+              end # context "not supplied"
+
+              context "supplied" do
                 context "'GET'" do
                   # From: http://www.twilio.com/docs/api/twiml/redirect
 
@@ -132,7 +133,7 @@ module Adhearsion
                     end
                     last_request(:method).should == :get
                   end
-                end
+                end # context "'GET'"
 
                 context "'POST'" do
                   # From: http://www.twilio.com/docs/api/twiml/redirect
@@ -154,12 +155,12 @@ module Adhearsion
                     end
                     last_request(:method).should == :post
                   end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-end
+                end # context "'POST'"
+              end # context "supplied"
+            end # describe "'method'"
+          end # describe "Verb Attributes"
+        end # describe "<Redirect>"
+      end # describe "mixed in to a CallController"
+    end # describe "ControllerMethods"
+  end # module Twilio
+end # module Adhearsion

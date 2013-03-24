@@ -263,14 +263,10 @@ module Adhearsion
                   )
                 end
 
-                context "not specified (Differs from Twilio)" do
+                context "not specified" do
                   # From: http://www.twilio.com/docs/api/twiml/dial
 
                   # "'POST' is the default value."
-
-                  # Note: The behaviour differs here from the behaviour or Twilio.
-                  # If the method is not given, it will default to
-                  # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
 
                   before do
                     ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
@@ -283,11 +279,11 @@ module Adhearsion
                   #   </Dial>
                   # </Response
 
-                  it "should send a request using the http method specified in AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method" do
+                  it "should send a 'POST' request" do
                     expect_call_status_update(:cassette => :dial_with_action_then_hangup) do
                       subject.run
                     end
-                    last_request(:method).should == default_config[:voice_request_method].to_sym
+                    last_request(:method).should == :post
                   end
                 end # context "not specified"
 

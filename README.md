@@ -29,14 +29,8 @@ This should be the same endpoint that you point to in your Twilio configuration 
       # Retrieve and execute the TwiML using this http method [AHN_TWILIO_VOICE_REQUEST_METHOD]
       config.twilio.voice_request_method   = "post"
 
-      # HTTP Basic Auth Password for the voice request url [AHN_TWILIO_VOICE_REQUEST_PASSWORD]
-      config.twilio.voice_request_password = "secret"
-
       # Retrieve and execute the TwiML at this URL when a phone call is received [AHN_TWILIO_VOICE_REQUEST_URL]
       config.twilio.voice_request_url      = "http://localhost:3000"
-
-      # HTTP Basic Auth Username for the voice request url [AHN_TWILIO_VOICE_REQUEST_USER]
-      config.twilio.voice_request_user     = "user"
     end
 
 ## Usage
