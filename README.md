@@ -59,7 +59,8 @@ The following verbs have been already implemented:
 * Play
 * Say
 * Dial
-    * Number
+    plain text
+* Gather
 * Redirect
 * Hangup
 
@@ -68,11 +69,11 @@ The following verbs have been already implemented:
 The following verbs are not yet fully implemented:
 
 * Dial
+    * Number
     * Sip
     * Client
     * Conference
     * Queue
-* Gather
 * Record
 * SMS
 * Enqueue

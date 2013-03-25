@@ -94,6 +94,8 @@ module Adhearsion
           ask_options.merge!(:terminator => "#")
         end
 
+        ask_options.merge!(:limit => options["numDigits"].to_i) if options["numDigits"]
+
         ask_params << nil if ask_params.empty?
         result = ask(*ask_params.flatten, ask_options)
         digits = result.response

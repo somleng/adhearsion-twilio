@@ -698,6 +698,13 @@ module Adhearsion
                 # <Response>
                 #   <Gather/>
                 # </Response>
+
+                it "should not use a limit" do
+                  assert_ask(:limit => nil)
+                  expect_call_status_update(:cassette => :gather) do
+                    subject.run
+                  end
+                end
               end # context "not specified"
 
               context "specified" do
@@ -717,6 +724,13 @@ module Adhearsion
                   # <Response>
                   #   <Gather numDigits="5"/>
                   # </Response>
+
+                  it "should use a limit of 5 digits" do
+                    assert_ask(:limit => 5)
+                    expect_call_status_update(:cassette => :gather_with_num_digits, :num_digits => "5") do
+                      subject.run
+                    end
+                  end
                 end # context "'5'"
               end # context "specified"
             end # describe "'numDigits'"
