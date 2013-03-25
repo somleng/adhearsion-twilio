@@ -43,13 +43,13 @@ module Adhearsion
               ask_args = [nil]
             end
 
-            subject.should_receive(:ask).with(
-              *ask_args,
-              {
-                :terminator => "#",
-                :timeout => 5.seconds
-               }.merge(options)
-             )
+            options = {
+              :terminator => "#",
+              :timeout => 5.seconds
+            }.merge(options)
+
+            options.delete_if { |k, v| v.nil? }
+            subject.should_receive(:ask).with(*ask_args, options)
           end
 
           describe "Nested Verbs" do
@@ -561,6 +561,13 @@ module Adhearsion
                 # <Response>
                 #   <Gather/>
                 # </Response>
+
+                it "should use '#' as the terminator" do
+                  assert_ask(:terminator => "#")
+                  expect_call_status_update(:cassette => :gather) do
+                    subject.run
+                  end
+                end
               end # context "not specified"
 
               context "specified" do
@@ -569,7 +576,7 @@ module Adhearsion
                 # "The 'finishOnKey' attribute lets you choose one value that submits
                 # the received data when entered."
 
-                context "empty string" do
+                context "''" do
                   # From: http://www.twilio.com/docs/api/twiml/gather
 
                   # "(set 'finishOnKey' to '')"
@@ -583,6 +590,13 @@ module Adhearsion
                   # <Response>
                   #   <Gather finishOnKey=""/>
                   # </Response>
+
+                  it "should not use a terminator" do
+                    assert_ask(:terminator => nil)
+                    expect_call_status_update(:cassette => :gather_with_finish_on_key, :finish_on_key => '') do
+                      subject.run
+                    end
+                  end
                 end # context "empty string"
 
                 context "'*'" do
@@ -591,7 +605,8 @@ module Adhearsion
                   # | Attribute Name | Allowed Values           | Default Value        |
                   # | finishOnKey    | any digit, #, *          | #                    |
 
-                  # "The allowed values are '*'."
+                  # "The allowed values are
+                  # the digits 0-9, '#' , '*' and the empty string (set 'finishOnKey' to '')."
 
                   # "For example, if you set 'finishOnKey' to '*' and the user enters '1234*',
                   # Twilio will immediately stop waiting for more input when the '*' is received
@@ -601,7 +616,66 @@ module Adhearsion
                   # <Response>
                   #   <Gather finishOnKey="*"/>
                   # </Response>
+
+                  it "should use '*' as the terminator" do
+                    assert_ask(:terminator => "*")
+                    expect_call_status_update(:cassette => :gather_with_finish_on_key, :finish_on_key => '*') do
+                      subject.run
+                    end
+                  end
                 end # context "'*'"
+
+                context "'#'" do
+                  # From: http://www.twilio.com/docs/api/twiml/gather
+
+                  # | Attribute Name | Allowed Values           | Default Value        |
+                  # | finishOnKey    | any digit, #, *          | #                    |
+
+                  # "The allowed values are
+                  # the digits 0-9, '#' , '*' and the empty string (set 'finishOnKey' to '')."
+
+                  # "For example, if you set 'finishOnKey' to '*' and the user enters '1234*',
+                  # Twilio will immediately stop waiting for more input when the '*' is received
+                  # and will submit "Digits=1234" to the 'action' URL."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Gather finishOnKey="#"/>
+                  # </Response>
+
+                  it "should use '#' as the terminator" do
+                    assert_ask(:terminator => "#")
+                    expect_call_status_update(:cassette => :gather_with_finish_on_key, :finish_on_key => '#') do
+                      subject.run
+                    end
+                  end
+                end # context "'#'"
+
+                context "'0'" do
+                  # From: http://www.twilio.com/docs/api/twiml/gather
+
+                  # | Attribute Name | Allowed Values           | Default Value        |
+                  # | finishOnKey    | any digit, #, *          | #                    |
+
+                  # "The allowed values are
+                  # the digits 0-9, '#' , '*' and the empty string (set 'finishOnKey' to '')."
+
+                  # "For example, if you set 'finishOnKey' to '*' and the user enters '1234*',
+                  # Twilio will immediately stop waiting for more input when the '*' is received
+                  # and will submit "Digits=1234" to the 'action' URL."
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Gather finishOnKey="#"/>
+                  # </Response>
+
+                  it "should use '0' as the terminator" do
+                    assert_ask(:terminator => "0")
+                    expect_call_status_update(:cassette => :gather_with_finish_on_key, :finish_on_key => '0') do
+                      subject.run
+                    end
+                  end
+                end # context "'0'"
               end # context "specified"
             end # describe "'finishOnKey'"
 

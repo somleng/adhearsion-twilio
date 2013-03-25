@@ -84,13 +84,18 @@ module Adhearsion
           ask_params << Array.new(output_count, nested_verb_node.content)
         end
 
+        ask_options.merge!(:timeout => (options["timeout"] || 5).to_i.seconds)
+
+        if options["finishOnKey"]
+          ask_options.merge!(
+            :terminator => options["finishOnKey"]
+          ) if options["finishOnKey"] =~ /^(?:\d|\*|\#)$/
+        else
+          ask_options.merge!(:terminator => "#")
+        end
+
         ask_params << nil if ask_params.empty?
-        result = ask(
-          *ask_params.flatten,
-          ask_options.merge(
-            :terminator => "#", :timeout => (options["timeout"] || 5).to_i.seconds
-          )
-        )
+        result = ask(*ask_params.flatten, ask_options)
         digits = result.response
 
         continue = true
