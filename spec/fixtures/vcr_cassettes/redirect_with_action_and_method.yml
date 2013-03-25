@@ -29,11 +29,11 @@ http_interactions:
       - thin 1.5.0 codename Knife
     body:
       encoding: US-ASCII
-      string: <?xml version="1.0" encoding="UTF-8"?><Response><Redirect method=<%="\"#{redirect_method.upcase}\""%>><%=redirect_url%></Redirect></Response>
+      string: <?xml version="1.0" encoding="UTF-8"?><Response><Redirect method=<%="\"#{method_attribute.upcase}\""%>><%=redirect_url%></Redirect></Response>
     http_version: '1.1'
   recorded_at: Thu, 14 Mar 2013 15:01:49 GMT
 - request:
-    method: <%=redirect_method%>
+    method: <%=method_attribute%>
     uri: <%=redirect_url%>
     body:
       encoding: US-ASCII

@@ -25,26 +25,26 @@ module Adhearsion
               #   <Redirect/>
               # </Response>
 
-              it "should raise a TWimlError" do
+              it "should raise a TwimlError" do
                 expect {
                   expect_call_status_update(:cassette => :redirect) { subject.run }
                  }.to raise_error(Adhearsion::Twilio::TwimlError, "invalid redirect url")
               end
             end # context "empty"
 
-            it_should_behave_like "a TwiML 'action' attribute" do
+            # Given the follwoing examples:
 
-              # <?xml version="1.0" encoding="UTF-8"?>
-              # <Response>
-              #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
-              # </Response>
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+            # </Response>
 
-              # <?xml version="1.0" encoding="UTF-8"?>
-              # <Response>
-              #   <Redirect>../relative_endpoint.xml</Redirect>
-              # </Response>
-              let(:cassette_options) { {:cassette => :redirect_with_action } }
-            end
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Redirect>../relative_endpoint.xml</Redirect>
+            # </Response>
+
+            it_should_behave_like "a TwiML 'action' attribute", :redirect_with_action
           end # describe "Nouns"
 
           describe "Verb Attributes" do
@@ -55,10 +55,6 @@ module Adhearsion
             # | Attribute Name | Allowed Values | Default Value |
             # | method         | GET, POST      | POST          |
 
-            def expect_call_status_update(options = {}, &block)
-              super({:redirect_url => redirect_url, :action => redirect_url}.merge(options), &block)
-            end
-
             describe "'method'" do
               # From: http://www.twilio.com/docs/api/twiml/redirect
 
@@ -66,73 +62,24 @@ module Adhearsion
               # This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST.
               # 'POST' is the default.
 
-              context "not supplied" do
-                # From: http://www.twilio.com/docs/api/twiml/redirect
+              # Given the following examples:
 
-                # "'POST' is the default."
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+              # </Response>
 
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                end
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Redirect method="GET">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+              # </Response>
 
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Redirect>"http://localhost:3000/some_other_endpoint.xml"</Redirect>
-                # </Response>
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Redirect method="POST">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
+              # </Response>
 
-                it "should redirect using a 'POST'" do
-                  expect_call_status_update(:cassette => :redirect_with_action) do
-                    subject.run
-                  end
-                  last_request(:method).should == :post
-                end
-              end # context "not supplied"
-
-              context "supplied" do
-                context "'GET'" do
-                  # From: http://www.twilio.com/docs/api/twiml/redirect
-
-                  # "This tells Twilio whether to request the <Redirect> URL via HTTP GET."
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
-                  end
-
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   <Redirect method="GET">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
-                  # </Response>
-
-                  it "should redirect using a 'GET' request" do
-                    expect_call_status_update(:cassette => :redirect_with_method, :redirect_method => "get") do
-                      subject.run
-                    end
-                    last_request(:method).should == :get
-                  end
-                end # context "'GET'"
-
-                context "'POST'" do
-                  # From: http://www.twilio.com/docs/api/twiml/redirect
-
-                  # "This tells Twilio whether to request the <Redirect> URL via HTTP POST."
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                  end
-
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   <Redirect method="POST">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
-                  # </Response>
-
-                  it "should redirect using a 'POST' request" do
-                    expect_call_status_update(:cassette => :redirect_with_method, :redirect_method => "post") do
-                      subject.run
-                    end
-                    last_request(:method).should == :post
-                  end
-                end # context "'POST'"
-              end # context "supplied"
+              it_should_behave_like "a TwiML 'method' attribute", :redirect_with_action
             end # describe "'method'"
           end # describe "Verb Attributes"
         end # describe "<Redirect>"

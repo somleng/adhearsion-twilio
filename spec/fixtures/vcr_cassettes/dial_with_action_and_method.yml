@@ -29,11 +29,11 @@ http_interactions:
       - thin 1.5.0 codename Knife
     body:
       encoding: US-ASCII
-      string: <?xml version="1.0" encoding="UTF-8"?><Response><Dial action=<%="\"#{action}\""%> method=<%="\"#{action_method.upcase}\""%>><%=to%></Dial></Response>
+      string: <?xml version="1.0" encoding="UTF-8"?><Response><Dial action=<%="\"#{action}\""%> method=<%="\"#{method_attribute.upcase}\""%>><%=to%></Dial></Response>
     http_version: '1.1'
   recorded_at: Tue, 19 Mar 2013 05:01:04 GMT
 - request:
-    method: <%=action_method%>
+    method: <%=method_attribute%>
     uri: <%=action%>
     body:
       encoding: US-ASCII

@@ -1,7 +1,7 @@
-shared_examples_for "a TwiML 'action' attribute" do
+shared_examples_for "a TwiML 'action' attribute" do |cassette|
   context "absolute url" do
-    it "should redirect to the absolute url" do
-      options = {:action => redirect_url, :redirect_url => redirect_url}.merge(cassette_options)
+    it "should make a request to the absolute url" do
+      options = {:cassette => cassette, :action => redirect_url, :redirect_url => redirect_url}
       expect_call_status_update(options) do
         subject.run
       end
@@ -16,22 +16,68 @@ shared_examples_for "a TwiML 'action' attribute" do
       URI.join(default_config[:voice_request_url], relative_url).to_s
     end
 
-    it "should redirect to the relative url" do
-      options = {:action => relative_url, :redirect_url => redirect_url}.merge(cassette_options)
+    it "should make a request to the relative url" do
+      options = {:cassette => cassette, :action => relative_url, :redirect_url => redirect_url}
       expect_call_status_update(options) do
         subject.run
       end
       last_request(:url).should == options[:redirect_url]
     end
   end # context "relative url"
-end
+end # shared_examples_for "a TwiML 'action' attribute"
 
-shared_examples_for "continuing to process the current TwiML" do
+shared_examples_for "a TwiML 'method' attribute" do |cassette|
+  let(:options) { { :action => redirect_url, :redirect_url => redirect_url } }
+
+  context "not supplied" do
+    before do
+      ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+    end
+
+    it "should make a 'POST' request to the 'action' URL" do
+      expect_call_status_update(options.merge(:cassette => cassette)) do
+        subject.run
+      end
+      last_request(:method).should == :post
+    end
+  end # context "not supplied"
+
+  context "supplied" do
+    with_method_cassette = "#{cassette}_and_method".to_sym
+
+    context "'GET'" do
+      before do
+        ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+      end
+
+      it "should make a 'GET' request to the 'action' URL" do
+        expect_call_status_update(options.merge(:cassette => with_method_cassette, :method_attribute => "get")) do
+          subject.run
+        end
+        last_request(:method).should == :get
+      end
+    end # context "'GET'"
+
+    context "'POST'" do
+      before do
+        ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+      end
+
+      it "should make a 'POST' request to the 'action' URL" do
+        expect_call_status_update(options.merge(:cassette => with_method_cassette, :method_attribute => "post")) do
+          subject.run
+        end
+        last_request(:method).should == :post
+      end
+    end # context "'POST'"
+  end # context "supplied"
+end # shared_examples_for "a TwiML 'method' attribute"
+
+shared_examples_for "continuing to process the current TwiML" do |cassette|
   it "should continue processing the TwiML after the verb" do
-    cassette = cassette_options.delete(:cassette)
-    cassette = "#{cassette}_then_play".to_sym
+    cassette_with_next_verb = "#{cassette}_then_play".to_sym
     assert_next_verb_reached
-    expect_call_status_update(cassette_options.merge(:cassette => cassette)) do
+    expect_call_status_update(:cassette => cassette_with_next_verb) do
       subject.run
     end
   end
@@ -39,9 +85,9 @@ shared_examples_for "continuing to process the current TwiML" do
   context "if there's no next verb" do
     it "should hangup the call" do
       subject.should_receive(:hangup)
-      expect_call_status_update(cassette_options) do
+      expect_call_status_update(:cassette => cassette) do
         subject.run
       end
     end
   end # context "with no next verb"
-end
+end # shared_examples_for "continuing to process the current TwiML"

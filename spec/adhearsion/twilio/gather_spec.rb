@@ -46,94 +46,6 @@ module Adhearsion
             subject.should_receive(:ask).with(*ask_args, options.merge(:terminator => "#", :timeout => 5.seconds))
           end
 
-          context "no timeout" do
-            before do
-              stub_ask_result
-            end
-
-            # From: http://www.twilio.com/docs/api/twiml/gather
-
-            # "When the caller is done entering data,
-            # Twilio submits that data to the provided 'action' URL in an HTTP GET or POST request,
-            # just like a web browser submits data from an HTML form."
-
-            # Twilio will pass the following parameters in addition to the
-            # standard TwiML Voice request parameters with its request to the 'action' URL:
-
-            # | Parameter | Description                                                             |
-            # | Digits    | The digits the caller pressed, excluding the finishOnKey digit if used. |
-
-            # <?xml version="1.0" encoding="UTF-8" ?>
-            # <Response>
-            #   <Gather/>
-            #   <Play>foo.mp3</Play>
-            # </Response>
-
-            it "should submit the data to the current URL or the provided 'action' URL" do
-              expect_call_status_update(:cassette => :gather_with_result_then_hangup) do
-                subject.run
-              end
-              last_request(:body)["Digits"].should == digits
-            end
-
-            # "Any TwiML verbs occuring after a <Gather> are unreachable,
-            # unless the caller enters no digits."
-
-            # <?xml version="1.0" encoding="UTF-8" ?>
-            # <Response>
-            #   <Gather/>
-            #   <Play>foo.mp3</Play>
-            # </Response>
-
-            it "should not reach any new verbs" do
-              assert_next_verb_not_reached
-              subject.should_receive(:hangup)
-              expect_call_status_update(:cassette => :gather_with_result_then_hangup) do
-                subject.run
-              end
-            end
-          end # context "no timeout"
-
-          context "timeout" do
-            before do
-              stub_ask_result(:response => "", :status => :timeout)
-            end
-
-            # From: http://www.twilio.com/docs/api/twiml/gather
-
-            # "If no input is received before timeout, <Gather>
-            # falls through to the next verb in the TwiML document."
-
-            # "If the 'timeout' is reached before the caller enters any digits,
-            # Twilio will not make a request to the 'action' URL but instead
-            # continue processing the current TwiML document with the verb immediately
-            # following the <Gather>."
-
-            it_should_behave_like "continuing to process the current TwiML" do
-
-              # <?xml version="1.0" encoding="UTF-8" ?>
-              # <Response>
-              #   <Gather/>
-              #   <Play>foo.mp3</Play>
-              # </Response>
-
-              # <?xml version="1.0" encoding="UTF-8" ?>
-              # <Response>
-              #   <Gather/>
-              # </Response>
-              let(:cassette_options) { {:cassette => :gather} }
-            end
-          end # context "timeout"
-
-          context "finishOnKey pressed" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
-
-            # If the caller enters the 'finishOnKey' value before entering any other digits,
-            # Twilio will not make a request to the 'action' URL but instead
-            # continue processing the current TwiML document with the verb immediately
-            # following the <Gather>.
-          end # context "finishOnKey"
-
           describe "Nested Verbs" do
             context "none" do
               # From: http://www.twilio.com/docs/api/twiml/gather
@@ -380,6 +292,100 @@ module Adhearsion
                 stub_ask_result
               end
 
+              context "no timeout" do
+                # From: http://www.twilio.com/docs/api/twiml/gather
+
+                # "When the caller is done entering data,
+                # Twilio submits that data to the provided 'action' URL in an HTTP GET or POST request,
+                # just like a web browser submits data from an HTML form."
+
+                # Twilio will pass the following parameters in addition to the
+                # standard TwiML Voice request parameters with its request to the 'action' URL:
+
+                # | Parameter | Description                                                             |
+                # | Digits    | The digits the caller pressed, excluding the finishOnKey digit if used. |
+
+                # <?xml version="1.0" encoding="UTF-8" ?>
+                # <Response>
+                #   <Gather/>
+                #   <Play>foo.mp3</Play>
+                # </Response>
+
+                it "should submit the data to the current URL or the provided 'action' URL" do
+                  expect_call_status_update(:cassette => :gather_with_result) do
+                    subject.run
+                  end
+                  last_request(:body)["Digits"].should == digits
+                end
+
+                # "Any TwiML verbs occuring after a <Gather> are unreachable,
+                # unless the caller enters no digits."
+
+                # <?xml version="1.0" encoding="UTF-8" ?>
+                # <Response>
+                #   <Gather/>
+                #   <Play>foo.mp3</Play>
+                # </Response>
+
+                it "should not reach any new verbs" do
+                  assert_next_verb_not_reached
+                  subject.should_receive(:hangup)
+                  expect_call_status_update(:cassette => :gather_with_result) do
+                    subject.run
+                  end
+                end
+              end # context "no timeout"
+
+              context "timeout" do
+                before do
+                  stub_ask_result(:response => "", :status => :timeout)
+                end
+
+                # From: http://www.twilio.com/docs/api/twiml/gather
+
+                # "If no input is received before timeout, <Gather>
+                # falls through to the next verb in the TwiML document."
+
+                # "If the 'timeout' is reached before the caller enters any digits,
+                # Twilio will not make a request to the 'action' URL but instead
+                # continue processing the current TwiML document with the verb immediately
+                # following the <Gather>."
+
+                # Given the following examples:
+
+                # <?xml version="1.0" encoding="UTF-8" ?>
+                # <Response>
+                #   <Gather/>
+                #   <Play>foo.mp3</Play>
+                # </Response>
+
+                # <?xml version="1.0" encoding="UTF-8" ?>
+                # <Response>
+                #   <Gather/>
+                # </Response>
+
+                it_should_behave_like "continuing to process the current TwiML", :gather
+              end # context "timeout"
+
+              context "finishOnKey pressed with no digits entered (Differs from Twilio)" do
+                # From: http://www.twilio.com/docs/api/twiml/gather
+
+                # If the caller enters the 'finishOnKey' value before entering any other digits,
+                # Twilio will not make a request to the 'action' URL but instead
+                # continue processing the current TwiML document with the verb immediately
+                # following the <Gather>.
+
+                # Note: It's not directly possible to achieve the Twilio behavior stated here
+                # with Adhearsion out of the box. In Adhearsion when using the 'ask' command
+                # and pressing the terminator key before any digits have been entered, it will
+                # simply repeat the <Say> or <Play> command until the user enters digits or
+                # the timeout is reached.
+
+                # No valid test case here...
+
+                pending "Will not implement"
+              end # context "finishOnKey"
+
               context "not specified" do
                 # From: http://www.twilio.com/docs/api/twiml/gather
 
@@ -397,7 +403,7 @@ module Adhearsion
                 # </Response>
 
                 it "should make a 'POST' request to the current document's URL" do
-                  expect_call_status_update(:cassette => :gather_with_result_then_hangup) do
+                  expect_call_status_update(:cassette => :gather_with_result) do
                     subject.run
                   end
                   # assert there were 2 requests made
@@ -408,23 +414,19 @@ module Adhearsion
               end # context "not specified"
 
               context "specified" do
-                it_should_behave_like "a TwiML 'action' attribute" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
+                # Given the following examples:
 
-                  # "The 'action' attribute takes an absolute or relative URL as a value."
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
+                # </Response>
 
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
-                  # </Response>
+                # <?xml version="1.0" encoding="UTF-8"?>
+                # <Response>
+                #   <Gather action="../relative_endpoint.xml"/>
+                # </Response>
 
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   <Gather action="../relative_endpoint.xml"/>
-                  # </Response>
-
-                  let(:cassette_options) { {:cassette => :gather_with_action_then_hangup } }
-                end
+                it_should_behave_like "a TwiML 'action' attribute", :gather_with_action
               end # context "specified"
             end # describe "'action'"
 
@@ -436,59 +438,28 @@ module Adhearsion
               # This attribute is modeled after the HTML form 'method' attribute.
               # 'POST' is the default value.
 
-              context "not specified (Differs from Twilio)" do
-                # From: http://www.twilio.com/docs/api/twiml/gather
+              before do
+                stub_ask_result
+              end
 
-                # "'POST' is the default value."
+              # Given the following examples:
 
-                # Note: The behaviour differs here from the behaviour or Twilio.
-                # If the method is not given, it will default to
-                # AHN_TWILIO_VOICE_REQUEST_METHOD or config.twilio.voice_request_method
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
+              # </Response>
 
-                before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                end
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="GET"/>
+              # </Response>
 
-                # <?xml version="1.0" encoding="UTF-8"?>
-                # <Response>
-                #   <Gather action="http://localhost:3000/some_other_endpoint.xml"/>
-                # </Response>
-              end # context "not specified (Differs from Twilio)"
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="POST"/>
+              # </Response>
 
-              context "specified" do
-                # From: http://www.twilio.com/docs/api/twiml/gather
-
-                # This tells Twilio whether to request the 'action' URL via HTTP GET or POST.
-                context "'GET'" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
-
-                  # "This tells Twilio whether to request the 'action' URL via HTTP GET"
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
-                  end
-
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="GET"/>
-                  # </Response>
-                end # context "'GET'"
-
-                context "'POST'" do
-                  # From: http://www.twilio.com/docs/api/twiml/gather
-
-                  # "This tells Twilio whether to request the 'action' URL via HTTP POST"
-
-                  before do
-                    ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
-                  end
-
-                  # <?xml version="1.0" encoding="UTF-8"?>
-                  # <Response>
-                  #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="POST"/>
-                  # </Response>
-                end # context "'POST'"
-              end # context "specified"
+              it_should_behave_like "a TwiML 'method' attribute", :gather_with_action
             end # describe "'method'"
 
             describe "'timeout'" do
