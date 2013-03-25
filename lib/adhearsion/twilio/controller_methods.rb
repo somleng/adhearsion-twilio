@@ -85,7 +85,12 @@ module Adhearsion
         end
 
         ask_params << nil if ask_params.empty?
-        result = ask(*ask_params.flatten, ask_options.merge(:terminator => "#", :timeout => 5.seconds))
+        result = ask(
+          *ask_params.flatten,
+          ask_options.merge(
+            :terminator => "#", :timeout => (options["timeout"] || 5).to_i.seconds
+          )
+        )
         digits = result.response
 
         continue = true

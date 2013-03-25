@@ -43,7 +43,13 @@ module Adhearsion
               ask_args = [nil]
             end
 
-            subject.should_receive(:ask).with(*ask_args, options.merge(:terminator => "#", :timeout => 5.seconds))
+            subject.should_receive(:ask).with(
+              *ask_args,
+              {
+                :terminator => "#",
+                :timeout => 5.seconds
+               }.merge(options)
+             )
           end
 
           describe "Nested Verbs" do
@@ -484,6 +490,13 @@ module Adhearsion
                 # <Response>
                 #   <Gather/>
                 # </Response>
+
+                it "should timeout within 5 seconds" do
+                  assert_ask(:timeout => 5.seconds)
+                  expect_call_status_update(:cassette => :gather) do
+                    subject.run
+                  end
+                end
               end # context "not specified"
 
               context "specified" do
@@ -504,6 +517,13 @@ module Adhearsion
                   # <Response>
                   #   <Gather timeout="10"/>
                   # </Response>
+
+                  it "should timeout within 10 seconds" do
+                    assert_ask(:timeout => 10.seconds)
+                    expect_call_status_update(:cassette => :gather_with_timeout, :timeout => "10") do
+                      subject.run
+                    end
+                  end
                 end # context "'10'"
               end # context "specified"
             end # describe "'timeout'"
