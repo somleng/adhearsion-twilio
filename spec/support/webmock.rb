@@ -27,7 +27,7 @@ module LastRequest
 end
 
 module WebMockHelpers
-  def last_request(attribute)
+  def last_request(attribute = nil)
     request = WebMock.last_request
 
     case attribute

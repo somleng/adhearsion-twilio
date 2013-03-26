@@ -25,17 +25,19 @@ module Adhearsion
           @last_request_url = config.voice_request_url
         end
 
+        url, auth = url_without_auth(@last_request_url)
+
         status = TWILIO_CALL_STATUSES[options.delete(:status) || :in_progress]
 
         HTTParty.send(
           method.downcase,
-          @last_request_url,
+          url,
           :body => {
             :From => normalized_from,
             :To => normalized_to,
             :CallSid => call.id,
             :CallStatus => status
-          }.merge(options)
+          }.merge(options), :basic_auth => auth
         ).body
       end
 
@@ -200,6 +202,18 @@ module Adhearsion
 
       def config
         Adhearsion.config[:twilio]
+      end
+
+      def url_without_auth(url)
+        basic_auth = {}
+        uri = URI.parse(url)
+
+        if uri.user
+          basic_auth[:username] = uri.user
+          basic_auth[:password] = uri.password
+        end
+
+        [uri.to_s, basic_auth]
       end
 
       def not_yet_supported!
