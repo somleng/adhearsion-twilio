@@ -20,6 +20,16 @@ module Adhearsion
           :desc => "Retrieve and execute the TwiML using this http method"
         )
 
+        status_callback_url(
+          "http://localhost:3000/",
+          :desc => "Make a request to this URL when a call to this phone number is completed."
+        )
+
+        status_callback_method(
+          "post",
+          :desc => "Make a request to the status_callback_url using this method when a call to this phone number is completed."
+        )
+
         default_male_voice(
           nil, :desc => "The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values)"
         )
