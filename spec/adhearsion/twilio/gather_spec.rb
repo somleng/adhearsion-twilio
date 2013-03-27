@@ -167,6 +167,10 @@ module Adhearsion
                 super({:file_url => file_url}.merge(options), &block)
               end
 
+              def assert_ask(options = {})
+                super(options.merge(:renderer => :native))
+              end
+
               # <?xml version="1.0" encoding="UTF-8"?>
               # <Response>
               #   <Gather>
