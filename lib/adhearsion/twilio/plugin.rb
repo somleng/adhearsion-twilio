@@ -21,12 +21,12 @@ module Adhearsion
         )
 
         status_callback_url(
-          "http://localhost:3000/",
+          nil,
           :desc => "Make a request to this URL when a call to this phone number is completed."
         )
 
         status_callback_method(
-          "post",
+          nil,
           :desc => "Make a request to the status_callback_url using this method when a call to this phone number is completed."
         )
 

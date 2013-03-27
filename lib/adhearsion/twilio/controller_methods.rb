@@ -10,25 +10,35 @@ module Adhearsion
       :in_progress => "in-progress"
     }
 
-    ELEMENT_CONTENT_KEY = "__content__"
     INFINITY = 100
 
     module ControllerMethods
       private
 
-      def notify_status(new_request_url = nil, options = {})
-        if @last_request_url
-          method = options.delete("method") || "post"
-          @last_request_url = URI.join(@last_request_url, new_request_url.to_s).to_s
-        else
-          method = config.voice_request_method
-          @last_request_url = config.voice_request_url
-        end
+      def notify_voice_request_url
+        execute_twiml(notify_http(config.voice_request_url, config.voice_request_method, :in_progress))
+      end
 
-        url, auth = url_without_auth(@last_request_url)
+      def redirect(url = nil, options = {})
+        raise TwimlError, "invalid redirect url" if url && url.empty?
 
-        status = TWILIO_CALL_STATUSES[options.delete(:status) || :in_progress]
+        execute_twiml(
+          notify_http(
+            URI.join(@last_request_url, url.to_s).to_s,
+            options.delete("method") || "post",
+            :in_progress, options
+          )
+        )
+      end
 
+      def notify_status_callback_url
+        notify_http(
+          config.status_callback_url, config.status_callback_method, :answer
+        ) if config.status_callback_url.present? && config.status_callback_method.present?
+      end
+
+      def notify_http(url, method, status, options = {})
+        @last_request_url = url
         HTTParty.send(
           method.downcase,
           url,
@@ -36,13 +46,15 @@ module Adhearsion
             :From => normalized_from,
             :To => normalized_to,
             :CallSid => call.id,
-            :CallStatus => status
-          }.merge(options), :basic_auth => auth
+            :CallStatus => TWILIO_CALL_STATUSES[status]
+          }.merge(options), :basic_auth => url_auth(url)
         ).body
       end
 
       def execute_twiml(response)
-        with_twiml(response) do |node, next_node|
+        # When redirecting, dialing or gathering we should first
+        # break from the loop to avoid a stack level too deep problem
+        with_twiml(response) do |node|
           content = node.content
           options = twilio_options(node)
           case node.name
@@ -53,7 +65,7 @@ module Adhearsion
           when 'Redirect'
             redirect(content, options)
           when 'Hangup'
-            hangup
+            break
           when 'Say'
             twilio_say(content, options)
           when 'Pause'
@@ -66,6 +78,11 @@ module Adhearsion
             raise ArgumentError "Invalid element '#{verb}'"
           end
         end
+        twilio_hangup
+      end
+
+      def twilio_hangup
+        notify_status_callback_url
         hangup
       end
 
@@ -98,13 +115,13 @@ module Adhearsion
 
         ask_options.merge!(:limit => options["numDigits"].to_i) if options["numDigits"]
 
-        ask_params << nil if ask_params.empty?
+        ask_params << nil if ask_params.blank?
         result = ask(*ask_params.flatten, ask_options)
         digits = result.response
 
         continue = true
 
-        unless digits.empty?
+        if digits.present?
           continue = false
           redirect(options["action"], "Digits" => digits, "method" => options["method"])
         end
@@ -166,14 +183,9 @@ module Adhearsion
 
       def with_twiml(raw_response, &block)
         doc = parse_twiml(raw_response)
-        doc.each_with_index do |node, index|
-          yield node, doc[index + 1]
+        doc.each do |node|
+          yield node
         end
-      end
-
-      def redirect(url = nil, options = {})
-        raise TwimlError, "invalid redirect url" if url && url.empty?
-        execute_twiml(notify_status(url, options))
       end
 
       def twilio_loop(twilio_options, options = {})
@@ -205,7 +217,7 @@ module Adhearsion
         Adhearsion.config[:twilio]
       end
 
-      def url_without_auth(url)
+      def url_auth(url)
         basic_auth = {}
         uri = URI.parse(url)
 
@@ -214,7 +226,7 @@ module Adhearsion
           basic_auth[:password] = uri.password
         end
 
-        [uri.to_s, basic_auth]
+        basic_auth
       end
 
       def not_yet_supported!

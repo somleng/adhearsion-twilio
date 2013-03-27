@@ -88,7 +88,7 @@ module Adhearsion
               # This means that input can be gathered at any time during <Say>."
 
               before do
-                set_default_voices
+                set_dummy_voices
               end
 
               # <?xml version="1.0" encoding="UTF-8"?>
@@ -101,7 +101,7 @@ module Adhearsion
               # </Response>
 
               it "should ask using the words specified in <Say>" do
-                assert_ask(:output => words, :voice => default_config[:default_female_voice])
+                assert_ask(:output => words, :voice => current_config[:default_female_voice])
                 expect_call_status_update(:cassette => :gather_say, :language => "de", :voice => "woman") do
                   subject.run
                 end
@@ -126,7 +126,7 @@ module Adhearsion
                       # </Response>
 
                       it "should repeat asking 100 times using the words specified in <Say>" do
-                        assert_ask(:output => words, :loop => 100, :voice => default_config[:default_male_voice])
+                        assert_ask(:output => words, :loop => 100, :voice => current_config[:default_male_voice])
                         expect_call_status_update(:cassette => :gather_say_with_loop, :loop => "0") do
                           subject.run
                         end
@@ -144,7 +144,7 @@ module Adhearsion
                       # </Response>
 
                       it "should repeat asking 5 times using the words specified in <Say>" do
-                        assert_ask(:output => words, :loop => 5, :voice => default_config[:default_male_voice])
+                        assert_ask(:output => words, :loop => 5, :voice => current_config[:default_male_voice])
                         expect_call_status_update(:cassette => :gather_say_with_loop, :loop => "5") do
                           subject.run
                         end
@@ -403,7 +403,7 @@ module Adhearsion
                 # POST request to the current document's URL."
 
                 before do
-                  ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+                  set_dummy_url_config(:voice_request, :method, :get)
                 end
 
                 # <?xml version="1.0" encoding="UTF-8" ?>
@@ -418,7 +418,7 @@ module Adhearsion
                   end
                   # assert there were 2 requests made
                   requests.count.should == 2
-                  last_request(:url).should == default_config[:voice_request_url]
+                  last_request(:url).should == current_config[:voice_request_url]
                   last_request(:method).should == :post
                 end
               end # context "not specified"

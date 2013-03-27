@@ -31,7 +31,7 @@ shared_examples_for "a TwiML 'method' attribute" do |cassette|
 
   context "not supplied" do
     before do
-      ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+      set_dummy_url_config(:voice_request, :method, :get)
     end
 
     it "should make a 'POST' request to the 'action' URL" do
@@ -47,7 +47,7 @@ shared_examples_for "a TwiML 'method' attribute" do |cassette|
 
     context "'GET'" do
       before do
-        ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "post"
+        set_dummy_url_config(:voice_request, :method, :post)
       end
 
       it "should make a 'GET' request to the 'action' URL" do
@@ -60,7 +60,7 @@ shared_examples_for "a TwiML 'method' attribute" do |cassette|
 
     context "'POST'" do
       before do
-        ENV['AHN_TWILIO_VOICE_REQUEST_METHOD'] = "get"
+        set_dummy_url_config(:voice_request, :method, :get)
       end
 
       it "should make a 'POST' request to the 'action' URL" do

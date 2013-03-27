@@ -74,12 +74,12 @@ module Adhearsion
               # | voice          | man, woman     | man           |
 
               before do
-                set_default_voices
+                set_dummy_voices
               end
 
               shared_examples_for "a male voice" do
                 it "should say the words in the voice specified in AHN_TWILIO_DEFAULT_MALE_VOICE or config.twilio.default_male_voice" do
-                  assert_say(:voice => default_config[:default_male_voice])
+                  assert_say(:voice => current_config[:default_male_voice])
                   expect_call_status_update(vcr_options) do
                     subject.run
                   end
@@ -147,7 +147,7 @@ module Adhearsion
                   # </Response>
 
                   it "should say the words in the voice specified in AHN_TWILIO_DEFAULT_FEMALE_VOICE or config.twilio.default_female_voice" do
-                    assert_say(:voice => default_config[:default_female_voice])
+                    assert_say(:voice => current_config[:default_female_voice])
                     expect_call_status_update(:cassette => :say_with_voice, :voice => "woman") do
                       subject.run
                     end

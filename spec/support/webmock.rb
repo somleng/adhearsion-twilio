@@ -16,10 +16,6 @@ module LastRequest
     @requests ||= []
   end
 
-  def last_request
-    requests.last
-  end
-
   def last_request=(request_signature)
     requests << request_signature
     request_signature
@@ -27,8 +23,22 @@ module LastRequest
 end
 
 module WebMockHelpers
+  def requests
+    requests = WebMock.requests
+  end
+
+  def first_request(attribute = nil)
+    request(:first, attribute)
+  end
+
   def last_request(attribute = nil)
-    request = WebMock.last_request
+    request(:last, attribute)
+  end
+
+  private
+
+  def request(position, attribute = nil)
+    request = WebMock.requests.send(position)
 
     case attribute
     when :body
@@ -40,10 +50,6 @@ module WebMockHelpers
     else
       request
     end
-  end
-
-  def requests
-    requests = WebMock.requests
   end
 end
 

@@ -1,5 +1,6 @@
 shared_context 'twilio' do
   include WebMockHelpers
+  include ConfigHelpers
 
   module Adhearsion
     module Twilio
@@ -7,7 +8,7 @@ shared_context 'twilio' do
         include Twilio::ControllerMethods
 
         def run
-          redirect
+          notify_voice_request_url
         end
       end
     end
@@ -19,7 +20,7 @@ shared_context 'twilio' do
     {
       :to => "85512456869",
       :from => "1000",
-      :id => "5150691c-3db4-11e2-99cd-1f3f1cd7995d"
+      :id => "5250692c-3db4-11e2-99cd-2f3f1cd7994c"
     }
   end
 
@@ -40,30 +41,19 @@ shared_context 'twilio' do
   before do
     subject.stub(:hangup)
     call.stub(:alive?)
-  end
-
-  def set_default_voices
-    ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"] = "default_male_voice"
-    ENV["AHN_TWILIO_DEFAULT_FEMALE_VOICE"] = "default_female_voice"
+    set_default_config!
   end
 
   def stub_infinite_loop
     subject.stub(:loop).and_return(infinity.times)
   end
 
-  def default_config
-    {
-      :voice_request_url => ENV["AHN_TWILIO_VOICE_REQUEST_URL"] || "http://localhost:3000/",
-      :voice_request_method => ENV["AHN_TWILIO_VOICE_REQUEST_METHOD"] || :post,
-      :default_male_voice => ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"],
-      :default_female_voice => ENV["AHN_TWILIO_DEFAULT_FEMALE_VOICE"]
-    }
-  end
-
   def generate_erb(options = {})
     {
-      :url => default_config[:voice_request_url],
-      :method => default_config[:voice_request_method]
+      :url => current_config[:voice_request_url],
+      :method => current_config[:voice_request_method],
+      :status_callback_url => current_config[:status_callback_url],
+      :status_callback_method => current_config[:status_callback_method]
     }.merge(options)
   end
 
@@ -85,12 +75,14 @@ shared_context 'twilio' do
   end
 
   def assert_voice_request_params(options = {})
+    position = options.delete(:request_position) || :first
+
     options["From"] ||= "+#{call_params[:from]}"
     options["To"] ||= "+#{call_params[:to]}"
     options["CallSid"] ||= call_params[:id]
     options["CallStatus"] ||= "in-progress"
 
-    last_request(:body).each do |param, value|
+    request(position, :body).each do |param, value|
       value.should == options[param]
     end
   end
