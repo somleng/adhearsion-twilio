@@ -127,7 +127,7 @@ module Adhearsion
       end
 
       def options_for_twilio_play(options = {})
-        {}
+        {:renderer => :native}
       end
 
       def twilio_dial(to, options = {})
@@ -151,8 +151,9 @@ module Adhearsion
       end
 
       def twilio_play(path, options = {})
+        params = options_for_twilio_play(options)
         twilio_loop(options).each do
-          play_audio(path, :renderer => :native)
+          play_audio(path, params)
         end
       end
 
