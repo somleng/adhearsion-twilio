@@ -31,17 +31,18 @@ module Adhearsion
 
       # Defining a Rake task is easy
       # The following can be invoked with:
-      #   rake plugin_demo:info
+      #   rake adhearsion:twilio:info
       #
       tasks do
-        namespace :twilio do
-          desc "Prints the PluginTemplate information"
-          task :info do
-            STDOUT.puts "adhearsion-twilio plugin v. #{VERSION}"
+        namespace :adhearsion do
+          namespace :twilio do
+            desc "Prints the adhearsion-twilio information"
+            task :info do
+              STDOUT.puts "adhearsion-twilio plugin v. #{VERSION}"
+            end
           end
         end
       end
-
     end
   end
 end
