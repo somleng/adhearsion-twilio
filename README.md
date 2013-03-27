@@ -27,10 +27,10 @@ These should be the same endpoints that you point to in your Twilio configuratio
       config.twilio.voice_request_method   = "post"
 
       # Make a request to this URL when a call to this phone number is completed. [AHN_TWILIO_STATUS_CALLBACK_URL]
-      config.twilio.status_callback_url    = "http://localhost:3000/"
+      config.twilio.status_callback_url    = nil
 
       # Make a request to the status_callback_url using this method when a call to this phone number is completed. [AHN_TWILIO_STATUS_CALLBACK_METHOD]
-      config.twilio.status_callback_method = "post"
+      config.twilio.status_callback_method = nil
 
       # The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values) [AHN_TWILIO_DEFAULT_MALE_VOICE]
       config.twilio.default_male_voice     = nil
@@ -41,18 +41,18 @@ These should be the same endpoints that you point to in your Twilio configuratio
 
 ## Usage
 
-In your controller include `Adhearsion::Twilio::ControllerMethods`, answer the call and redirect to your server. e.g.
+In your controller include `Adhearsion::Twilio::ControllerMethods`, answer the call and notify your voice app like this:
 
     class CallController < Adhearsion::CallController
       include Adhearsion::Twilio::ControllerMethods
 
       def run
         answer
-        redirect
+        notify_voice_request_url
       end
     end
 
-The redirect method will post to your server at `voice_request_url` then execute any Twiml you supply back
+`notify_voice_request_url` will send a [Twilio Request](http://www.twilio.com/docs/api/twiml/twilio_request) using the url you configured in `voice_request_url` then execute any TwiML you respond back with.
 
 ## Documentation
 
