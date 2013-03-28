@@ -56,19 +56,19 @@ In your controller include `Adhearsion::Twilio::ControllerMethods`, answer the c
 
 ## Documentation
 
-Read [the specs](https://github.com/dwilkie/adhearsion-twilio/tree/master/spec/adhearsion/twilio). Each spec contains a TwiML examples for each Verb Attribute and Noun along with the relevant documentation from Twilio.
+Read through [the specs](http://rdoc.info/list/github/dwilkie/adhearsion-twilio/master/file). Each spec contains TwiML examples for each Verb Attribute and Noun along with the relevant [documentation from Twilio](http://www.twilio.com/docs/api/twiml).
 
 ## Already Implemented
 
 The following verbs have been already implemented:
 
-* Play
-* Say
-* Dial
+* [Play](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/play_spec.rb)
+* [Say](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/say_spec.rb)
+* [Dial](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/dial_spec.rb)
     * plain text
-* Gather
-* Redirect
-* Hangup
+* [Gather](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/gather_spec.rb)
+* [Redirect](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/redirect_spec.rb)
+* [Hangup](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/hangup_spec.rb)
 
 ## Todo
 
