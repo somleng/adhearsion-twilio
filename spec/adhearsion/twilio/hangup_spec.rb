@@ -20,8 +20,8 @@ module Adhearsion
           # </Response>
 
           it "should hang up the call" do
-            subject.should_receive(:hangup)
-            expect_call_status_update { subject.run }
+            # hangup already asserted in following assertion
+            expect_call_status_update(:cassette => :hangup) { subject.run }
           end
         end
       end

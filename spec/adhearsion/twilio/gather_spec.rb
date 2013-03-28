@@ -339,7 +339,6 @@ module Adhearsion
 
                 it "should not reach any new verbs" do
                   assert_next_verb_not_reached
-                  subject.should_receive(:hangup)
                   expect_call_status_update(:cassette => :gather_with_result) do
                     subject.run
                   end

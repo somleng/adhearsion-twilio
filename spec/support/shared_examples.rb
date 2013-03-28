@@ -81,13 +81,4 @@ shared_examples_for "continuing to process the current TwiML" do |cassette|
       subject.run
     end
   end
-
-  context "if there's no next verb" do
-    it "should hangup the call" do
-      subject.should_receive(:hangup)
-      expect_call_status_update(:cassette => cassette) do
-        subject.run
-      end
-    end
-  end # context "with no next verb"
 end # shared_examples_for "continuing to process the current TwiML"

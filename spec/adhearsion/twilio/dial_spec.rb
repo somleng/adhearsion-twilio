@@ -209,7 +209,6 @@ module Adhearsion
 
                 it "should stop continuing with the current TwiML" do
                   assert_next_verb_not_reached
-                  subject.should_receive(:hangup)
                   expect_call_status_update do
                     subject.run
                   end

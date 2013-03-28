@@ -58,6 +58,7 @@ shared_context 'twilio' do
   end
 
   def expect_call_status_update(options = {}, &block)
+    assert_call_is_hungup unless options.delete(:hangup) == false
     cassette = options.delete(:cassette) || :hangup
     VCR.use_cassette(cassette, :erb => generate_erb(options)) do
       yield
@@ -72,6 +73,10 @@ shared_context 'twilio' do
   def assert_next_verb_reached
     # assumes next verb is <Play>
     subject.should_receive(:play_audio)
+  end
+
+  def assert_call_is_hungup
+    subject.should_receive(:hangup).exactly(1).times
   end
 
   def assert_voice_request_params(options = {})

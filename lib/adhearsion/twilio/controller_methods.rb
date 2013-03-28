@@ -20,8 +20,6 @@ module Adhearsion
       end
 
       def redirect(url = nil, options = {})
-        raise TwimlError, "invalid redirect url" if url && url.empty?
-
         execute_twiml(
           notify_http(
             URI.join(@last_request_url, url.to_s).to_s,
@@ -52,8 +50,7 @@ module Adhearsion
       end
 
       def execute_twiml(response)
-        # When redirecting, dialing or gathering we should first
-        # break from the loop to avoid a stack level too deep problem
+        redirection = nil
         with_twiml(response) do |node|
           content = node.content
           options = twilio_options(node)
@@ -61,9 +58,10 @@ module Adhearsion
           when 'Play'
             twilio_play(content, options)
           when 'Gather'
-            break unless twilio_gather(node, options)
+            break if redirection = twilio_gather(node, options)
           when 'Redirect'
-            redirect(content, options)
+            redirection = twilio_redirect(content, options)
+            break
           when 'Hangup'
             break
           when 'Say'
@@ -73,17 +71,22 @@ module Adhearsion
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            break unless twilio_dial(content, options)
+            break if redirection = twilio_dial(content, options)
           else
             raise ArgumentError "Invalid element '#{verb}'"
           end
         end
-        twilio_hangup
+        redirection ? redirect(*redirection) : twilio_hangup
       end
 
       def twilio_hangup
         notify_status_callback_url
         hangup
+      end
+
+      def twilio_redirect(url, options = {})
+        raise TwimlError, "invalid redirect url" if url && url.empty?
+        [url, options]
       end
 
       def twilio_gather(node, options = {})
@@ -119,14 +122,12 @@ module Adhearsion
         result = ask(*ask_params.flatten, ask_options)
         digits = result.response
 
-        continue = true
-
-        if digits.present?
-          continue = false
-          redirect(options["action"], "Digits" => digits, "method" => options["method"])
-        end
-
-        continue
+        [
+          options["action"],
+          {
+            "Digits" => digits, "method" => options["method"]
+          }
+        ] if digits.present?
       end
 
       def twilio_say(words, options = {})
@@ -154,17 +155,13 @@ module Adhearsion
 
         dial_status = dial(to, params).result
 
-        continue = true
-
-        if options["action"]
-          continue = false
-          redirect(
-            options["action"],
-            "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status], "method" => options["method"]
-          )
-        end
-
-        continue
+        [
+          options["action"],
+          {
+            "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status],
+            "method" => options["method"]
+          }
+        ] if options["action"]
       end
 
       def twilio_play(path, options = {})

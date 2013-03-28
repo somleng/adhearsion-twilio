@@ -25,9 +25,9 @@ module Adhearsion
               #   <Redirect/>
               # </Response>
 
-              it "should raise a TwimlError" do
+              it "should raise a TwimlError and let Adhearsion hangup the call" do
                 expect {
-                  expect_call_status_update(:cassette => :redirect) { subject.run }
+                  expect_call_status_update(:cassette => :redirect, :hangup => false) { subject.run }
                  }.to raise_error(Adhearsion::Twilio::TwimlError, "invalid redirect url")
               end
             end # context "empty"
