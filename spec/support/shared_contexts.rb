@@ -87,8 +87,10 @@ shared_context 'twilio' do
     options["CallSid"] ||= call_params[:id]
     options["CallStatus"] ||= "in-progress"
 
-    request(position, :body).each do |param, value|
-      value.should == options[param]
+    actual_request = request(position, :body)
+
+    options.each do |param, assertion|
+      actual_request[param].should == assertion
     end
   end
 end

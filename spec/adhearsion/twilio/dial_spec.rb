@@ -239,7 +239,7 @@ module Adhearsion
                         expect_call_status_update do
                           subject.run
                         end
-                        assert_voice_request_params("DialCallStatus" => twilio_status)
+                        assert_voice_request_params("DialCallStatus" => twilio_status, :request_position => :last)
                       end
                     end # context "ahn_status"
                   end # ahn_twilio_dial_statuses loop
