@@ -44,7 +44,8 @@ module Adhearsion
             :From => normalized_from,
             :To => normalized_to,
             :CallSid => call.id,
-            :CallStatus => TWILIO_CALL_STATUSES[status]
+            :CallStatus => TWILIO_CALL_STATUSES[status],
+            :ApiVersion => api_version
           }.merge(options), :basic_auth => url_auth(url)
         ).body
       end
@@ -204,6 +205,10 @@ module Adhearsion
 
       def normalized_to
         normalized_destination(call.to)
+      end
+
+      def api_version
+        "adhearsion-twilio-#{Adhearsion::Twilio::VERSION}"
       end
 
       def normalized_destination(raw_destination)

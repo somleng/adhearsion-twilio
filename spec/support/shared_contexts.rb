@@ -86,6 +86,7 @@ shared_context 'twilio' do
     options["To"] ||= "+#{call_params[:to]}"
     options["CallSid"] ||= call_params[:id]
     options["CallStatus"] ||= "in-progress"
+    options["ApiVersion"] ||= "adhearsion-twilio-0.0.1"
 
     actual_request = request(position, :body)
 
