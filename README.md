@@ -54,6 +54,58 @@ In your controller include `Adhearsion::Twilio::ControllerMethods`, answer the c
 
 `notify_voice_request_url` will send a [Twilio Request](http://www.twilio.com/docs/api/twiml/twilio_request) using the url you configured in `voice_request_url` then execute any TwiML you respond back with.
 
+## Testing
+
+Currently, RSpec is the only testing framework supported.
+
+Add the following lines to your application's Gemfile
+
+    group :test do
+      gem 'vcr'
+      gem 'webmock'
+      gem 'rack-test'
+    end
+
+And then execute:
+
+    $ bundle
+
+
+If this is your CallController:
+
+    class CallController < Adhearsion::CallController
+      include Adhearsion::Twilio::ControllerMethods
+
+      def run
+        answer
+        notify_voice_request_url
+      end
+    end
+
+Then you can test it like this:
+
+    require 'spec_helper'
+    require 'adhearsion/twilio/spec/helpers'
+
+    describe CallController do
+      include Adhearsion::Twilio::Spec::Helpers
+
+      subject { CallController.new(mock_call) }
+
+      describe "#run" do
+        before do
+          mock_call.stub(:answer)
+        end
+
+        it "should answer the call" do
+          mock_call.should_receive(:answer)
+          expect_call_status_update { subject.run }
+        end
+      end
+    end
+
+The helper method `mock_call` returns a mock of a Call with the appropriate methods stubbed out. `expect_call_status_update` inserts the default cassette `hangup` using VCR. You can test other methods by inserting different cassette using the `:cassette` option. For a list of the available cassettes look in: [https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/fixtures/vcr_cassettes](https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/fixtures/vcr_cassettes). For more info about the test helper methods available look at: [https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/helpers.rb](https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/helpers.rb)
+
 ## Documentation
 
 Read through [the specs](http://rdoc.info/list/github/dwilkie/adhearsion-twilio/master/file). Each spec contains TwiML examples for each Verb Attribute and Noun along with the relevant [documentation from Twilio](http://www.twilio.com/docs/api/twiml).
