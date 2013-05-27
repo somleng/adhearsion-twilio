@@ -200,7 +200,14 @@ module Adhearsion
       end
 
       def normalized_from
-        normalized_destination(call.from)
+        return_value = normalized_destination(call.from)
+        unless destination_valid?(return_value)
+          normalized_p_asserted_identity = normalized_destination(
+            call.headers[:x_variable_sip_p_asserted_identity]
+          )
+          return_value = normalized_p_asserted_identity if destination_valid?(normalized_p_asserted_identity)
+        end
+        return_value
       end
 
       def normalized_to
@@ -212,7 +219,12 @@ module Adhearsion
       end
 
       def normalized_destination(raw_destination)
-        "+#{Mail::Address.new(raw_destination).local}"
+        destination = Mail::Address.new(raw_destination).local
+        destination_valid?(destination) ? "+#{destination.gsub('+', '')}" : destination
+      end
+
+      def destination_valid?(raw_destination)
+        raw_destination =~ /\A\+?\d+\z/
       end
 
       def config

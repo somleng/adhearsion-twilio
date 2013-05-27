@@ -239,24 +239,84 @@ module Adhearsion
                 assert_voice_request_params("CallStatus" => "completed", :request_position => :last)
               end
             end
-
-
           end # describe "Call End Callback (StatusCallback) Requests"
 
-          # Data Formats
+          describe "Data Formats" do
+            # Data Formats
 
-          # Phone Numbers
+            describe "Phone Numbers" do
+              # Phone Numbers
 
-          # All phone numbers in requests from Twilio are in E.164 format if possible.
-          # For example, (415) 555-4345 would come through as '+14155554345'.
-          # However, there are occasionally cases where Twilio cannot normalize an
-          # incoming caller ID to E.164. In these situations Twilio will report
-          # the raw caller ID string.
+              # All phone numbers in requests from Twilio are in E.164 format if possible.
+              # For example, (415) 555-4345 would come through as '+14155554345'.
+              # However, there are occasionally cases where Twilio cannot normalize an
+              # incoming caller ID to E.164. In these situations Twilio will report
+              # the raw caller ID string.
 
-          # Dates & Times
+              context "given a call is received from:" do
+                shared_examples_for "posting the correct 'From' variable" do |assertion|
+                  it "should post to the remote server with 'From=#{assertion}'" do
+                    expect_call_status_update { subject.run }
+                    last_request(:body)["From"].should == assertion
+                  end
+                end
 
-          # All dates and times in requests from Twilio are GMT in RFC 2822 format.
-          # For example, 6:13 PM PDT on August 19th, 2010 would be 'Fri, 20 Aug 2010 01:13:42 +0000'
+                context "'<+85510212050@anonymous.invalid>'" do
+                  before do
+                    mock_call.stub(:from).and_return("<+85510212050@anonymous.invalid>")
+                  end
+
+                  it_should_behave_like "posting the correct 'From' variable", "+85510212050"
+                end # context "'<+85510212050@anonymous.invalid>'"
+
+
+                context "'<85510212050@anonymous.invalid>'" do
+                  before do
+                    mock_call.stub(:from).and_return("<85510212050@anonymous.invalid>")
+                  end
+
+                  it_should_behave_like "posting the correct 'From' variable", "+85510212050"
+                end # context "'<85510212050@anonymous.invalid>'"
+
+                context "'<anonymous@anonymous.invalid>'" do
+                  before do
+                    mock_call.stub(:from).and_return("<anonymous@anonymous.invalid>")
+                  end
+
+                  context "and the P-Asserted-Identity header is not available" do
+                    before do
+                      mock_call.stub(:headers).and_return({})
+                    end
+
+                    it_should_behave_like "posting the correct 'From' variable", "anonymous"
+                  end # context "and the P-Asserted-Identity header is not available"
+
+                  context "and the P-Asserted-Identity header is '+85510212050'" do
+                    before do
+                      mock_call.stub(:headers).and_return({:x_variable_sip_p_asserted_identity=>"+85510212050"})
+                    end
+
+                    it_should_behave_like "posting the correct 'From' variable", "+85510212050"
+                  end # context "and the P-Asserted-Identity header is '+85510212050'"
+
+                  context "and the P-Asserted-Identity header is 'foo'" do
+                    before do
+                      mock_call.stub(:headers).and_return({:x_variable_sip_p_asserted_identity=>"foo"})
+                    end
+
+                    it_should_behave_like "posting the correct 'From' variable", "anonymous"
+                  end # context "and the P-Asserted-Identity header is 'foo'"
+                end # context "'<anonymous@anonymous.invalid>'"
+              end # context "given a call is received from:"
+            end # describe "Phone Numbers"
+
+            # Dates & Times
+
+            # All dates and times in requests from Twilio are GMT in RFC 2822 format.
+            # For example, 6:13 PM PDT on August 19th, 2010 would be 'Fri, 20 Aug 2010 01:13:42 +0000'
+
+          end # describe "Data Formats"
+
         end # describe "twilio request"
       end # describe "mixed in to a CallController"
     end # describe ControllerMethods
