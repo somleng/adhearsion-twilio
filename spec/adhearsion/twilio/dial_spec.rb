@@ -31,8 +31,18 @@ module Adhearsion
           end
 
           def assert_dial(options = {})
-            subject.should_receive(:dial) do |number, params|
-              number.should == number_to_dial
+            asserted_to = options.delete(:to) || number_to_dial
+
+            if asserted_to.is_a?(Array)
+              asserted_to_hash = {}
+              asserted_to.each do |number|
+                asserted_to_hash[number] = {}
+              end
+              asserted_to = asserted_to_hash
+            end
+
+            subject.should_receive(:dial) do |to, params|
+              to.should == asserted_to
               options.each do |option, value|
                 params[option].should == value
               end
@@ -75,6 +85,193 @@ module Adhearsion
                 end
               end
             end # context "plain text"
+
+            context "<Number> (Differs from Twilio)" do
+              # From: http://www.twilio.com/docs/api/twiml/dial
+
+              # The <Number> noun allows you to <Dial> another number while
+              # specifying additional behavior pertaining to that number.
+              # Simultaneous dialing is also possible using multiple <Number> nouns.\
+              # See the documentation on the <Number> noun for a
+              # detailed walkthrough of how to use it.
+
+              # From: http://www.twilio.com/docs/api/twiml/number
+
+              # The <Dial> verb's <Number> noun specifies a phone number to dial.
+              # Using the noun's attributes you can specify particular behaviors that
+              # Twilio should apply when dialing the number.
+
+              # You can use multiple <Number> nouns within a <Dial> verb
+              # to simultaneously call all of them at once.
+              # The first call to pick up is connected to the current call
+              # and the rest are hung up.
+
+              describe "Noun Attributes" do
+                # From: http://www.twilio.com/docs/api/twiml/number
+
+                # Noun Attributes
+
+                # The <Number> noun supports the following attributes that modify its behavior:
+
+                # | Attribute Name | Allowed Values | Default Value |
+                # | sendDigits     | any digits     | none          |
+                # | method         | GET, POST      | POST          |
+
+                # Phone numbers should be formatted with a '+' and country code
+                # e.g., +16175551212 (E.164 format).
+                # Twilio will also accept unformatted US numbers
+                # e.g., (415) 555-1212 or 415-555-1212.
+
+                describe "none" do
+                  # From: http://www.twilio.com/docs/api/twiml/number
+
+                  # In this case we use several <Number> tags to dial three phone numbers
+                  # at the same time.
+                  # The first of these calls to answer will be connected to the current caller,
+                  # while the rest of the connection attempts are canceled.
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial>
+                  #     <Number>858-987-6543</Number>
+                  #     <Number>415-123-4567</Number>
+                  #     <Number>619-765-4321</Number>
+                  #   </Dial>
+                  # </Response>
+
+                  let(:numbers) { ["858-987-6543", "415-123-4567", "619-765-4321"] }
+
+                  it "should dial simultaneously to the numbers specified" do
+                    assert_dial(:to => numbers)
+                    expect_call_status_update(:cassette => :dial_number, :numbers => numbers) do
+                      subject.run
+                    end
+                  end
+                end # describe "none"
+
+                describe "'callerId' (Not available for Twilio)" do
+                  # This option is not available on Twilio
+
+                  # The 'callerId' attribute allows you to tell Adhearsion to dial out
+                  # using the callerId for this number
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial callerId="2441">
+                  #     <Number callerId="2442">858-987-6543</Number>
+                  #     <Number callerId="2443">415-123-4567</Number>
+                  #     <Number>619-765-4321</Number>
+                  #   </Dial>
+                  # </Response>
+
+                  let(:numbers) {
+                    {
+                      "858-987-6543" => {:from => "2442"},
+                      "415-123-4567" => {:from => "2443"},
+                      "619-765-4321" => {}
+                    }
+                  }
+
+                  it "should dial simultaneously to the numbers specified overriding the callerId" do
+                    assert_dial(:to => numbers, :from => "2441")
+                    expect_call_status_update(:cassette => :dial_number_with_caller_id, :numbers => numbers, :caller_id => "2441") do
+                      subject.run
+                    end
+                  end
+                end # describe "'callerId'"
+
+                describe "'sendDigits'" do
+                  # From: http://www.twilio.com/docs/api/twiml/number
+
+                  # sendDigits
+
+                  # The 'sendDigits' attribute tells Twilio
+                  # to play DTMF tones when the call is answered.
+                  # This is useful when dialing a phone number and an extension.
+                  # Twilio will dial the number, and when the automated system picks up,
+                  # send the DTMF tones to connect to the extension.
+
+                  # In this case, we want to dial the 1928 extension at 415-123-4567.
+                  # We use a <Number> noun to describe the phone number
+                  # and give it the attribute sendDigits.
+                  # We want to wait before sending the extension,
+                  # so we add a few leading 'w' characters.
+                  # Each 'w' character tells Twilio to wait 0.5 seconds instead
+                  # of playing a digit.
+                  # This lets you adjust the timing of when the digits begin playing
+                  # to suit the phone system you are dialing.
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial>
+                  #     <Number sendDigits="wwww1928">
+                  #       415-123-4567
+                  #     </Number>
+                  #   </Dial>
+                  # </Response>
+
+                  pending "Not yet implemented"
+                end # describe "'sendDigits'"
+
+                describe "'url'" do
+                  # From: http://www.twilio.com/docs/api/twiml/number
+
+                  # url
+
+                  # The 'url' attribute allows you to specify a url for a TwiML document that
+                  # will run on the called party's end, after she answers,
+                  # but before the parties are connected.
+                  # You can use this TwiML to privately play or say information to the called party,
+                  # or provide a chance to decline the phone call using <Gather> and <Hangup>.
+                  # The current caller will continue to hear ringing while the TwiML document
+                  # executes on the other end.
+                  # TwiML documents executed in this manner
+                  # are not allowed to contain the <Dial> verb.
+
+                  pending "Not yet implemented"
+                end # describe "'url'"
+
+                describe "'method'" do
+                  # From: http://www.twilio.com/docs/api/twiml/number
+
+                  # method
+
+                  # The 'method' attribute allows you to specify which HTTP method Twilio
+                  # should use when requesting the URL in the 'url' attribute.
+                  # The default is POST.
+
+                  pending "Not yet implemented"
+                end # describe "'method'"
+              end # describe "Noun Attributes"
+            end # context "<Number>"
+
+            context "<Sip>" do
+              # From: http://www.twilio.com/docs/api/twiml/sip
+
+              describe "Noun Attributes" do
+                # From: http://www.twilio.com/docs/api/twiml/sip
+
+                describe "none" do
+                  # From: http://www.twilio.com/docs/api/twiml/sip
+
+                  # <?xml version="1.0" encoding="UTF-8"?>
+                  # <Response>
+                  #   <Dial>
+                  #     <Sip>sip:jack@example.com</Sip>
+                  #   </Dial>
+                  # </Response>
+
+                  # not yet supported
+                  it "should raise an error that this is not (yet) supported" do
+                    expect_call_status_update(:cassette => :dial_sip, :sip_string => "sip:jack@example.com", :hangup => false) do
+                      expect { subject.run }.to raise_error(
+                        Adhearsion::Twilio::TwimlError, "Nested noun '<Sip>' not allowed within '<Dial>'"
+                      )
+                    end
+                  end
+                end # describe "none"
+              end # describe "Noun Attributes"
+            end # context "<Sip>"
           end # describe "Nouns"
 
           describe "Verb Attributes" do

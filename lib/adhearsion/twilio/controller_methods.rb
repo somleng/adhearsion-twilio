@@ -72,7 +72,7 @@ module Adhearsion
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            break if redirection = twilio_dial(content, options)
+            break if redirection = twilio_dial(node, options)
           else
             raise ArgumentError "Invalid element '#{verb}'"
           end
@@ -149,13 +149,36 @@ module Adhearsion
         {:renderer => :native}
       end
 
-      def twilio_dial(to, options = {})
+      def options_for_twilio_dial(options = {})
+        global = options.delete(:global)
+        global = true unless global == false
         params = {}
         params[:from] = options["callerId"] if options["callerId"]
-        params[:for] = options["timeout"] ? options["timeout"].to_i.seconds : 30.seconds
+        params[:for] = (options["timeout"] ? options["timeout"].to_i.seconds : 30.seconds) if global
+        params
+      end
+
+      def twilio_dial(node, options = {})
+        params = options_for_twilio_dial(options)
+        to = {}
+
+        node.children.each do |nested_noun_node|
+          break if nested_noun_node.text?
+          noun = nested_noun_node.name
+          raise(
+            TwimlError,
+            "Nested noun '<#{noun}>' not allowed within '<#{node.name}>'"
+          ) unless ["Number"].include?(noun)
+
+          nested_noun_options = twilio_options(nested_noun_node)
+          specific_dial_options = options_for_twilio_dial(nested_noun_options.merge(:global => false))
+
+          to[nested_noun_node.content.strip] = specific_dial_options
+        end
+
+        to = node.content if to.empty?
 
         dial_status = dial(to, params).result
-
         [
           options["action"],
           {
