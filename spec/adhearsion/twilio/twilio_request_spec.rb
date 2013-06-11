@@ -285,7 +285,7 @@ module Adhearsion
 
                   context "and the P-Asserted-Identity header is not available" do
                     before do
-                      mock_call.stub(:headers).and_return({})
+                      mock_call.stub(:variables).and_return({})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "anonymous"
@@ -293,7 +293,7 @@ module Adhearsion
 
                   context "and the P-Asserted-Identity header is '+85510212050'" do
                     before do
-                      mock_call.stub(:headers).and_return({:x_variable_sip_p_asserted_identity=>"+85510212050"})
+                      mock_call.stub(:variables).and_return({:x_variable_sip_p_asserted_identity=>"+85510212050"})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "+85510212050"
@@ -301,7 +301,7 @@ module Adhearsion
 
                   context "and the P-Asserted-Identity header is 'foo'" do
                     before do
-                      mock_call.stub(:headers).and_return({:x_variable_sip_p_asserted_identity=>"foo"})
+                      mock_call.stub(:variables).and_return({:x_variable_sip_p_asserted_identity=>"foo"})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "anonymous"
