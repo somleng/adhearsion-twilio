@@ -48,6 +48,7 @@ module Adhearsion
 
             subject.stub(:hangup)
             mock_call.stub(:alive?)
+            mock_call.stub(:register_controller!)
             set_default_config!
           end
         end

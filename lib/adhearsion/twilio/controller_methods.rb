@@ -13,6 +13,12 @@ module Adhearsion
     INFINITY = 100
 
     module ControllerMethods
+      extend ActiveSupport::Concern
+
+      included do
+        after_call :twilio_hangup
+      end
+
       private
 
       def notify_voice_request_url
@@ -77,12 +83,11 @@ module Adhearsion
             raise ArgumentError "Invalid element '#{verb}'"
           end
         end
-        redirection ? redirect(*redirection) : twilio_hangup
+        redirection ? redirect(*redirection) : hangup
       end
 
       def twilio_hangup
         notify_status_callback_url
-        hangup
       end
 
       def twilio_redirect(url, options = {})

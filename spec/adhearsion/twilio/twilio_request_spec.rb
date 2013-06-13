@@ -25,7 +25,7 @@ module Adhearsion
                 end
 
                 it "should send the parameters via http 'POST'" do
-                  expect_call_status_update(cassette_options) { subject.run }
+                  expect_call_status_update(cassette_options) { subject.exec }
                   request(position, :method).should == :post
                 end
               end # context "= 'post'"
@@ -36,7 +36,7 @@ module Adhearsion
                 end
 
                 it "should send the parameters via http 'GET'" do
-                  expect_call_status_update(cassette_options) { subject.run }
+                  expect_call_status_update(cassette_options) { subject.exec }
                   request(position, :method).should == :get
                 end
               end # context "= 'get'"
@@ -49,7 +49,7 @@ module Adhearsion
                 end
 
                 it "should send the request to the configured url" do
-                  expect_call_status_update(cassette_options) { subject.run }
+                  expect_call_status_update(cassette_options) { subject.exec }
                   request(position, :url).should == "http://localhost:1234/#{url_type}_url.xml/"
                 end
               end
@@ -62,7 +62,7 @@ module Adhearsion
                 end
 
                 it "should use http basic auth to send the request" do
-                  expect_call_status_update(cassette_options) { subject.run }
+                  expect_call_status_update(cassette_options) { subject.exec }
                   request(position, :url).should == "http://user:password@localhost:1234/#{url_type}_url.xml/"
                   request(position).uri.user.should == "user"
                   request(position).uri.password.should == "password"
@@ -234,11 +234,13 @@ module Adhearsion
 
               it_should_behave_like "a configured url", :status_callback
 
-              it "should send the correct request parameters" do
-                expect_call_status_update(:cassette => :hangup_with_status_callback_url_set) { subject.run }
-                assert_voice_request_params("CallStatus" => "completed", :request_position => :last)
-              end
-            end
+              context "when the call is hungup" do
+                it "should send the correct request parameters" do
+                  expect_call_status_update(:cassette => :hangup_with_status_callback_url_set) { subject.exec }
+                  assert_voice_request_params("CallStatus" => "completed", :request_position => :last)
+                end
+              end # context "when the call is hungup"
+            end # context "is configured"
           end # describe "Call End Callback (StatusCallback) Requests"
 
           describe "Data Formats" do
