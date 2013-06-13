@@ -45,10 +45,10 @@ module Adhearsion
         RSpec.configure do |config|
           config.before do
             WebMock.clear_requests!
-
             subject.stub(:hangup)
             mock_call.stub(:alive?)
-            mock_call.stub(:register_controller!)
+            mock_call.stub(:async).and_return(mock_call)
+            mock_call.stub(:register_controller)
             set_default_config!
           end
         end
