@@ -1,5 +1,7 @@
 require 'adhearsion'
 require 'adhearsion-twilio'
+require 'coveralls'
+Coveralls.wear!
 
 RSpec.configure do |config|
   Dir[File.dirname(__FILE__) + "/support/**/*.rb"].each {|f| require f}
