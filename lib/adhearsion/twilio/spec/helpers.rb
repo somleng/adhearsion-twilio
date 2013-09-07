@@ -66,7 +66,7 @@ module Adhearsion
         end
 
         def mock_call
-          @mock_call ||= mock(
+          @mock_call ||= double(
             "Call",
             :from => "Extension 1000 <#{call_params[:from]}@192.168.42.234>",
             :to => "#{call_params[:to]}@192.168.42.234",

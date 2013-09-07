@@ -27,7 +27,7 @@ module Adhearsion
             ask_result.stub(:status).and_return(options[:status] || :terminated)
           end
 
-          let(:ask_result) { mock(Adhearsion::CallController::Input::Result, :response => "", :status => :timeout) }
+          let(:ask_result) { double(Adhearsion::CallController::Input::Result, :response => "", :status => :timeout) }
 
           let(:digits) { "32" }
 

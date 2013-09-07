@@ -24,7 +24,7 @@ module Adhearsion
           end
 
           let(:number_to_dial) { "+415-123-4567" }
-          let(:dial_status) { mock(Adhearsion::CallController::DialStatus, :result => :answer ) }
+          let(:dial_status) { double(Adhearsion::CallController::DialStatus, :result => :answer ) }
 
           def expect_call_status_update(options = {}, &block)
             super({:to => number_to_dial}.merge(options), &block)
