@@ -263,6 +263,14 @@ module Adhearsion
                   end
                 end
 
+                context "' <85513827719@117.55.252.146:5060>'" do
+                  before do
+                    mock_call.stub(:from).and_return(" <85513827719@117.55.252.146:5060>")
+                  end
+
+                  it_should_behave_like "posting the correct 'From' variable", "+85513827719"
+                end # context "' <85513827719@117.55.252.146:5060>'"
+
                 context "'<+85510212050@anonymous.invalid>'" do
                   before do
                     mock_call.stub(:from).and_return("<+85510212050@anonymous.invalid>")

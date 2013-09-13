@@ -247,7 +247,9 @@ module Adhearsion
       end
 
       def normalized_destination(raw_destination)
-        destination = Mail::Address.new(raw_destination).local
+        # remove port if given
+        destination = raw_destination.gsub(/(\d+)\:\d+/, '\1') if raw_destination
+        destination = Mail::Address.new(destination).local
         destination_valid?(destination) ? "+#{destination.gsub('+', '')}" : destination
       end
 
