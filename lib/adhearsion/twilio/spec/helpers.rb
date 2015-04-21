@@ -45,10 +45,10 @@ module Adhearsion
         RSpec.configure do |config|
           config.before do
             WebMock.clear_requests!
-            subject.stub(:hangup)
-            mock_call.stub(:alive?)
-            mock_call.stub(:async).and_return(mock_call)
-            mock_call.stub(:register_controller)
+            allow(subject).to receive(:hangup)
+            allow(mock_call).to receive(:alive?)
+            allow(mock_call).to receive(:async).and_return(mock_call)
+            allow(mock_call).to receive(:register_controller)
             set_default_config!
           end
         end
@@ -83,7 +83,7 @@ module Adhearsion
         end
 
         def assert_call_is_hungup
-          subject.should_receive(:hangup).exactly(1).times
+          expect(subject).to receive(:hangup).exactly(1).times
         end
 
         def generate_erb(options = {})
