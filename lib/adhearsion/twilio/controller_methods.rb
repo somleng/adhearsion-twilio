@@ -80,7 +80,7 @@ module Adhearsion
           when 'Dial'
             break if redirection = twilio_dial(node, options)
           else
-            raise ArgumentError "Invalid element '#{verb}'"
+            raise(ArgumentError, "Invalid element '#{node.name}'")
           end
         end
         redirection ? redirect(*redirection) : hangup
