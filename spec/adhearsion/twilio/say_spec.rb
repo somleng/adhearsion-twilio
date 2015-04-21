@@ -19,7 +19,7 @@ module Adhearsion
           def assert_say(options = {})
             loop = options.delete(:loop) || 1
             options.delete_if { |k, v| v.nil? }
-            subject.should_receive(:say).with(words, hash_including(options)).exactly(loop).times
+            expect(subject).to receive(:say).with(words, hash_including(options)).exactly(loop).times
           end
 
           shared_examples_for "saying the words" do

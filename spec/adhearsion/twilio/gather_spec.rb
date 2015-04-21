@@ -23,8 +23,8 @@ module Adhearsion
           # After the first digit is received the audio will stop playing.
 
           def stub_ask_result(options = {})
-            ask_result.stub(:response).and_return(options[:response] || digits)
-            ask_result.stub(:status).and_return(options[:status] || :terminated)
+            allow(ask_result).to receive(:response).and_return(options[:response] || digits)
+            allow(ask_result).to receive(:status).and_return(options[:status] || :terminated)
           end
 
           let(:ask_result) { double(Adhearsion::CallController::Input::Result, :response => "", :status => :timeout) }
@@ -32,7 +32,7 @@ module Adhearsion
           let(:digits) { "32" }
 
           before do
-            subject.stub(:ask).and_return(ask_result)
+            allow(subject).to receive(:ask).and_return(ask_result)
           end
 
           def assert_ask(options = {})
@@ -49,7 +49,7 @@ module Adhearsion
             }.merge(options)
 
             options.delete_if { |k, v| v.nil? }
-            subject.should_receive(:ask).with(*ask_args, options)
+            expect(subject).to receive(:ask).with(*ask_args, options)
           end
 
           describe "Nested Verbs" do
@@ -325,7 +325,7 @@ module Adhearsion
                   expect_call_status_update(:cassette => :gather_with_result) do
                     subject.run
                   end
-                  last_request(:body)["Digits"].should == digits
+                  expect(last_request(:body)["Digits"]).to eq(digits)
                 end
 
                 # "Any TwiML verbs occuring after a <Gather> are unreachable,
@@ -416,9 +416,9 @@ module Adhearsion
                     subject.run
                   end
                   # assert there were 2 requests made
-                  requests.count.should == 2
-                  last_request(:url).should == current_config[:voice_request_url]
-                  last_request(:method).should == :post
+                  expect(requests.count).to eq(2)
+                  expect(last_request(:url)).to eq(current_config[:voice_request_url])
+                  expect(last_request(:method)).to eq(:post)
                 end
               end # context "not specified"
 

@@ -23,17 +23,17 @@ shared_context 'twilio' do
   let(:file_url) { "http://api.twilio.com/cowbell.mp3" }
 
   def stub_infinite_loop
-    subject.stub(:loop).and_return(infinity.times)
+    allow(subject).to receive(:loop).and_return(infinity.times)
   end
 
   def assert_next_verb_not_reached
     # assumes next verb is <Play>
-    subject.should_not_receive(:play_audio)
+    expect(subject).not_to receive(:play_audio)
   end
 
   def assert_next_verb_reached
     # assumes next verb is <Play>
-    subject.should_receive(:play_audio)
+    expect(subject).to receive(:play_audio)
   end
 
   def assert_voice_request_params(options = {})
@@ -48,7 +48,7 @@ shared_context 'twilio' do
     actual_request = request(position, :body)
 
     options.each do |param, assertion|
-      actual_request[param].should == assertion
+      expect(actual_request[param]).to eq(assertion)
     end
   end
 end

@@ -18,11 +18,11 @@ module Adhearsion
 
           def assert_playback(options = {})
             options[:loop] ||= 1
-            subject.should_receive(:play_audio).with(file_url, {:renderer => :native}).exactly(options[:loop]).times
+            expect(subject).to receive(:play_audio).with(file_url, {:renderer => :native}).exactly(options[:loop]).times
           end
 
           before do
-            subject.stub(:play_audio)
+            allow(subject).to receive(:play_audio)
           end
 
           describe "Nouns" do

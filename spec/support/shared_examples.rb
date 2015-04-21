@@ -5,7 +5,7 @@ shared_examples_for "a TwiML 'action' attribute" do |cassette|
       expect_call_status_update(options) do
         subject.run
       end
-      last_request(:url).should == options[:redirect_url]
+      expect(last_request(:url)).to eq(options[:redirect_url])
     end
   end # context "absolute url"
 
@@ -21,7 +21,7 @@ shared_examples_for "a TwiML 'action' attribute" do |cassette|
       expect_call_status_update(options) do
         subject.run
       end
-      last_request(:url).should == options[:redirect_url]
+      expect(last_request(:url)).to eq(options[:redirect_url])
     end
   end # context "relative url"
 end # shared_examples_for "a TwiML 'action' attribute"
@@ -38,7 +38,7 @@ shared_examples_for "a TwiML 'method' attribute" do |cassette|
       expect_call_status_update(options.merge(:cassette => cassette)) do
         subject.run
       end
-      last_request(:method).should == :post
+      expect(last_request(:method)).to eq(:post)
     end
   end # context "not supplied"
 
@@ -54,7 +54,7 @@ shared_examples_for "a TwiML 'method' attribute" do |cassette|
         expect_call_status_update(options.merge(:cassette => with_method_cassette, :method_attribute => "get")) do
           subject.run
         end
-        last_request(:method).should == :get
+        expect(last_request(:method)).to eq(:get)
       end
     end # context "'GET'"
 
@@ -67,7 +67,7 @@ shared_examples_for "a TwiML 'method' attribute" do |cassette|
         expect_call_status_update(options.merge(:cassette => with_method_cassette, :method_attribute => "post")) do
           subject.run
         end
-        last_request(:method).should == :post
+        expect(last_request(:method)).to eq(:post)
       end
     end # context "'POST'"
   end # context "supplied"

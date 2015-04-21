@@ -26,7 +26,7 @@ module Adhearsion
 
                 it "should send the parameters via http 'POST'" do
                   expect_call_status_update(cassette_options) { subject.exec }
-                  request(position, :method).should == :post
+                  expect(request(position, :method)).to eq(:post)
                 end
               end # context "= 'post'"
 
@@ -37,7 +37,7 @@ module Adhearsion
 
                 it "should send the parameters via http 'GET'" do
                   expect_call_status_update(cassette_options) { subject.exec }
-                  request(position, :method).should == :get
+                  expect(request(position, :method)).to eq(:get)
                 end
               end # context "= 'get'"
             end # context "method"
@@ -50,7 +50,7 @@ module Adhearsion
 
                 it "should send the request to the configured url" do
                   expect_call_status_update(cassette_options) { subject.exec }
-                  request(position, :url).should == "http://localhost:1234/#{url_type}_url.xml/"
+                  expect(request(position, :url)).to eq("http://localhost:1234/#{url_type}_url.xml/")
                 end
               end
 
@@ -63,9 +63,9 @@ module Adhearsion
 
                 it "should use http basic auth to send the request" do
                   expect_call_status_update(cassette_options) { subject.exec }
-                  request(position, :url).should == "http://user:password@localhost:1234/#{url_type}_url.xml/"
-                  request(position).uri.user.should == "user"
-                  request(position).uri.password.should == "password"
+                  expect(request(position, :url)).to eq("http://user:password@localhost:1234/#{url_type}_url.xml/")
+                  expect(request(position).uri.user).to eq("user")
+                  expect(request(position).uri.password).to eq("password")
                 end
               end # context "= 'http://user:password@localhost:1234/#{url_type}_url.xml/'"
             end # context "url"
@@ -259,13 +259,13 @@ module Adhearsion
                 shared_examples_for "posting the correct 'From' variable" do |assertion|
                   it "should post to the remote server with 'From=#{assertion}'" do
                     expect_call_status_update { subject.run }
-                    last_request(:body)["From"].should == assertion
+                    expect(last_request(:body)["From"]).to eq(assertion)
                   end
                 end
 
                 context "' <85513827719@117.55.252.146:5060>'" do
                   before do
-                    mock_call.stub(:from).and_return(" <85513827719@117.55.252.146:5060>")
+                    allow(mock_call).to receive(:from).and_return(" <85513827719@117.55.252.146:5060>")
                   end
 
                   it_should_behave_like "posting the correct 'From' variable", "+85513827719"
@@ -273,7 +273,7 @@ module Adhearsion
 
                 context "'<+85510212050@anonymous.invalid>'" do
                   before do
-                    mock_call.stub(:from).and_return("<+85510212050@anonymous.invalid>")
+                    allow(mock_call).to receive(:from).and_return("<+85510212050@anonymous.invalid>")
                   end
 
                   it_should_behave_like "posting the correct 'From' variable", "+85510212050"
@@ -282,7 +282,7 @@ module Adhearsion
 
                 context "'<85510212050@anonymous.invalid>'" do
                   before do
-                    mock_call.stub(:from).and_return("<85510212050@anonymous.invalid>")
+                    allow(mock_call).to receive(:from).and_return("<85510212050@anonymous.invalid>")
                   end
 
                   it_should_behave_like "posting the correct 'From' variable", "+85510212050"
@@ -290,12 +290,12 @@ module Adhearsion
 
                 context "'<anonymous@anonymous.invalid>'" do
                   before do
-                    mock_call.stub(:from).and_return("<anonymous@anonymous.invalid>")
+                    allow(mock_call).to receive(:from).and_return("<anonymous@anonymous.invalid>")
                   end
 
                   context "and the P-Asserted-Identity header is not available" do
                     before do
-                      mock_call.stub(:variables).and_return({})
+                      allow(mock_call).to receive(:variables).and_return({})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "anonymous"
@@ -303,7 +303,7 @@ module Adhearsion
 
                   context "and the P-Asserted-Identity header is '+85510212050'" do
                     before do
-                      mock_call.stub(:variables).and_return({:x_variable_sip_p_asserted_identity=>"+85510212050"})
+                      allow(mock_call).to receive(:variables).and_return({:x_variable_sip_p_asserted_identity=>"+85510212050"})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "+85510212050"
@@ -311,7 +311,7 @@ module Adhearsion
 
                   context "and the P-Asserted-Identity header is 'foo'" do
                     before do
-                      mock_call.stub(:variables).and_return({:x_variable_sip_p_asserted_identity=>"foo"})
+                      allow(mock_call).to receive(:variables).and_return({:x_variable_sip_p_asserted_identity=>"foo"})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "anonymous"

@@ -20,7 +20,7 @@ module Adhearsion
           # Call flow will continue using the TwiML received in response to that request.
 
           def stub_dial_status(status)
-            dial_status.stub(:result).and_return(status)
+            allow(dial_status).to receive(:result).and_return(status)
           end
 
           let(:number_to_dial) { "+415-123-4567" }
@@ -41,17 +41,17 @@ module Adhearsion
               asserted_to = asserted_to_hash
             end
 
-            subject.should_receive(:dial) do |to, params|
-              to.should == asserted_to
+            expect(subject).to receive(:dial) do |to, params|
+              expect(to).to eq(asserted_to)
               options.each do |option, value|
-                params[option].should == value
+                expect(params[option]).to eq(value)
               end
               dial_status
             end
           end
 
           before do
-            subject.stub(:dial).and_return(dial_status)
+            allow(subject).to receive(:dial).and_return(dial_status)
           end
 
           describe "Nouns" do
