@@ -263,6 +263,14 @@ module Adhearsion
                   end
                 end
 
+                context "'sip:1000@192.168.1.128'" do
+                  before do
+                    allow(mock_call).to receive(:from).and_return("sip:1000@192.168.1.128")
+                  end
+
+                  it_should_behave_like "posting the correct 'From' variable", "+1000"
+                end
+
                 context "' <85513827719@117.55.252.146:5060>'" do
                   before do
                     allow(mock_call).to receive(:from).and_return(" <85513827719@117.55.252.146:5060>")
