@@ -11,6 +11,7 @@ module Adhearsion
     }
 
     INFINITY = 100
+    SLEEP_BETWEEN_REDIRECTS = 1
 
     module ControllerMethods
       extend ActiveSupport::Concern
@@ -91,7 +92,8 @@ module Adhearsion
       end
 
       def twilio_redirect(url, options = {})
-        raise TwimlError, "invalid redirect url" if url && url.empty?
+        raise(TwimlError, "invalid redirect url") if url && url.empty?
+        sleep(SLEEP_BETWEEN_REDIRECTS)
         [url, options]
       end
 
@@ -151,7 +153,7 @@ module Adhearsion
       end
 
       def options_for_twilio_play(options = {})
-        {:renderer => :native}
+        {}
       end
 
       def options_for_twilio_dial(options = {})
@@ -194,9 +196,8 @@ module Adhearsion
       end
 
       def twilio_play(path, options = {})
-        params = options_for_twilio_play(options)
         twilio_loop(options).each do
-          play_audio(path, params)
+          play_audio(path, options_for_twilio_play)
         end
       end
 

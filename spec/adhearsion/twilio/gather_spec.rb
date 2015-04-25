@@ -168,7 +168,7 @@ module Adhearsion
               end
 
               def assert_ask(options = {})
-                super(options.merge(:renderer => :native))
+                super(options)
               end
 
               # <?xml version="1.0" encoding="UTF-8"?>

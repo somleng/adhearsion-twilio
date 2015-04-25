@@ -18,7 +18,7 @@ module Adhearsion
 
           def assert_playback(options = {})
             options[:loop] ||= 1
-            expect(subject).to receive(:play_audio).with(file_url, {:renderer => :native}).exactly(options[:loop]).times
+            expect(subject).to receive(:play_audio).with(file_url, {}).exactly(options[:loop]).times
           end
 
           before do
