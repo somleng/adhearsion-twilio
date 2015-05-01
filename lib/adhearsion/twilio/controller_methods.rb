@@ -49,7 +49,8 @@ module Adhearsion
         notify_http(
           config.status_callback_url,
           config.status_callback_method,
-          :answer,
+          answered? ? :answer : :no_answer,
+          :CallDuration => call.duration.to_i,
         ) if config.status_callback_url.present? && config.status_callback_method.present?
       end
 

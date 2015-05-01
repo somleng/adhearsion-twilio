@@ -52,6 +52,7 @@ module Adhearsion
             allow(mock_call).to receive(:alive?)
             allow(mock_call).to receive(:async).and_return(mock_call)
             allow(mock_call).to receive(:register_controller)
+            allow(mock_call).to receive(:duration)
             set_default_config!
           end
         end

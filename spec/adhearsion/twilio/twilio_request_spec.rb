@@ -242,10 +242,19 @@ module Adhearsion
               it_should_behave_like "a configured url", :status_callback
 
               context "when the call is hungup" do
+                before do
+                  allow(mock_call).to receive(:duration).and_return(61.5)
+                end
+
                 it "should send the correct request parameters" do
-                  expect_call_status_update(:cassette => :hangup_with_status_callback_url_set) { subject.exec }
+                  expect_call_status_update(
+                    :cassette => :hangup_with_status_callback_url_set
+                  ) { subject.exec }
+
                   assert_voice_request_params(
-                    "CallStatus" => "completed", :request_position => :last
+                    "CallStatus" => "no-answer",
+                    "CallDuration" => "61",
+                    :request_position => :last
                   )
                 end
               end # context "when the call is hungup"
