@@ -607,6 +607,27 @@ module Adhearsion
                 end # context "'10'"
               end # context "specified"
             end # describe "'timeout'"
+
+            describe "ringback (Not available for Twilio)" do
+              # This option is not available on Twilio
+
+              # The 'ringback' attribute allows you to tell Adhearsion to play a ringback
+              # tone to leg A when calling leg B
+
+              # <?xml version="1.0" encoding="UTF-8"?>
+              # <Response>
+              #   <Dial ringback="http://api.twilio.com/cowbell.mp3">+415-123-4567</Dial>
+              # </Response>
+
+              let(:ringback) { "http://api.twilio.com/cowbell.mp3" }
+
+              it "should dial with the specified 'ringback' tone" do
+                assert_dial(:ringback => ringback)
+                expect_call_status_update(:cassette => :dial_with_ringback, :ringback => ringback) do
+                  subject.run
+                end
+              end
+            end # describe "ringback"
           end # describe "Verb Actions"
         end # describe "<Dial>"
       end # describer "mixed in to a CallController"

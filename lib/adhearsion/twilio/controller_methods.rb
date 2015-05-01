@@ -161,6 +161,7 @@ module Adhearsion
         global = true unless global == false
         params = {}
         params[:from] = options["callerId"] if options["callerId"]
+        params[:ringback] = options["ringback"] if options["ringback"]
         params[:for] = (options["timeout"] ? options["timeout"].to_i.seconds : 30.seconds) if global
         params
       end
