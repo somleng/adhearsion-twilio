@@ -628,7 +628,7 @@ module Adhearsion
                 end
               end
             end # describe "ringback"
-          end # describe "Verb Actions"
+          end # describe "Verb Attributes"
         end # describe "<Dial>"
       end # describer "mixed in to a CallController"
     end # describe ControllerMethods

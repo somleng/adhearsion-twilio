@@ -22,6 +22,15 @@ module Adhearsion
 
       private
 
+      def answered?
+        !!@answered
+      end
+
+      def answer!
+        answer unless answered?
+        @answered = true
+      end
+
       def notify_voice_request_url
         execute_twiml(notify_http(config.voice_request_url, config.voice_request_method, :in_progress))
       end
@@ -63,28 +72,41 @@ module Adhearsion
           content = node.content
           options = twilio_options(node)
           case node.name
+          when 'Reject'
+            execute_twiml_verb(:reject, options)
+            break
           when 'Play'
-            twilio_play(content, options)
+            execute_twiml_verb(:play, content, options)
           when 'Gather'
-            break if redirection = twilio_gather(node, options)
+            break if redirection = execute_twiml_verb(:gather, node, options)
           when 'Redirect'
-            redirection = twilio_redirect(content, options)
+            redirection = execute_twiml_verb(:redirect, content, options)
             break
           when 'Hangup'
+            execute_twiml_verb
             break
           when 'Say'
-            twilio_say(content, options)
+            execute_twiml_verb(:say, content, options)
           when 'Pause'
             not_yet_supported!
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            break if redirection = twilio_dial(node, options)
+            break if redirection = execute_twiml_verb(:dial, node, options)
           else
             raise(ArgumentError, "Invalid element '#{node.name}'")
           end
         end
         redirection ? redirect(*redirection) : hangup
+      end
+
+      def execute_twiml_verb(verb = nil, *args)
+        answer! unless verb == :reject
+        send("twilio_#{verb}", *args) if !!verb
+      end
+
+      def twilio_reject(options = {})
+        reject(options["reason"] == "busy" ? :busy : :decline)
       end
 
       def twilio_hangup

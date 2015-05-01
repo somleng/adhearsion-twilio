@@ -89,7 +89,6 @@ class CallController < Adhearsion::CallController
   include Adhearsion::Twilio::ControllerMethods
 
   def run
-    answer
     notify_voice_request_url
   end
 end
@@ -136,6 +135,7 @@ The following verbs have been already implemented:
 * [Gather](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/gather_spec.rb)
 * [Redirect](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/redirect_spec.rb)
 * [Hangup](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/hangup_spec.rb)
+* [Reject](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/reject_spec.rb)
 
 ## Todo
 

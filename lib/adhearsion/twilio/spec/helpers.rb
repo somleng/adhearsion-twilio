@@ -76,6 +76,7 @@ module Adhearsion
 
         def expect_call_status_update(options = {}, &block)
           assert_call_is_hungup unless options.delete(:hangup) == false
+          assert_call_is_answered unless options.delete(:assert_answered) == false
           cassette = options.delete(:cassette) || :hangup
           VCR.use_cassette(cassette, :erb => generate_erb(options)) do
             yield
@@ -84,6 +85,10 @@ module Adhearsion
 
         def assert_call_is_hungup
           expect(subject).to receive(:hangup).exactly(1).times
+        end
+
+        def assert_call_is_answered
+          expect(subject).to receive(:answer).exactly(1).times
         end
 
         def generate_erb(options = {})
