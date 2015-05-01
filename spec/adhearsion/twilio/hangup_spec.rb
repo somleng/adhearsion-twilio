@@ -21,7 +21,11 @@ module Adhearsion
 
           it "should hang up the call" do
             # hangup already asserted in following assertion
-            expect_call_status_update(:cassette => :hangup) { subject.run }
+            assert_next_verb_not_reached
+            expect_call_status_update(
+              :cassette => :hangup,
+              :assert_answered => false
+            ) { subject.run }
           end
         end
       end

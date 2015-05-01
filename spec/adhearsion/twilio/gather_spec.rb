@@ -5,6 +5,7 @@ module Adhearsion
     describe ControllerMethods do
       describe "mixed in to a CallController" do
         include_context "twilio"
+        include SharedExamples
 
         describe "<Gather>" do
           # From: http://www.twilio.com/docs/api/twiml/gather
@@ -373,7 +374,9 @@ module Adhearsion
                 #   <Gather/>
                 # </Response>
 
-                it_should_behave_like "continuing to process the current TwiML", :gather
+                it_should_behave_like "continuing to process the current TwiML" do
+                  let(:cassette) { :gather }
+                end
               end # context "timeout"
 
               context "finishOnKey pressed with no digits entered (Differs from Twilio)" do
@@ -435,7 +438,9 @@ module Adhearsion
                 #   <Gather action="../relative_endpoint.xml"/>
                 # </Response>
 
-                it_should_behave_like "a TwiML 'action' attribute", :gather_with_action
+                it_should_behave_like "a TwiML 'action' attribute" do
+                  let(:cassette) { :gather_with_action }
+                end
               end # context "specified"
             end # describe "'action'"
 
@@ -468,7 +473,9 @@ module Adhearsion
               #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="POST"/>
               # </Response>
 
-              it_should_behave_like "a TwiML 'method' attribute", :gather_with_action
+              it_should_behave_like "a TwiML 'method' attribute" do
+                let(:cassette) { :gather_with_action }
+              end
             end # describe "'method'"
 
             describe "'timeout'" do

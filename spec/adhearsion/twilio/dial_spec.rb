@@ -5,6 +5,7 @@ module Adhearsion
     describe ControllerMethods do
       describe "mixed in to a CallController" do
         include_context "twilio"
+        include SharedExamples
 
         describe "<Dial>" do
           # From: http://www.twilio.com/docs/api/twiml/dial
@@ -263,7 +264,11 @@ module Adhearsion
 
                   # not yet supported
                   it "should raise an error that this is not (yet) supported" do
-                    expect_call_status_update(:cassette => :dial_sip, :sip_string => "sip:jack@example.com", :hangup => false) do
+                    expect_call_status_update(
+                      :cassette => :dial_sip,
+                      :sip_string => "sip:jack@example.com",
+                      :assert_hangup => false
+                    ) do
                       expect { subject.run }.to raise_error(
                         Adhearsion::Twilio::TwimlError, "Nested noun '<Sip>' not allowed within '<Dial>'"
                       )
@@ -332,7 +337,9 @@ module Adhearsion
                 #   <Dial>+415-123-4567</Dial>
                 # </Response
 
-                it_should_behave_like "continuing to process the current TwiML", :dial
+                it_should_behave_like "continuing to process the current TwiML" do
+                  let(:cassette) { :dial }
+                end
               end # context "not specified"
 
               context "specified" do
@@ -396,7 +403,9 @@ module Adhearsion
                 #   <Play>foo.mp3</Play>
                 # </Response
 
-                it_should_behave_like "a TwiML 'action' attribute", :dial_with_action
+                it_should_behave_like "a TwiML 'action' attribute" do
+                  let(:cassette) { :dial_with_action }
+                end
 
                 # <?xml version="1.0" encoding="UTF-8"?>
                 # <Response>
@@ -475,7 +484,9 @@ module Adhearsion
               #   </Dial>
               # </Response
 
-              it_should_behave_like "a TwiML 'method' attribute", :dial_with_action
+              it_should_behave_like "a TwiML 'method' attribute" do
+                let(:cassette) { :dial_with_action }
+              end
             end
 
             describe "'callerId'" do

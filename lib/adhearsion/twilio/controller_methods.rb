@@ -47,7 +47,9 @@ module Adhearsion
 
       def notify_status_callback_url
         notify_http(
-          config.status_callback_url, config.status_callback_method, :answer
+          config.status_callback_url,
+          config.status_callback_method,
+          :answer,
         ) if config.status_callback_url.present? && config.status_callback_method.present?
       end
 
@@ -73,26 +75,26 @@ module Adhearsion
           options = twilio_options(node)
           case node.name
           when 'Reject'
-            execute_twiml_verb(:reject, options)
+            execute_twiml_verb(false, :reject, options)
             break
           when 'Play'
-            execute_twiml_verb(:play, content, options)
+            execute_twiml_verb(true, :play, content, options)
           when 'Gather'
-            break if redirection = execute_twiml_verb(:gather, node, options)
+            break if redirection = execute_twiml_verb(true, :gather, node, options)
           when 'Redirect'
-            redirection = execute_twiml_verb(:redirect, content, options)
+            redirection = execute_twiml_verb(false, :redirect, content, options)
             break
           when 'Hangup'
-            execute_twiml_verb
+            execute_twiml_verb(false)
             break
           when 'Say'
-            execute_twiml_verb(:say, content, options)
+            execute_twiml_verb(true, :say, content, options)
           when 'Pause'
             not_yet_supported!
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            break if redirection = execute_twiml_verb(:dial, node, options)
+            break if redirection = execute_twiml_verb(true, :dial, node, options)
           else
             raise(ArgumentError, "Invalid element '#{node.name}'")
           end
@@ -100,8 +102,8 @@ module Adhearsion
         redirection ? redirect(*redirection) : hangup
       end
 
-      def execute_twiml_verb(verb = nil, *args)
-        answer! unless verb == :reject
+      def execute_twiml_verb(answer_call, verb = nil, *args)
+        answer! if answer_call
         send("twilio_#{verb}", *args) if !!verb
       end
 

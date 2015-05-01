@@ -46,6 +46,9 @@ module Adhearsion
           config.before do
             WebMock.clear_requests!
             allow(subject).to receive(:hangup)
+            allow(subject).to receive(:answer)
+            allow(subject).to receive(:reject)
+            allow(subject).to receive(:sleep)
             allow(mock_call).to receive(:alive?)
             allow(mock_call).to receive(:async).and_return(mock_call)
             allow(mock_call).to receive(:register_controller)
@@ -75,7 +78,7 @@ module Adhearsion
         end
 
         def expect_call_status_update(options = {}, &block)
-          assert_call_is_hungup unless options.delete(:hangup) == false
+          assert_call_is_hungup unless options.delete(:assert_hangup) == false
           assert_call_is_answered unless options.delete(:assert_answered) == false
           cassette = options.delete(:cassette) || :hangup
           VCR.use_cassette(cassette, :erb => generate_erb(options)) do

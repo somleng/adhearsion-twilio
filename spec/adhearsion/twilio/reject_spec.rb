@@ -43,6 +43,7 @@ module Adhearsion
               # If this attribute's value isn't set, the default is "rejected."
 
               def assert_reject!
+                assert_next_verb_not_reached
                 expect(subject).not_to receive(:answer)
                 expect(subject).to receive(:reject).with(asserted_reject_reason)
                 expect_call_status_update(

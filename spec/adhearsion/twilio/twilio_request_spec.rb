@@ -6,10 +6,17 @@ module Adhearsion
       describe "mixed in to a CallController" do
         include_context "twilio"
 
+        def expect_call_status_update(options = {}, &block)
+          super({:assert_answered => false}.merge(options), &block)
+        end
+
         shared_examples_for "a configured url" do |url_type|
-          let(:cassette_options) do
-            { :cassette => (url_type == :status_callback) ? :hangup_with_status_callback_url_set : :hangup }
-          end
+          let(:cassette_options) {
+            {
+              :cassette =>
+                ((url_type == :status_callback) ? :hangup_with_status_callback_url_set : :hangup)
+            }
+          }
 
           let(:position) { url_type == :voice_request ? :first : :last }
 
@@ -237,7 +244,9 @@ module Adhearsion
               context "when the call is hungup" do
                 it "should send the correct request parameters" do
                   expect_call_status_update(:cassette => :hangup_with_status_callback_url_set) { subject.exec }
-                  assert_voice_request_params("CallStatus" => "completed", :request_position => :last)
+                  assert_voice_request_params(
+                    "CallStatus" => "completed", :request_position => :last
+                  )
                 end
               end # context "when the call is hungup"
             end # context "is configured"
