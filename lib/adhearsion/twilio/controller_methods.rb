@@ -17,7 +17,11 @@ module Adhearsion
       extend ActiveSupport::Concern
 
       included do
-        after_call :twilio_hangup
+        before_call do
+          call.on_end do |event|
+            twilio_hangup
+          end
+        end
       end
 
       private
@@ -76,26 +80,25 @@ module Adhearsion
           options = twilio_options(node)
           case node.name
           when 'Reject'
-            execute_twiml_verb(false, :reject, options)
+            execute_twiml_verb(:reject, false, options)
             break
           when 'Play'
-            execute_twiml_verb(true, :play, content, options)
+            execute_twiml_verb(:play, true, content, options)
           when 'Gather'
-            break if redirection = execute_twiml_verb(true, :gather, node, options)
+            break if redirection = execute_twiml_verb(:gather, true, node, options)
           when 'Redirect'
-            redirection = execute_twiml_verb(false, :redirect, content, options)
+            redirection = execute_twiml_verb(:redirect, false, content, options)
             break
           when 'Hangup'
-            execute_twiml_verb(false)
             break
           when 'Say'
-            execute_twiml_verb(true, :say, content, options)
+            execute_twiml_verb(:say, true, content, options)
           when 'Pause'
             not_yet_supported!
           when 'Bridge'
             not_yet_supported!
           when 'Dial'
-            break if redirection = execute_twiml_verb(true, :dial, node, options)
+            break if redirection = execute_twiml_verb(:dial, true, node, options)
           else
             raise(ArgumentError, "Invalid element '#{node.name}'")
           end
@@ -103,9 +106,9 @@ module Adhearsion
         redirection ? redirect(*redirection) : hangup
       end
 
-      def execute_twiml_verb(answer_call, verb = nil, *args)
+      def execute_twiml_verb(verb, answer_call, *args)
         answer! if answer_call
-        send("twilio_#{verb}", *args) if !!verb
+        send("twilio_#{verb}", *args)
       end
 
       def twilio_reject(options = {})
