@@ -53,6 +53,7 @@ module Adhearsion
 
           before do
             allow(subject).to receive(:dial).and_return(dial_status)
+            allow(dial_status).to receive(:joins).and_return({})
           end
 
           describe "Nouns" do
@@ -417,6 +418,54 @@ module Adhearsion
                   assert_next_verb_not_reached
                   expect_call_status_update do
                     subject.run
+                  end
+                end
+
+                context "the call was joined" do
+                  let(:outbound_call) { create_outbound_call }
+                  let(:outbound_call_joins_status) {
+                    create_joins_status(:result => :no_answer)
+                  }
+
+                  let(:dial_status_result) { :answer }
+                  let(:joined_outbound_call_sid) { "481f77b9-a95b-4c6a-bbb1-23afcc42c959" }
+
+                  let(:joined_outbound_call) {
+                    create_outbound_call(:id => joined_outbound_call_sid)
+                  }
+
+                  let(:joined_outbound_call_joins_status) {
+                    create_joins_status(:result => :joined, :duration => 23.7)
+                  }
+
+                  def create_outbound_call(options = {})
+                    double(Adhearsion::OutboundCall, options)
+                  end
+
+                  def create_joins_status(options = {})
+                    double(Adhearsion::CallController::Dial::JoinStatus, options)
+                  end
+
+                  def joins
+                    {
+                      outbound_call => outbound_call_joins_status,
+                      joined_outbound_call => joined_outbound_call_joins_status
+                    }
+                  end
+
+                  before do
+                    stub_dial_status(dial_status_result)
+                    allow(dial_status).to receive(:joins).and_return(joins)
+                    expect_call_status_update { subject.run }
+                  end
+
+                  it "should post DialCallSid and DialCallDuration" do
+                    assert_voice_request_params(
+                      "DialCallStatus" => "completed",
+                      "DialCallSid" => joined_outbound_call_sid,
+                      "DialCallDuration" => "23",
+                      :request_position => :last
+                    )
                   end
                 end
 

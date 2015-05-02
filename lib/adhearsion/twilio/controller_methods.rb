@@ -214,13 +214,27 @@ module Adhearsion
 
         to = node.content if to.empty?
 
-        dial_status = dial(to, params).result
+        dial_status = dial(to, params)
+
+        dial_call_status_options = {
+          "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status.result]
+        }
+
+        # try to find the joined call
+        outbound_call = dial_status.joins.select do |outbound_leg, join_status|
+          join_status.result == :joined
+        end.keys.first
+
+        dial_call_status_options.merge!(
+          "DialCallSid" => outbound_call.id,
+          "DialCallDuration" => dial_status.joins[outbound_call].duration.to_i
+        ) if outbound_call
+
         [
           options["action"],
           {
-            "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status],
-            "method" => options["method"]
-          }
+            "method" => options["method"],
+          }.merge(dial_call_status_options)
         ] if options["action"]
       end
 
