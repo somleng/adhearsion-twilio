@@ -54,7 +54,6 @@ class CallController < Adhearsion::CallController
   include Adhearsion::Twilio::ControllerMethods
 
   def run
-    answer
     notify_voice_request_url
   end
 end
@@ -106,12 +105,7 @@ describe CallController do
   subject { CallController.new(mock_call) }
 
   describe "#run" do
-    before do
-      mock_call.stub(:answer)
-    end
-
     it "should answer the call" do
-      mock_call.should_receive(:answer)
       expect_call_status_update { subject.run }
     end
   end
