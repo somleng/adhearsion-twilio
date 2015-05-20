@@ -87,7 +87,7 @@ module Adhearsion
           when 'Gather'
             break if redirection = execute_twiml_verb(:gather, true, node, options)
           when 'Redirect'
-            redirection = execute_twiml_verb(:redirect, true, content, options)
+            redirection = execute_twiml_verb(:redirect, false, content, options)
             break
           when 'Hangup'
             break
