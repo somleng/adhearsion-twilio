@@ -329,7 +329,7 @@ module Adhearsion
 
                   context "and the P-Asserted-Identity header is '+85510212050'" do
                     before do
-                      allow(mock_call).to receive(:variables).and_return({:x_variable_sip_p_asserted_identity=>"+85510212050"})
+                      allow(mock_call).to receive(:variables).and_return({"variable_sip_p_asserted_identity" => "+85510212050"})
                     end
 
                     it_should_behave_like "posting the correct 'From' variable", "+85510212050"

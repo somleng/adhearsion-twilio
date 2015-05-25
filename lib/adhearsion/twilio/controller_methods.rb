@@ -275,7 +275,7 @@ module Adhearsion
         return_value = normalized_destination(call.from)
         unless destination_valid?(return_value)
           normalized_p_asserted_identity = normalized_destination(
-            call.variables[:x_variable_sip_p_asserted_identity]
+            call.variables["variable_sip_p_asserted_identity"]
           )
           return_value = normalized_p_asserted_identity if destination_valid?(normalized_p_asserted_identity)
         end
