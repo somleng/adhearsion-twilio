@@ -20,6 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "mail"
   gem.add_runtime_dependency "httparty"
 
+  gem.add_development_dependency "adhearsion"
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "vcr"
   gem.add_development_dependency "webmock"
