@@ -99,9 +99,9 @@ module Adhearsion
         def generate_erb(options = {})
           {
             :url => current_config[:voice_request_url],
-            :method => current_config[:voice_request_method],
+            :method => current_config[:voice_request_method].presence || "post",
             :status_callback_url => current_config[:status_callback_url],
-            :status_callback_method => current_config[:status_callback_method]
+            :status_callback_method => current_config[:status_callback_method].presence || "post"
           }.merge(options)
         end
 

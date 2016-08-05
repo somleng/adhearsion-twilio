@@ -10,75 +10,6 @@ module Adhearsion
           super({:assert_answered => false}.merge(options), &block)
         end
 
-        shared_examples_for "a configured url" do |url_type|
-          let(:cassette_options) {
-            {
-              :cassette =>
-                ((url_type == :status_callback) ? :hangup_with_status_callback_url_set : :hangup)
-            }
-          }
-
-          let(:position) { url_type == :voice_request ? :first : :last }
-
-          context "config.twilio.#{url_type}" do
-
-            context "method" do
-              # "Twilio sends the following parameters with its request as POST
-              # parameters or URL query parameters, depending on which HTTP method you've configured"
-
-              context "= 'post'" do
-                before do
-                  set_dummy_url_config(url_type, :method, :post)
-                end
-
-                it "should send the parameters via http 'POST'" do
-                  expect_call_status_update(cassette_options) { subject.exec }
-                  expect(request(position, :method)).to eq(:post)
-                end
-              end # context "= 'post'"
-
-              context "= 'get'" do
-                before do
-                  set_dummy_url_config(url_type, :method, :get)
-                end
-
-                it "should send the parameters via http 'GET'" do
-                  expect_call_status_update(cassette_options) { subject.exec }
-                  expect(request(position, :method)).to eq(:get)
-                end
-              end # context "= 'get'"
-            end # context "method"
-
-            context "url" do
-              context "= 'http://localhost:1234/#{url_type}_url.xml/'" do
-                before do
-                  set_dummy_url_config(url_type, :url, "http://localhost:1234/#{url_type}_url.xml/")
-                end
-
-                it "should send the request to the configured url" do
-                  expect_call_status_update(cassette_options) { subject.exec }
-                  expect(request(position, :url)).to eq("http://localhost:1234/#{url_type}_url.xml/")
-                end
-              end
-
-              context "= 'http://user:password@localhost:1234/#{url_type}_url.xml/'" do
-                before do
-                  set_dummy_url_config(
-                    url_type, :url, "http://user:password@localhost:1234/#{url_type}_url.xml/"
-                  )
-                end
-
-                it "should use http basic auth to send the request" do
-                  expect_call_status_update(cassette_options) { subject.exec }
-                  expect(request(position, :url)).to eq("http://user:password@localhost:1234/#{url_type}_url.xml/")
-                  expect(request(position).uri.user).to eq("user")
-                  expect(request(position).uri.password).to eq("password")
-                end
-              end # context "= 'http://user:password@localhost:1234/#{url_type}_url.xml/'"
-            end # context "url"
-          end # context "config.twilio.#{url_type}"
-        end # shared_examples_for "a configured url"
-
         describe "twilio request" do
           # From: http://www.twilio.com/docs/api/twiml/twilio_request
 
@@ -94,6 +25,145 @@ module Adhearsion
           # you can assign them to an application and then assign that application to the
           # phone number. This will allow you to pass around configuration between phone numbers
           # without having to memorize or copy and paste URLs.
+
+          def setup_scenario
+          end
+
+          def run!
+            expect_call_status_update(vcr_options) { subject.run }
+          end
+
+          def vcr_options
+            @vcr_options ||= { :cassette => request_type[:cassette] }
+          end
+
+          def assert_html_request!
+            assert_voice_request_params("CallStatus" => "in-progress")
+          end
+
+          before do
+            setup_scenario
+            run!
+          end
+
+          let(:request_types) do
+            {
+              :voice_request => {
+                :url_type => :voice_request,
+                :cassette => :hangup
+              },
+              :status_callback_request => {
+                :url_type => :status_callback,
+                :cassette => :hangup_with_status_callback_url_set
+              }
+            }
+          end
+
+          let(:http_request) { request(:last) }
+
+          context "configuration" do
+            def setup_scenario
+              super
+              set_dummy_url_config(request_type[:url_type], configuration_name, configuration_value)
+            end
+
+            context "method" do
+              let(:configuration_name) { :method }
+
+              def assert_html_request!
+                super
+                expect(http_request.method).to eq(configuration_value)
+              end
+
+              context "POST" do
+                let(:configuration_value) { :post }
+
+                context "Voice Request" do
+                  let(:request_type) { request_types[:voice_request] }
+                  it { assert_html_request! }
+                end
+
+                context "Status Callback Request" do
+                  let(:request_type) { request_types[:status_callback_request] }
+                  it { assert_html_request! }
+                end
+              end
+
+              context "GET" do
+                let(:configuration_value) { :get }
+
+                context "Voice Request" do
+                  let(:request_type) { request_types[:voice_request] }
+                  it { assert_html_request! }
+                end
+
+                context "Status Callback Request" do
+                  def setup_scenario
+                    super
+                    set_dummy_url_config(request_type[:url_type], :url, redirect_url)
+                  end
+
+                  let(:request_type) { request_types[:status_callback_request] }
+                  it { assert_html_request! }
+                end
+              end
+            end
+
+            context "url" do
+              let(:configuration_name) { :url }
+
+              def assert_html_request!
+                super
+                expect(http_request.uri.to_s).to eq(asserted_url)
+              end
+
+              context "without HTTP Basic" do
+                let(:configuration_value) { "http://localhost:1234/endpoint.xml/" }
+                let(:asserted_url) { configuration_value }
+
+                context "Voice Request" do
+                  let(:request_type) { request_types[:voice_request] }
+                  it { assert_html_request! }
+                end
+
+                context "Status Callback Request" do
+                  let(:request_type) { request_types[:status_callback_request] }
+                  it { assert_html_request! }
+                end
+              end
+
+              context "with HTTP Basic" do
+                let(:configuration_value) { "http://user:password@localhost:1234/endpoint.xml/" }
+                let(:asserted_url) { "http://localhost:1234/endpoint.xml/" }
+
+                def assert_html_request!
+                  super
+                  authorization = Base64.decode64(http_request.headers["Authorization"].sub(/^Basic\s/, ""))
+                  user, password = authorization.split(":")
+                  expect(user).to eq("user")
+                  expect(password).to eq("password")
+                end
+
+                context "Voice Request" do
+                  def vcr_options
+                    super.merge(:url => asserted_url)
+                  end
+
+                  let(:request_type) { request_types[:voice_request] }
+                  it { assert_html_request! }
+                end
+
+                context "Status Callback Request" do
+                  def vcr_options
+                    super.merge(:status_callback_url => asserted_url)
+                  end
+
+                  let(:request_type) { request_types[:status_callback_request] }
+                  it { assert_html_request! }
+                end
+              end
+            end
+          end
 
           describe "TwiML Voice Requests" do
             # From: http://www.twilio.com/docs/api/twiml/twilio_request
@@ -182,13 +252,8 @@ module Adhearsion
             # | no-answer   | The call ended without being answered.                          |
             # | canceled    | The call was canceled via the REST API while queued or ringing. |
 
-            it_should_behave_like "a configured url", :voice_request
-
-            it "should send the correct request parameters" do
-              expect_call_status_update { subject.run }
-              assert_voice_request_params("CallStatus" => "in-progress")
-            end
-
+            let(:request_type) { request_types[:voice_request] }
+            it { assert_html_request! }
           end # describe "TwiML Voice Requests"
 
           describe "Call End Callback (StatusCallback) Requests" do
@@ -224,44 +289,41 @@ module Adhearsion
             # |                   |                                                          |
             # | RecordingDuration | The duration of the recorded audio (in seconds).         |
 
+            let(:request_type) { request_types[:status_callback_request] }
+
             context "is not configured" do
               # Twilio will make an asynchronous HTTP request
               # to the StatusCallback URL configured for the called Twilio number (if there is one).
-              it "should not make status callback requests" do
-                expect_call_status_update { subject.run }
-                assert_voice_request_params("CallStatus" => "in-progress", :request_position => :last)
-              end
+              it { assert_html_request! }
             end
 
             context "is configured" do
-              before do
+              def setup_scenario
+                super
                 set_dummy_url_config(:status_callback, :url, redirect_url)
-                set_dummy_url_config(:status_callback, :method, :post)
               end
 
-              it_should_behave_like "a configured url", :status_callback
-
               context "when the call is hungup" do
-                before do
+                def setup_scenario
+                  super
                   allow(mock_call).to receive(:duration).and_return(61.5)
                 end
 
-                it "should send the correct request parameters" do
-                  expect_call_status_update(
-                    :cassette => :hangup_with_status_callback_url_set
-                  ) { subject.exec }
-
+                def assert_html_request!
                   assert_voice_request_params(
                     "CallStatus" => "no-answer",
                     "CallDuration" => "61",
                     :request_position => :last
                   )
                 end
+
+                it { assert_html_request! }
               end # context "when the call is hungup"
             end # context "is configured"
           end # describe "Call End Callback (StatusCallback) Requests"
 
           describe "Data Formats" do
+            let(:request_type) { request_types[:voice_request] }
             # Data Formats
 
             describe "Phone Numbers" do
@@ -273,16 +335,14 @@ module Adhearsion
               # incoming caller ID to E.164. In these situations Twilio will report
               # the raw caller ID string.
 
-              context "given a call is received from:" do
+              context "given a call is received from:", :focus do
                 shared_examples_for "posting the correct 'From' variable" do |assertion|
-                  it "should post to the remote server with 'From=#{assertion}'" do
-                    expect_call_status_update { subject.run }
-                    expect(last_request(:body)["From"]).to eq(assertion)
-                  end
+                  it { expect(last_request(:body)["From"]).to eq(assertion) }
                 end
 
                 context "'sip:1000@192.168.1.128'" do
-                  before do
+                  def setup_scenario
+                    super
                     allow(mock_call).to receive(:from).and_return("sip:1000@192.168.1.128")
                   end
 
@@ -290,7 +350,8 @@ module Adhearsion
                 end
 
                 context "' <85513827719@117.55.252.146:5060>'" do
-                  before do
+                  def setup_scenario
+                    super
                     allow(mock_call).to receive(:from).and_return(" <85513827719@117.55.252.146:5060>")
                   end
 
@@ -298,7 +359,8 @@ module Adhearsion
                 end # context "' <85513827719@117.55.252.146:5060>'"
 
                 context "'<+85510212050@anonymous.invalid>'" do
-                  before do
+                  def setup_scenario
+                    super
                     allow(mock_call).to receive(:from).and_return("<+85510212050@anonymous.invalid>")
                   end
 
@@ -307,7 +369,8 @@ module Adhearsion
 
 
                 context "'<85510212050@anonymous.invalid>'" do
-                  before do
+                  def setup_scenario
+                    super
                     allow(mock_call).to receive(:from).and_return("<85510212050@anonymous.invalid>")
                   end
 
@@ -315,12 +378,14 @@ module Adhearsion
                 end # context "'<85510212050@anonymous.invalid>'"
 
                 context "'<anonymous@anonymous.invalid>'" do
-                  before do
+                  def setup_scenario
+                    super
                     allow(mock_call).to receive(:from).and_return("<anonymous@anonymous.invalid>")
                   end
 
                   context "and the P-Asserted-Identity header is not available" do
-                    before do
+                    def setup_scenario
+                      super
                       allow(mock_call).to receive(:variables).and_return({})
                     end
 
@@ -328,7 +393,8 @@ module Adhearsion
                   end # context "and the P-Asserted-Identity header is not available"
 
                   context "and the P-Asserted-Identity header is '+85510212050'" do
-                    before do
+                    def setup_scenario
+                      super
                       allow(mock_call).to receive(:variables).and_return({"variable_sip_p_asserted_identity" => "+85510212050"})
                     end
 
@@ -336,7 +402,8 @@ module Adhearsion
                   end # context "and the P-Asserted-Identity header is '+85510212050'"
 
                   context "and the P-Asserted-Identity header is 'foo'" do
-                    before do
+                    def setup_scenario
+                      super
                       allow(mock_call).to receive(:variables).and_return({:x_variable_sip_p_asserted_identity=>"foo"})
                     end
 
