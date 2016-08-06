@@ -8,11 +8,6 @@ shared_context 'twilio' do
       class TestController < Adhearsion::CallController
         include Twilio::ControllerMethods
 
-        # simulates after_end callback
-        after_call do
-          twilio_hangup
-        end
-
         def run
           notify_voice_request_url
         end

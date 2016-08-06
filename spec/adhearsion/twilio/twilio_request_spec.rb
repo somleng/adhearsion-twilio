@@ -30,7 +30,7 @@ module Adhearsion
           end
 
           def run!
-            expect_call_status_update(vcr_options) { subject.run }
+            expect_call_status_update(vcr_options) { subject.execute! }
           end
 
           def vcr_options
@@ -335,7 +335,7 @@ module Adhearsion
               # incoming caller ID to E.164. In these situations Twilio will report
               # the raw caller ID string.
 
-              context "given a call is received from:", :focus do
+              context "given a call is received from:" do
                 shared_examples_for "posting the correct 'From' variable" do |assertion|
                   it { expect(last_request(:body)["From"]).to eq(assertion) }
                 end

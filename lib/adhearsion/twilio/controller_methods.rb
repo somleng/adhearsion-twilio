@@ -1,6 +1,6 @@
 module Adhearsion
   module Twilio
-    TwimlError = Class.new Adhearsion::Error # Represents a failure to pass valid TwiML
+    TwimlError = Class.new(Adhearsion::Error) # Represents a failure to pass valid TwiML
 
     TWILIO_CALL_STATUSES = {
       :no_answer => "no-answer",
@@ -17,11 +17,7 @@ module Adhearsion
       extend ActiveSupport::Concern
 
       included do
-        before_call do
-          call.on_end do |event|
-            twilio_hangup
-          end
-        end
+        after :twilio_hangup
       end
 
       private
@@ -52,10 +48,10 @@ module Adhearsion
       def notify_status_callback_url
         notify_http(
           config.status_callback_url,
-          config.status_callback_method,
+          config.status_callback_method.presence || "post",
           answered? ? :answer : :no_answer,
           :CallDuration => call.duration.to_i,
-        ) if config.status_callback_url.present? && config.status_callback_method.present?
+        ) if config.status_callback_url.present?
       end
 
       def notify_http(url, method, status, options = {})
