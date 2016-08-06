@@ -32,7 +32,7 @@ module Adhearsion
       end
 
       def notify_voice_request_url
-        execute_twiml(notify_http(config.voice_request_url, config.voice_request_method, :in_progress))
+        execute_twiml(notify_http(voice_request_url, voice_request_method, :in_progress))
       end
 
       def redirect(url = nil, options = {})
@@ -47,11 +47,11 @@ module Adhearsion
 
       def notify_status_callback_url
         notify_http(
-          config.status_callback_url,
-          config.status_callback_method.presence || "post",
+          status_callback_url,
+          status_callback_method,
           answered? ? :answer : :no_answer,
           :CallDuration => call.duration.to_i,
-        ) if config.status_callback_url.present?
+        ) if status_callback_url.present?
       end
 
       def notify_http(url, method, status, options = {})
@@ -299,6 +299,22 @@ module Adhearsion
 
       def config
         Adhearsion.config[:twilio]
+      end
+
+      def voice_request_url
+        metadata[:voice_request_url] || config.voice_request_url
+      end
+
+      def voice_request_method
+        metadata[:voice_request_method] || config.voice_request_method.presence || "post"
+      end
+
+      def status_callback_url
+        metadata[:status_callback_url] || config.status_callback_url
+      end
+
+      def status_callback_method
+        metadata[:status_callback_method] || config.status_callback_method.presence || "post"
       end
 
       def url_auth(url)

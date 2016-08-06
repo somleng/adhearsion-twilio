@@ -15,12 +15,13 @@ shared_context 'twilio' do
     end
   end
 
-  subject { Adhearsion::Twilio::TestController.new(mock_call) }
+  subject { Adhearsion::Twilio::TestController.new(mock_call, metadata) }
 
   let(:redirect_url) { "http://localhost:3000/some_other_endpoint.xml" }
   let(:infinity) { 20 }
   let(:words) { "Hello World" }
   let(:file_url) { "http://api.twilio.com/cowbell.mp3" }
+  let(:metadata) { nil }
 
   def stub_infinite_loop
     allow(subject).to receive(:loop).and_return(infinity.times)

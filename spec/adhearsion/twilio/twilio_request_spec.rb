@@ -69,10 +69,16 @@ module Adhearsion
 
             context "method" do
               let(:configuration_name) { :method }
+              let(:asserted_value) { configuration_value }
+
+              def setup_scenario
+                super
+                set_dummy_url_config(request_type[:url_type], :url, redirect_url)
+              end
 
               def assert_html_request!
                 super
-                expect(http_request.method).to eq(configuration_value)
+                expect(http_request.method).to eq(asserted_value)
               end
 
               context "POST" do
@@ -81,11 +87,33 @@ module Adhearsion
                 context "Voice Request" do
                   let(:request_type) { request_types[:voice_request] }
                   it { assert_html_request! }
+
+                  context "with overriding metadata" do
+                    let(:metadata) { {:voice_request_method => :get} }
+                    let(:asserted_value) { :get }
+
+                    def vcr_options
+                      super.merge(:method => asserted_value)
+                    end
+
+                    it { assert_html_request! }
+                  end
                 end
 
                 context "Status Callback Request" do
                   let(:request_type) { request_types[:status_callback_request] }
                   it { assert_html_request! }
+
+                  context "with overriding metadata" do
+                    let(:metadata) { {:status_callback_method => :get} }
+                    let(:asserted_value) { :get }
+
+                    def vcr_options
+                      super.merge(:status_callback_method => asserted_value)
+                    end
+
+                    it { assert_html_request! }
+                  end
                 end
               end
 
@@ -98,11 +126,6 @@ module Adhearsion
                 end
 
                 context "Status Callback Request" do
-                  def setup_scenario
-                    super
-                    set_dummy_url_config(request_type[:url_type], :url, redirect_url)
-                  end
-
                   let(:request_type) { request_types[:status_callback_request] }
                   it { assert_html_request! }
                 end
@@ -114,27 +137,49 @@ module Adhearsion
 
               def assert_html_request!
                 super
-                expect(http_request.uri.to_s).to eq(asserted_url)
+                expect(http_request.uri.to_s).to eq(asserted_value)
               end
 
               context "without HTTP Basic" do
                 let(:configuration_value) { "http://localhost:1234/endpoint.xml/" }
-                let(:asserted_url) { configuration_value }
+                let(:asserted_value) { configuration_value }
 
                 context "Voice Request" do
                   let(:request_type) { request_types[:voice_request] }
                   it { assert_html_request! }
+
+                  context "with overriding metadata" do
+                    let(:metadata) { {:voice_request_url => "http://override.bar.com:1234/"} }
+                    let(:asserted_value) { "http://override.bar.com:1234/" }
+
+                    def vcr_options
+                      super.merge(:url => asserted_value)
+                    end
+
+                    it { assert_html_request! }
+                  end
                 end
 
                 context "Status Callback Request" do
                   let(:request_type) { request_types[:status_callback_request] }
                   it { assert_html_request! }
+
+                  context "with overriding metadata" do
+                    let(:metadata) { {:status_callback_url => "http://override.bar.com:1234/"} }
+                    let(:asserted_value) { "http://override.bar.com:1234/" }
+
+                    def vcr_options
+                      super.merge(:status_callback_url => asserted_value)
+                    end
+
+                    it { assert_html_request! }
+                  end
                 end
               end
 
               context "with HTTP Basic" do
                 let(:configuration_value) { "http://user:password@localhost:1234/endpoint.xml/" }
-                let(:asserted_url) { "http://localhost:1234/endpoint.xml/" }
+                let(:asserted_value) { "http://localhost:1234/endpoint.xml/" }
 
                 def assert_html_request!
                   super
@@ -146,7 +191,7 @@ module Adhearsion
 
                 context "Voice Request" do
                   def vcr_options
-                    super.merge(:url => asserted_url)
+                    super.merge(:url => asserted_value)
                   end
 
                   let(:request_type) { request_types[:voice_request] }
@@ -155,7 +200,7 @@ module Adhearsion
 
                 context "Status Callback Request" do
                   def vcr_options
-                    super.merge(:status_callback_url => asserted_url)
+                    super.merge(:status_callback_url => asserted_value)
                   end
 
                   let(:request_type) { request_types[:status_callback_request] }
