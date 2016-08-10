@@ -12,6 +12,7 @@ module Adhearsion
 
     INFINITY = 100
     SLEEP_BETWEEN_REDIRECTS = 1
+    DEFAULT_AUTH_TOKEN = "ADHEARSION_TWILIO_AUTH_TOKEN"
 
     module ControllerMethods
       extend ActiveSupport::Concern
@@ -50,23 +51,39 @@ module Adhearsion
           status_callback_url,
           status_callback_method,
           answered? ? :answer : :no_answer,
-          :CallDuration => call.duration.to_i,
+          "CallDuration" => call.duration.to_i,
         ) if status_callback_url.present?
       end
 
       def notify_http(url, method, status, options = {})
         @last_request_url = url
+        request_body = {"CallStatus" => TWILIO_CALL_STATUSES[status]}.merge(build_request_body).merge(options)
+        headers = build_twilio_signature_header(url, request_body)
+        basic_auth, sanitized_url = extract_auth_from_url(url)
         HTTParty.send(
           method.downcase,
-          url,
-          :body => {
-            :From => normalized_from,
-            :To => normalized_to,
-            :CallSid => call.id,
-            :CallStatus => TWILIO_CALL_STATUSES[status],
-            :ApiVersion => api_version
-          }.merge(options), :basic_auth => url_auth(url)
+          sanitized_url,
+          :body => request_body,
+          :basic_auth => basic_auth,
+          :headers => headers
         ).body
+      end
+
+      def build_request_body
+        {
+          "From" => normalized_from,
+          "To" => normalized_to,
+          "CallSid" => call.id,
+          "ApiVersion" => api_version
+        }
+      end
+
+      def build_twilio_signature_header(url, params)
+        {"Twilio-Signature" => twilio_request_validator.build_signature_for(url, params)}
+      end
+
+      def twilio_request_validator
+        @twilio_request_validator ||= Adhearsion::Twilio::Util::RequestValidator.new(auth_token)
       end
 
       def execute_twiml(response)
@@ -317,7 +334,11 @@ module Adhearsion
         metadata[:status_callback_method] || config.status_callback_method.presence || "post"
       end
 
-      def url_auth(url)
+      def auth_token
+        metadata[:auth_token] || config.auth_token || DEFAULT_AUTH_TOKEN
+      end
+
+      def extract_auth_from_url(url)
         basic_auth = {}
         uri = URI.parse(url)
 
@@ -326,7 +347,10 @@ module Adhearsion
           basic_auth[:password] = uri.password
         end
 
-        basic_auth
+        uri.user = nil
+        uri.password = nil
+
+        [basic_auth, uri.to_s]
       end
 
       def not_yet_supported!

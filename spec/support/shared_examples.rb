@@ -1,91 +1,78 @@
-module SharedExamples
-
-  def call_status_update_options
-    @options ||= {
-      :cassette => cassette,
-      :action => redirect_url,
-      :redirect_url => redirect_url
-    }
+shared_examples_for "a TwiML 'action' attribute" do
+  def cassette_options
+    super.merge(:action => action, :redirect_url => redirect_url)
   end
 
-  shared_examples_for "a TwiML 'action' attribute" do
-    context "absolute url" do
-      it "should make a request to the absolute url" do
-        expect_call_status_update(call_status_update_options) do
-          subject.run
-        end
-        expect(last_request(:url)).to eq(call_status_update_options[:redirect_url])
-      end
-    end # context "absolute url"
+  def assert_requests!
+    super
+    expect(WebMock.requests.last.uri.to_s).to eq(redirect_url)
+  end
 
-    context "relative url" do
-      let(:relative_url) { "../relative_endpoint.xml" }
+  def assert_call_controller_assertions!
+    super
+    assert_next_verb_not_reached!
+  end
 
-      let(:redirect_url) do
-        URI.join(default_config[:voice_request_url], relative_url).to_s
-      end
+  context "absolute url" do
+    let(:action) { redirect_url }
 
-      it "should make a request to the relative url" do
-        expect_call_status_update(call_status_update_options) do
-          subject.run
-        end
-        expect(last_request(:url)).to eq(call_status_update_options[:redirect_url])
-      end
-    end # context "relative url"
-  end # shared_examples_for "a TwiML 'action' attribute"
+    it { run_and_assert! }
+  end # context "absolute url"
 
-  shared_examples_for "a TwiML 'method' attribute" do
-    context "not supplied" do
-      before do
-        set_dummy_url_config(:voice_request, :method, :get)
-      end
+  context "relative url" do
+    let(:action) { "/relative_endpoint.xml" }
 
-      it "should make a 'POST' request to the 'action' URL" do
-        expect_call_status_update(call_status_update_options) do
-          subject.run
-        end
-        expect(last_request(:method)).to eq(:post)
-      end
-    end # context "not supplied"
-
-    context "supplied" do
-      let(:with_method_cassette) { "#{cassette}_and_method".to_sym }
-
-      context "'GET'" do
-        before do
-          set_dummy_url_config(:voice_request, :method, :post)
-        end
-
-        it "should make a 'GET' request to the 'action' URL" do
-          expect_call_status_update(call_status_update_options.merge(:cassette => with_method_cassette, :method_attribute => "get")) do
-            subject.run
-          end
-          expect(last_request(:method)).to eq(:get)
-        end
-      end # context "'GET'"
-
-      context "'POST'" do
-        before do
-          set_dummy_url_config(:voice_request, :method, :get)
-        end
-
-        it "should make a 'POST' request to the 'action' URL" do
-          expect_call_status_update(call_status_update_options.merge(:cassette => with_method_cassette, :method_attribute => "post")) do
-            subject.run
-          end
-          expect(last_request(:method)).to eq(:post)
-        end
-      end # context "'POST'"
-    end # context "supplied"
-  end # shared_examples_for "a TwiML 'method' attribute"
-
-  shared_examples_for "continuing to process the current TwiML" do
-    it "should continue processing the TwiML after the verb" do
-      cassette_with_next_verb = "#{cassette}_then_play".to_sym
-      assert_next_verb_reached
-      expect_call_status_update(call_status_update_options.merge(:cassette => cassette_with_next_verb)) do
-        subject.run
-      end
+    let(:redirect_url) do
+      URI.join(default_config[:voice_request_url], action).to_s
     end
-  end # shared_examples_for "continuing to process the current TwiML"
-end
+
+    it { run_and_assert! }
+  end # context "relative url"
+end # shared_examples_for "a TwiML 'action' attribute"
+
+shared_examples_for "a TwiML 'method' attribute" do
+  def setup_scenario
+    super
+    set_dummy_url_config(:voice_request, :method, config_method)
+  end
+
+  def cassette_options
+    super.merge(:action => redirect_url, :redirect_url => redirect_url)
+  end
+
+  def assert_requests!
+    super
+    expect(WebMock.requests.last.method).to eq(asserted_method)
+  end
+
+  context "not supplied" do
+    let(:cassette) { without_method_cassette }
+
+    let(:config_method) { :get }
+    let(:asserted_method) { :post }
+
+    it { run_and_assert! }
+  end # context "not supplied"
+
+  context "supplied" do
+    let(:cassette) { with_method_cassette }
+
+    def cassette_options
+      super.merge(:method_attribute => asserted_method.to_s)
+    end
+
+    context "'GET'" do
+      let(:config_method) { :post }
+      let(:asserted_method) { :get }
+
+      it { run_and_assert! }
+    end # context "'GET'"
+
+    context "'POST'" do
+      let(:config_method) { :get }
+      let(:asserted_method) { :post }
+
+      it { run_and_assert! }
+    end # context "'POST'"
+  end # context "supplied"
+end # shared_examples_for "a TwiML 'method' attribute"

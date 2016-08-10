@@ -10,13 +10,18 @@ module Adhearsion
       # Basic configuration for the plugin
       #
       config :twilio do
+        auth_token(
+          nil,
+          :desc => "The Auth Token to be used to generate the request signature"
+        )
+
         voice_request_url(
-          "http://localhost:3000/",
+          nil,
           :desc => "Retrieve and execute the TwiML at this URL when a phone call is received"
         )
 
         voice_request_method(
-          "post",
+          nil,
           :desc => "Retrieve and execute the TwiML using this http method"
         )
 

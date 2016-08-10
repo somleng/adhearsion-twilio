@@ -1,4 +1,3 @@
-require 'adhearsion'
 require 'adhearsion-twilio'
 
 RSpec.configure do |config|
