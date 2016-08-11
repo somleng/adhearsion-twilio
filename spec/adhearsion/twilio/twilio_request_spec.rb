@@ -36,7 +36,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:http_request) { WebMock.requests.last }
     let(:http_request_params) { WebMock.request_params(http_request) }
     let(:request_url) { http_request.uri.to_s }
-    let(:request_signature) { http_request.headers["Twilio-Signature"] }
+    let(:request_signature) { http_request.headers["X-Twilio-Signature"] }
     let(:cassette) { request_type[:cassette] }
 
     def setup_scenario

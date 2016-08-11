@@ -79,7 +79,7 @@ module Adhearsion
       end
 
       def build_twilio_signature_header(url, params)
-        {"Twilio-Signature" => twilio_request_validator.build_signature_for(url, params)}
+        {"X-Twilio-Signature" => twilio_request_validator.build_signature_for(url, params)}
       end
 
       def twilio_request_validator
@@ -335,7 +335,7 @@ module Adhearsion
       end
 
       def auth_token
-        metadata[:auth_token] || config.auth_token || DEFAULT_AUTH_TOKEN
+        config.auth_token || DEFAULT_AUTH_TOKEN
       end
 
       def extract_auth_from_url(url)
