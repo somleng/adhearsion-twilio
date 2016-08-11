@@ -31,7 +31,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end
 
     let(:auth_token) { Adhearsion::Twilio::DEFAULT_AUTH_TOKEN }
-    let(:request_validator) { ::Twilio::Util::RequestValidator.new(auth_token) }
+    let(:request_validator) { ::Adhearsion::Twilio::Util::RequestValidator.new(auth_token) }
 
     let(:http_request) { WebMock.requests.last }
     let(:http_request_params) { WebMock.request_params(http_request) }
@@ -43,7 +43,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end
 
     def assert_requests!
-#      expect(request_validator.validate(request_url, http_request_params, request_signature)).to eq(true)
+      expect(request_validator.validate(request_url, http_request_params, request_signature)).to eq(true)
     end
 
     def assert_call_controller_assertions!
@@ -442,7 +442,6 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
               let(:assertion) { "anonymous" }
               it { run_and_assert! }
-
             end # context "and the P-Asserted-Identity header is 'foo'"
           end # context "'<anonymous@anonymous.invalid>'"
         end # context "given a call is received from:"

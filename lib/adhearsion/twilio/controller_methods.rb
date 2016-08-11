@@ -56,10 +56,10 @@ module Adhearsion
       end
 
       def notify_http(url, method, status, options = {})
-        @last_request_url = url
-        request_body = {"CallStatus" => TWILIO_CALL_STATUSES[status]}.merge(build_request_body).merge(options)
-        headers = build_twilio_signature_header(url, request_body)
         basic_auth, sanitized_url = extract_auth_from_url(url)
+        @last_request_url = sanitized_url
+        request_body = {"CallStatus" => TWILIO_CALL_STATUSES[status]}.merge(build_request_body).merge(options)
+        headers = build_twilio_signature_header(sanitized_url, request_body)
         HTTParty.send(
           method.downcase,
           sanitized_url,
