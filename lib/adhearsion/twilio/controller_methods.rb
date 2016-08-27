@@ -261,7 +261,7 @@ module Adhearsion
         doc = ::Nokogiri::XML(xml)
         raise doc.errors.first if doc.errors.length > 0
         raise(ArgumentError, "The root element must be the '<Response>' element") unless doc.root.name == "Response"
-        doc.root.children
+        doc.root.children.reject { |el| el.text? }
       end
 
       def with_twiml(raw_response, &block)
