@@ -37,16 +37,6 @@ module CallControllerHelpers
     expect(subject).to receive(:play_audio)
   end
 
-  def asserted_voice_request_params
-    {
-      "From" => "+#{call_params[:from]}",
-      "To"   => "+#{call_params[:to]}",
-      "CallSid" => call_params[:id],
-      "CallStatus" => "in-progress",
-      "ApiVersion" => "adhearsion-twilio-0.0.1"
-    }
-  end
-
   def call_params
     @call_params ||= {
       :to => "85512456869",
