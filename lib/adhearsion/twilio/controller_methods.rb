@@ -264,10 +264,12 @@ module Adhearsion
       end
 
       def parse_twiml(xml)
-        doc = ::Nokogiri::XML(xml)
+        doc = ::Nokogiri::XML(xml) do |config|
+          config.options = Nokogiri::XML::ParseOptions::NOBLANKS
+        end
         raise doc.errors.first if doc.errors.length > 0
         raise(ArgumentError, "The root element must be the '<Response>' element") unless doc.root.name == "Response"
-        doc.root.children.reject { |el| el.text? }
+        doc.root.children
       end
 
       def with_twiml(raw_response, &block)
