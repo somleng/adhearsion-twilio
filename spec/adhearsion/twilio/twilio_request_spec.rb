@@ -140,6 +140,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:configuration_value) { "http://localhost:1234/endpoint.xml/" }
           let(:asserted_value) { configuration_value }
 
+          def assert_requests!
+            super
+            expect(http_request.headers).not_to have_key("Authorization")
+          end
+
           context "Voice Request" do
             let(:request_type) { request_types[:voice_request] }
             it { run_and_assert! }

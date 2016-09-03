@@ -1,0 +1,72 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/testtwiml.xml
+    body:
+      encoding: UTF-8
+      string: CallStatus=in-progress&From=%2B1000&To=%2B85512456869&CallSid=5250692c-3db4-11e2-99cd-2f3f1cd7994c&ApiVersion=adhearsion-twilio-0.0.1
+    headers:
+      X-Twilio-Signature:
+      - 06UCP7lCC+2C6FTgFozK+AvpQeU=
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Security-Policy:
+      - default-src 'none'; style-src 'unsafe-inline'
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Xss-Protection:
+      - 1; mode=block
+      Etag:
+      - '"7ab2b03cfc06dee0d7b074efd0ae03da8e990d8f"'
+      Content-Type:
+      - text/plain; charset=utf-8
+      Cache-Control:
+      - max-age=300
+      X-Geo-Block-List:
+      - ''
+      X-Github-Request-Id:
+      - 2BF94919:334A:916512:57CAA262
+      Content-Length:
+      - '118'
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Sat, 03 Sep 2016 10:13:54 GMT
+      Via:
+      - 1.1 varnish
+      Connection:
+      - keep-alive
+      X-Served-By:
+      - cache-hkg6824-HKG
+      X-Cache:
+      - MISS
+      X-Cache-Hits:
+      - '0'
+      Vary:
+      - Authorization,Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Fastly-Request-Id:
+      - eb2b4c048ef998db8a1c15c987bd52f3dbf0b0ef
+      Expires:
+      - Sat, 03 Sep 2016 10:18:54 GMT
+      Source-Age:
+      - '0'
+    body:
+      encoding: UTF-8
+      string: |-
+        <?xml version="1.0" encoding="UTF-8"?>
+          <Response>
+          <Play>http://demo.twilio.com/docs/classic.mp3</Play>
+        </Response>
+    http_version: 
+  recorded_at: Sat, 03 Sep 2016 10:13:54 GMT
+recorded_with: VCR 3.0.3

@@ -60,12 +60,18 @@ module Adhearsion
         @last_request_url = sanitized_url
         request_body = {"CallStatus" => TWILIO_CALL_STATUSES[status]}.merge(build_request_body).merge(options)
         headers = build_twilio_signature_header(sanitized_url, request_body)
+
+        request_options = {
+          :body => request_body,
+          :headers => headers
+        }
+
+        request_options.merge!(:basic_auth => basic_auth) if basic_auth.any?
+
         HTTParty.send(
           method.downcase,
           sanitized_url,
-          :body => request_body,
-          :basic_auth => basic_auth,
-          :headers => headers
+          request_options
         ).body
       end
 
