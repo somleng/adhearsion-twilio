@@ -181,5 +181,6 @@ RSpec.configure do |config|
     stub_call_controller!
     stub_mock_call!
     set_default_config!
+    Adhearsion::Logging.silence!
   end
 end

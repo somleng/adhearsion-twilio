@@ -68,6 +68,8 @@ module Adhearsion
 
         request_options.merge!(:basic_auth => basic_auth) if basic_auth.any?
 
+        logger.info("Notifying HTTP with method: #{method}, URL: #{sanitized_url} and options: #{request_options}")
+
         HTTParty.send(
           method.downcase,
           sanitized_url,
@@ -264,6 +266,7 @@ module Adhearsion
       end
 
       def parse_twiml(xml)
+        logger.info("Parsing TwiML: #{xml}")
         doc = ::Nokogiri::XML(xml) do |config|
           config.options = Nokogiri::XML::ParseOptions::NOBLANKS
         end
