@@ -179,7 +179,6 @@ module Adhearsion
 
         logger.info("Executing ask with params: #{ask_params} and options: #{ask_options}")
         result = ask(*ask_params, ask_options)
-        logger.info("Ask result: #{result.inspect}")
 
         digits = result.utterance if [:match, :nomatch].include?(result.status)
 
@@ -271,11 +270,14 @@ module Adhearsion
 
       def parse_twiml(xml)
         logger.info("Parsing TwiML: #{xml}")
-        doc = ::Nokogiri::XML(xml) do |config|
-          config.options = Nokogiri::XML::ParseOptions::NOBLANKS
+        begin
+          doc = ::Nokogiri::XML(xml) do |config|
+            config.options = Nokogiri::XML::ParseOptions::NOBLANKS
+          end
+        rescue Nokogiri::XML::SyntaxError => e
+          raise(TwimlError, "Error while parsing XML: #{e.message}. XML Document: #{xml}")
         end
-        raise doc.errors.first if doc.errors.length > 0
-        raise(ArgumentError, "The root element must be the '<Response>' element") unless doc.root.name == "Response"
+        raise(TwimlError, "The root element must be the '<Response>' element") if doc.root.name != "Response"
         doc.root.children
       end
 

@@ -1,0 +1,60 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/testtwiml.xml
+    body:
+      encoding: UTF-8
+      string: CallStatus=in-progress&From=%2B1000&To=%2B85512456869&CallSid=5250692c-3db4-11e2-99cd-2f3f1cd7994c&ApiVersion=adhearsion-twilio-0.0.1
+    headers:
+      X-Twilio-Signature:
+      - 06UCP7lCC+2C6FTgFozK+AvpQeU=
+  response:
+    status:
+      code: 400
+      message: Bad Request
+    headers:
+      Content-Security-Policy:
+      - default-src 'none'; style-src 'unsafe-inline'
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Github-Request-Id:
+      - 2BF94916:767C:23BC215:57CE7F9D
+      Content-Length:
+      - '21'
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Tue, 06 Sep 2016 08:34:37 GMT
+      Via:
+      - 1.1 varnish
+      Connection:
+      - keep-alive
+      X-Served-By:
+      - cache-hkg6822-HKG
+      X-Cache:
+      - MISS
+      X-Cache-Hits:
+      - '0'
+      Vary:
+      - Authorization,Accept-Encoding
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Fastly-Request-Id:
+      - e4fcfd54c9988d873dff396204dd808a5de3ba8f
+      Expires:
+      - Tue, 06 Sep 2016 08:39:37 GMT
+    body:
+      encoding: UTF-8
+      string: '400: Invalid request
+
+'
+    http_version: 
+  recorded_at: Tue, 06 Sep 2016 08:34:37 GMT
+recorded_with: VCR 3.0.3
