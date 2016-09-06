@@ -174,10 +174,14 @@ module Adhearsion
         end
 
         ask_options.merge!(:limit => options["numDigits"].to_i) if options["numDigits"]
-
         ask_params << nil if ask_params.blank?
-        result = ask(*ask_params.flatten, ask_options)
-        digits = result.response
+        ask_params.flatten!
+
+        logger.info("Executing ask with params: #{ask_params} and options: #{ask_options}")
+        result = ask(*ask_params, ask_options)
+        logger.info("Ask result: #{result.inspect}")
+
+        digits = result.utterance if [:match, :nomatch].include?(result.status)
 
         [
           options["action"],
