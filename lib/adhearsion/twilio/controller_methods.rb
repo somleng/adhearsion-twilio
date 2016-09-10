@@ -346,7 +346,7 @@ module Adhearsion
       end
 
       def auth_token
-        config.auth_token || DEFAULT_AUTH_TOKEN
+        metadata[:auth_token] || config.auth_token || DEFAULT_AUTH_TOKEN
       end
 
       def extract_auth_from_url(url)

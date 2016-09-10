@@ -57,6 +57,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       setup_scenario
     end
 
+    context "overriding auth_token" do
+      let(:auth_token) { "my_auth_token" }
+      let(:metadata) { { :auth_token => auth_token } }
+      let(:request_type) { request_types[:voice_request] }
+
+      it { run_and_assert! }
+    end
+
     context "configuration" do
       def setup_scenario
         super
