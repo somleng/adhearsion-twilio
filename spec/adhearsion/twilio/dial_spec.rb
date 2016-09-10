@@ -18,7 +18,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:cassette) { :dial }
     let(:asserted_verb) { :dial }
     let(:asserted_verb_args) { [number_to_dial, hash_including(asserted_verb_options)] }
-    let(:dial_status) { double(Adhearsion::CallController::DialStatus, :result => :answer ) }
+    let(:dial_status) { instance_double(Adhearsion::CallController::DialStatus, :result => :answer ) }
 
     def stub_dial_status(status)
       allow(dial_status).to receive(:result).and_return(status)
@@ -411,11 +411,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             }
 
             def create_outbound_call(options = {})
-              double(Adhearsion::OutboundCall, options)
+              instance_double(Adhearsion::OutboundCall, options)
             end
 
             def create_joins_status(options = {})
-              double(Adhearsion::CallController::Dial::JoinStatus, options)
+              instance_double(Adhearsion::CallController::Dial::JoinStatus, options)
             end
 
             def joins

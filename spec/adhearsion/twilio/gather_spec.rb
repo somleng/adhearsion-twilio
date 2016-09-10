@@ -20,12 +20,12 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:cassette) { :gather }
     let(:asserted_verb) { :ask }
     let(:asserted_verb_args) { [any_args] }
-    let(:ask_result) { double(Adhearsion::CallController::Input::Result, :response => "", :status => :timeout) }
+    let(:ask_result) { instance_double(Adhearsion::CallController::Input::Result, :status => :noinput) }
     let(:digits) { "32" }
 
     def stub_ask_result(options = {})
-      allow(ask_result).to receive(:response).and_return(options[:response] || digits)
-      allow(ask_result).to receive(:status).and_return(options[:status] || :terminated)
+      allow(ask_result).to receive(:utterance).and_return(options[:response] || digits)
+      allow(ask_result).to receive(:status).and_return(options[:status] || :match)
     end
 
     def setup_scenario
