@@ -30,7 +30,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       }
     end
 
-    let(:auth_token) { Adhearsion::Twilio::DEFAULT_AUTH_TOKEN }
+    let(:auth_token) { Adhearsion::Twilio::Configuration::DEFAULT_AUTH_TOKEN }
     let(:request_validator) { ::Adhearsion::Twilio::Util::RequestValidator.new(auth_token) }
 
     let(:http_request) { WebMock.requests.last }

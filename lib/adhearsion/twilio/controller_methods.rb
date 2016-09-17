@@ -1,3 +1,5 @@
+require_relative "configuration"
+
 module Adhearsion
   module Twilio
     TwimlError = Class.new(Adhearsion::Error) # Represents a failure to pass valid TwiML
@@ -12,7 +14,6 @@ module Adhearsion
 
     INFINITY = 100
     SLEEP_BETWEEN_REDIRECTS = 1
-    DEFAULT_AUTH_TOKEN = "ADHEARSION_TWILIO_AUTH_TOKEN"
 
     module ControllerMethods
       extend ActiveSupport::Concern
@@ -33,7 +34,11 @@ module Adhearsion
       end
 
       def notify_voice_request_url
-        execute_twiml(notify_http(voice_request_url, voice_request_method, :in_progress))
+        execute_twiml(
+          notify_http(
+            configuration.voice_request_url, configuration.voice_request_method, :in_progress
+          )
+        )
       end
 
       def redirect(url = nil, options = {})
@@ -48,11 +53,11 @@ module Adhearsion
 
       def notify_status_callback_url
         notify_http(
-          status_callback_url,
-          status_callback_method,
+          configuration.status_callback_url,
+          configuration.status_callback_method,
           answered? ? :answer : :no_answer,
           "CallDuration" => call.duration.to_i,
-        ) if status_callback_url.present?
+        ) if configuration.status_callback_url.present?
       end
 
       def notify_http(url, method, status, options = {})
@@ -91,7 +96,7 @@ module Adhearsion
       end
 
       def twilio_request_validator
-        @twilio_request_validator ||= Adhearsion::Twilio::Util::RequestValidator.new(auth_token)
+        @twilio_request_validator ||= Adhearsion::Twilio::Util::RequestValidator.new(configuration.auth_token)
       end
 
       def execute_twiml(response)
@@ -199,7 +204,7 @@ module Adhearsion
 
       def options_for_twilio_say(options = {})
         params = {}
-        voice = options["voice"].to_s.downcase == "woman" ? config.default_female_voice : config.default_male_voice
+        voice = options["voice"].to_s.downcase == "woman" ? configuration.default_female_voice : configuration.default_male_voice
         params[:voice] = voice if voice
         params
       end
@@ -331,28 +336,8 @@ module Adhearsion
         raw_destination =~ /\A\+?\d+\z/
       end
 
-      def config
-        Adhearsion.config[:twilio]
-      end
-
-      def voice_request_url
-        metadata[:voice_request_url] || config.voice_request_url
-      end
-
-      def voice_request_method
-        metadata[:voice_request_method] || config.voice_request_method.presence || "post"
-      end
-
-      def status_callback_url
-        metadata[:status_callback_url] || config.status_callback_url
-      end
-
-      def status_callback_method
-        metadata[:status_callback_method] || config.status_callback_method.presence || "post"
-      end
-
-      def auth_token
-        metadata[:auth_token] || config.auth_token || DEFAULT_AUTH_TOKEN
+      def configuration
+        @configuration ||= Adhearsion::Twilio::Configuration.new(metadata)
       end
 
       def extract_auth_from_url(url)
