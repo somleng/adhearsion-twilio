@@ -1,4 +1,5 @@
 require_relative "configuration"
+require_relative "call"
 
 module Adhearsion
   module Twilio
@@ -63,9 +64,11 @@ module Adhearsion
       def notify_http(url, method, status, options = {})
         basic_auth, sanitized_url = extract_auth_from_url(url)
         @last_request_url = sanitized_url
-        request_body = {"CallStatus" => TWILIO_CALL_STATUSES[status]}.merge(build_request_body).merge(options)
-        headers = build_twilio_signature_header(sanitized_url, request_body)
+        request_body = {
+          "CallStatus" => TWILIO_CALL_STATUSES[status],
+        }.merge(build_request_body).merge(options)
 
+        headers = build_twilio_signature_header(sanitized_url, request_body)
         request_options = {
           :body => request_body,
           :headers => headers
@@ -84,15 +87,19 @@ module Adhearsion
 
       def build_request_body
         {
-          "From" => normalized_from,
-          "To" => normalized_to,
-          "CallSid" => call.id,
+          "From" => twilio_call.from,
+          "To" => twilio_call.to,
+          "CallSid" => twilio_call.id,
           "ApiVersion" => api_version
         }
       end
 
       def build_twilio_signature_header(url, params)
         {"X-Twilio-Signature" => twilio_request_validator.build_signature_for(url, params)}
+      end
+
+      def api_version
+        "adhearsion-twilio-#{Adhearsion::Twilio::VERSION}"
       end
 
       def twilio_request_validator
@@ -306,34 +313,8 @@ module Adhearsion
         options
       end
 
-      def normalized_from
-        return_value = normalized_destination(call.from)
-        unless destination_valid?(return_value)
-          normalized_p_asserted_identity = normalized_destination(
-            call.variables["variable_sip_p_asserted_identity"]
-          )
-          return_value = normalized_p_asserted_identity if destination_valid?(normalized_p_asserted_identity)
-        end
-        return_value
-      end
-
-      def normalized_to
-        normalized_destination(call.to)
-      end
-
-      def api_version
-        "adhearsion-twilio-#{Adhearsion::Twilio::VERSION}"
-      end
-
-      def normalized_destination(raw_destination)
-        # remove port if and scheme if given
-        destination = raw_destination.gsub(/(\d+)\:\d+/, '\1').gsub(/^[a-z]+\:/, "") if raw_destination
-        destination = Mail::Address.new(destination).local
-        destination_valid?(destination) ? "+#{destination.gsub('+', '')}" : destination
-      end
-
-      def destination_valid?(raw_destination)
-        raw_destination =~ /\A\+?\d+\z/
+      def twilio_call
+        @twilio_call ||= Adhearsion::Twilio::Call.new(call)
       end
 
       def configuration
