@@ -1,4 +1,8 @@
+require_relative "env_helpers"
+
 module CallControllerHelpers
+  include EnvHelpers
+
   def subject
     @subject ||= Adhearsion::Twilio::TestController.new(mock_call, metadata)
   end
@@ -55,6 +59,7 @@ module CallControllerHelpers
   end
 
   def expect_call_status_update(options = {}, &block)
+    stub_env(env_vars)
     assert_call_controller_assertions!
     cassette = options.delete(:cassette) || :hangup
     VCR.use_cassette(cassette, :erb => generate_erb(options)) do
@@ -144,17 +149,21 @@ module CallControllerHelpers
 
   def set_default_config!
     default_config.each do |config, value|
-      ENV["AHN_TWILIO_#{config.to_s.upcase}"] = value.to_s
+      env_vars[:"ahn_twilio_#{config}"] = value.to_s
     end
   end
 
+  def env_vars
+    @env_vars ||= {}
+  end
+
   def set_dummy_url_config(url_type, url_config, value)
-    ENV["AHN_TWILIO_#{url_type.to_s.upcase}_#{url_config.to_s.upcase}"] = value.to_s
+    env_vars[:"ahn_twilio_#{url_type}_#{url_config}"] = value
   end
 
   def set_dummy_voices
-    ENV["AHN_TWILIO_DEFAULT_MALE_VOICE"] = "default_male_voice"
-    ENV["AHN_TWILIO_DEFAULT_FEMALE_VOICE"] = "default_female_voice"
+    env_vars[:ahn_twilio_default_male_voice] = "default_male_voice"
+    env_vars[:ahn_twilio_default_female_voice] = "default_female_voice"
   end
 
   def stub_call_controller!
