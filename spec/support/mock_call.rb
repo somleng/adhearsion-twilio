@@ -3,7 +3,7 @@ module MockCall
     @call_params ||= {
       :to => "85512456869",
       :from => "1000",
-      :id => "5250692c-3db4-11e2-99cd-2f3f1cd7994c"
+      :id => SecureRandom.uuid
     }
   end
 

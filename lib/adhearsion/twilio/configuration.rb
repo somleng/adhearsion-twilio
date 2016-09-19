@@ -3,30 +3,24 @@ class Adhearsion::Twilio::Configuration
   DEFAULT_VOICE_REQUEST_METHOD = "POST"
   DEFAULT_STATUS_CALLBACK_METHOD = "POST"
 
-  attr_accessor :metadata
-
-  def initialize(metadata)
-    self.metadata = metadata
-  end
-
   def voice_request_url
-    metadata[:voice_request_url] || config.voice_request_url
+    config.voice_request_url
   end
 
   def voice_request_method
-    metadata[:voice_request_method] || config.voice_request_method.presence || DEFAULT_VOICE_REQUEST_METHOD
+    config.voice_request_method.presence || DEFAULT_VOICE_REQUEST_METHOD
   end
 
   def status_callback_url
-    metadata[:status_callback_url] || config.status_callback_url
+    config.status_callback_url
   end
 
   def status_callback_method
-    metadata[:status_callback_method] || config.status_callback_method.presence || DEFAULT_STATUS_CALLBACK_METHOD
+    config.status_callback_method.presence || DEFAULT_STATUS_CALLBACK_METHOD
   end
 
   def auth_token
-    metadata[:auth_token] || config.auth_token || DEFAULT_AUTH_TOKEN
+    config.auth_token || DEFAULT_AUTH_TOKEN
   end
 
   def default_female_voice
@@ -35,6 +29,14 @@ class Adhearsion::Twilio::Configuration
 
   def default_male_voice
     config.default_male_voice
+  end
+
+  def rest_api_enabled?
+    config.rest_api_enabled.to_i == 1
+  end
+
+  def rest_api_phone_calls_url
+    config.rest_api_phone_calls_url
   end
 
   private

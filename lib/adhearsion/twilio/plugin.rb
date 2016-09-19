@@ -36,11 +36,23 @@ module Adhearsion
         )
 
         default_male_voice(
-          nil, :desc => "The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values)"
+          nil,
+          :desc => "The default voice to use for a male speaker (see 'config.punchblock.default_voice' for allowed values)"
         )
 
         default_female_voice(
-          nil, :desc => "The default voice to use for a female speaker (see 'config.punchblock.default_voice' for allowed values)"
+          nil,
+          :desc => "The default voice to use for a female speaker (see 'config.punchblock.default_voice' for allowed values)"
+        )
+
+        rest_api_enabled(
+          nil,
+          :desc => "Set to 1 to if you have a Twilio REST API enabled"
+        )
+
+        rest_api_phone_calls_url(
+          nil,
+          :desc => "The Twilio REST API's endpoint for creating new phone calls"
         )
       end
 

@@ -1,4 +1,4 @@
 module Adhearsion::Twilio
-  module Util
+  module RestApi
   end
 end

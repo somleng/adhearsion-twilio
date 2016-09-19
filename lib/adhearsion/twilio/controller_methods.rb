@@ -1,5 +1,8 @@
 require_relative "configuration"
 require_relative "call"
+require_relative "rest_api/phone_call"
+require_relative "util/request_validator"
+require_relative "util/url"
 
 module Adhearsion
   module Twilio
@@ -37,7 +40,7 @@ module Adhearsion
       def notify_voice_request_url
         execute_twiml(
           notify_http(
-            configuration.voice_request_url, configuration.voice_request_method, :in_progress
+            voice_request_url, voice_request_method, :in_progress
           )
         )
       end
@@ -54,15 +57,15 @@ module Adhearsion
 
       def notify_status_callback_url
         notify_http(
-          configuration.status_callback_url,
-          configuration.status_callback_method,
+          status_callback_url,
+          status_callback_method,
           answered? ? :answer : :no_answer,
           "CallDuration" => call.duration.to_i,
-        ) if configuration.status_callback_url.present?
+        ) if status_callback_url.present?
       end
 
       def notify_http(url, method, status, options = {})
-        basic_auth, sanitized_url = extract_auth_from_url(url)
+        basic_auth, sanitized_url = Adhearsion::Twilio::Util::Url.new(url).extract_auth
         @last_request_url = sanitized_url
         request_body = {
           "CallStatus" => TWILIO_CALL_STATUSES[status],
@@ -103,7 +106,7 @@ module Adhearsion
       end
 
       def twilio_request_validator
-        @twilio_request_validator ||= Adhearsion::Twilio::Util::RequestValidator.new(configuration.auth_token)
+        @twilio_request_validator ||= Adhearsion::Twilio::Util::RequestValidator.new(auth_token)
       end
 
       def execute_twiml(response)
@@ -318,22 +321,35 @@ module Adhearsion
       end
 
       def configuration
-        @configuration ||= Adhearsion::Twilio::Configuration.new(metadata)
+        @configuration ||= Adhearsion::Twilio::Configuration.new
       end
 
-      def extract_auth_from_url(url)
-        basic_auth = {}
-        uri = URI.parse(url)
+      def rest_api_phone_call
+        @rest_api_phone_call ||= Adhearsion::Twilio::RestApi::PhoneCall.new(twilio_call)
+      end
 
-        if uri.user
-          basic_auth[:username] = uri.user
-          basic_auth[:password] = uri.password
-        end
+      def voice_request_url
+        resolve_configuration(:voice_request_url)
+      end
 
-        uri.user = nil
-        uri.password = nil
+      def voice_request_method
+        resolve_configuration(:voice_request_method)
+      end
 
-        [basic_auth, uri.to_s]
+      def status_callback_url
+        resolve_configuration(:status_callback_url)
+      end
+
+      def status_callback_method
+        resolve_configuration(:status_callback_method)
+      end
+
+      def auth_token
+        resolve_configuration(:auth_token)
+      end
+
+      def resolve_configuration(name)
+        metadata[name] || (configuration.rest_api_enabled? && rest_api_phone_call.public_send(name)) || configuration.public_send(name)
       end
 
       def not_yet_supported!
