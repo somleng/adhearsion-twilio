@@ -17,6 +17,11 @@ module Adhearsion::Twilio::ControllerMethods
     :ringing => "ringing"
   }
 
+  TWILIO_CALL_DIRECTIONS = {
+    :inbound => "inbound",
+    :outbound_api => "outbound-api"
+  }
+
   INFINITY = 100
   SLEEP_BETWEEN_REDIRECTS = 1
 
@@ -91,6 +96,7 @@ module Adhearsion::Twilio::ControllerMethods
       "From" => twilio_call.from,
       "To" => twilio_call.to,
       "CallSid" => call_sid,
+      "Direction" => call_direction,
       "ApiVersion" => api_version
     }
   end
@@ -348,6 +354,10 @@ module Adhearsion::Twilio::ControllerMethods
 
   def call_sid
     resolve_configuration(:call_sid, false) || twilio_call.id
+  end
+
+  def call_direction
+    TWILIO_CALL_DIRECTIONS[(metadata[:call_direction] || :inbound).to_sym]
   end
 
   def resolve_configuration(name, has_global_configuration = true)

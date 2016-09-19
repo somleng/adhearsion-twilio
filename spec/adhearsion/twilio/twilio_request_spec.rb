@@ -60,12 +60,32 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     describe "#notify_voice_request_url" do
       let(:request_type) { request_types[:voice_request] }
 
-      def assert_requests!
-        super
-        expect(http_request_params["CallStatus"]).to eq("ringing")
+      context "CallStatus" do
+        def assert_requests!
+          super
+          expect(http_request_params["CallStatus"]).to eq("ringing")
+        end
+
+        it { run_and_assert! }
       end
 
-      it { run_and_assert! }
+      context "Direction" do
+        def assert_requests!
+          super
+          expect(http_request_params["Direction"]).to eq(asserted_direction)
+        end
+
+        context "for inbound calls" do
+          let(:asserted_direction) { "inbound" }
+          it { run_and_assert! }
+        end
+
+        context "for outbound calls" do
+          let(:metadata) { { :call_direction => :outbound_api } }
+          let(:asserted_direction) { "outbound-api" }
+          it { run_and_assert! }
+        end
+      end
     end
 
     context "overriding auth_token" do
