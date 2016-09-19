@@ -7,6 +7,36 @@ describe Adhearsion::Twilio::Configuration do
   let(:http_method) { "GET" }
   let(:voice) { "arky" }
 
+  describe "#rest_api_enabled?" do
+    context "with global configuration" do
+      before do
+        stub_env(:ahn_twilio_rest_api_enabled => "1")
+      end
+
+      it { is_expected.to be_rest_api_enabled }
+    end
+
+    context "by default" do
+      it { is_expected.not_to be_rest_api_enabled }
+    end
+  end
+
+  describe "#rest_api_phone_calls_url" do
+    let(:result) { subject.rest_api_phone_calls_url }
+
+    context "with global configuration" do
+      before do
+        stub_env(:ahn_twilio_rest_api_phone_calls_url => url)
+      end
+
+      it { expect(result).to eq(url) }
+    end
+
+    context "by default" do
+      it { expect(result).to eq(nil) }
+    end
+  end
+
   describe "#voice_request_url" do
     let(:result) { subject.voice_request_url }
 

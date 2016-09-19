@@ -89,7 +89,7 @@ module Adhearsion::Twilio::ControllerMethods
     {
       "From" => twilio_call.from,
       "To" => twilio_call.to,
-      "CallSid" => twilio_call.id,
+      "CallSid" => call_sid,
       "ApiVersion" => api_version
     }
   end
@@ -345,8 +345,12 @@ module Adhearsion::Twilio::ControllerMethods
     resolve_configuration(:auth_token)
   end
 
-  def resolve_configuration(name)
-    metadata[name] || (configuration.rest_api_enabled? && rest_api_phone_call.public_send(name)) || configuration.public_send(name)
+  def call_sid
+    resolve_configuration(:call_sid, false) || twilio_call.id
+  end
+
+  def resolve_configuration(name, has_global_configuration = true)
+    (metadata[name] || (configuration.rest_api_enabled? && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
   def not_yet_supported!

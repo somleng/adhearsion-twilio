@@ -1,7 +1,7 @@
 require_relative "../util/url"
 
 class Adhearsion::Twilio::RestApi::PhoneCall
-  attr_accessor :twilio_call, :configuration
+  attr_accessor :twilio_call
 
   def initialize(twilio_call)
     self.twilio_call = twilio_call
@@ -23,12 +23,24 @@ class Adhearsion::Twilio::RestApi::PhoneCall
     fetch_remote(:status_callback_method)
   end
 
+  def account_sid
+    fetch_remote(:account_sid)
+  end
+
   def auth_token
     fetch_remote(:account_auth_token)
   end
 
-  def sid
+  def call_sid
     fetch_remote(:sid)
+  end
+
+  def from
+    fetch_remote(:from)
+  end
+
+  def to
+    fetch_remote(:to)
   end
 
   private
