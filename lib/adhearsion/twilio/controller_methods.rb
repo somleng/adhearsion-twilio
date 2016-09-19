@@ -13,7 +13,8 @@ module Adhearsion::Twilio::ControllerMethods
     :answer => "completed",
     :timeout => "no-answer",
     :error => "failed",
-    :in_progress => "in-progress"
+    :in_progress => "in-progress",
+    :ringing => "ringing"
   }
 
   INFINITY = 100
@@ -37,7 +38,7 @@ module Adhearsion::Twilio::ControllerMethods
   def notify_voice_request_url
     execute_twiml(
       notify_http(
-        voice_request_url, voice_request_method, :in_progress
+        voice_request_url, voice_request_method, :ringing
       )
     )
   end
