@@ -361,7 +361,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def resolve_configuration(name, has_global_configuration = true)
-    (metadata[name] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled?] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
+    (metadata[name] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
   def not_yet_supported!
