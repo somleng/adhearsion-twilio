@@ -361,6 +361,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def resolve_configuration(name, has_global_configuration = true)
+    logger.info("Resolving configuration: #{name}")
     (metadata[name] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
