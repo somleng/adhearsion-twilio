@@ -1,10 +1,11 @@
 require_relative "../util/url"
 
 class Adhearsion::Twilio::RestApi::PhoneCall
-  attr_accessor :twilio_call
+  attr_accessor :twilio_call, :options
 
-  def initialize(twilio_call)
+  def initialize(twilio_call, options = {})
     self.twilio_call = twilio_call
+    self.options = options
   end
 
   def voice_request_url
@@ -45,6 +46,10 @@ class Adhearsion::Twilio::RestApi::PhoneCall
 
   private
 
+  def log(*args)
+    options[:logger] && options[:logger].public_send(*args)
+  end
+
   def created?
     @remote_response && @remote_response.success?
   end
@@ -73,6 +78,8 @@ class Adhearsion::Twilio::RestApi::PhoneCall
     }
 
     request_options.merge!(:basic_auth => basic_auth) if basic_auth.any?
+
+    log(:info, "POSTING to Twilio REST API at: #{url} with options: #{request_options}")
 
     @remote_response = HTTParty.post(url, request_options)
   end

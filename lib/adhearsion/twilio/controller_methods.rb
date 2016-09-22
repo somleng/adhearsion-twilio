@@ -329,7 +329,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def rest_api_phone_call
-    @rest_api_phone_call ||= Adhearsion::Twilio::RestApi::PhoneCall.new(twilio_call)
+    @rest_api_phone_call ||= Adhearsion::Twilio::RestApi::PhoneCall.new(twilio_call, :logger => logger)
   end
 
   def voice_request_url
