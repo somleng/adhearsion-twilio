@@ -9,15 +9,32 @@ describe Adhearsion::Twilio::Call do
     it { expect(subject.id).to eq(mock_call.id) }
   end
 
+  # Phone Numbers
+
+  # All phone numbers in requests from Twilio are in E.164 format if possible.
+  # For example, (415) 555-4345 would come through as '+14155554345'.
+  # However, there are occasionally cases where Twilio cannot normalize an
+  # incoming caller ID to E.164. In these situations Twilio will report
+  # the raw caller ID string.
+
+  describe "#to" do
+    let(:result) { subject.to }
+
+    before do
+      setup_scenario
+    end
+
+    def setup_scenario
+      allow(mock_call).to receive(:to).and_return(to)
+    end
+
+    context "normalization examples" do
+      let(:to) { "sofia/gateway/pin_kh_01/85512345678" }
+      it { expect(result).to eq("+85512345678") }
+    end
+  end
+
   describe "#from" do
-    # Phone Numbers
-
-    # All phone numbers in requests from Twilio are in E.164 format if possible.
-    # For example, (415) 555-4345 would come through as '+14155554345'.
-    # However, there are occasionally cases where Twilio cannot normalize an
-    # incoming caller ID to E.164. In these situations Twilio will report
-    # the raw caller ID string.
-
     let(:result) { subject.from }
 
     before do
