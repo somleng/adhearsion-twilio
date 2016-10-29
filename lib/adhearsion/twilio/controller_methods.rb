@@ -156,6 +156,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_hangup
+    logger.info("Executing after callback :twilio_hangup")
     notify_status_callback_url
   end
 
