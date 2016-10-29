@@ -4,6 +4,7 @@ require_relative "mock_call"
 module CallControllerHelpers
   include EnvHelpers
   include MockCall
+  include LoggingHelpers
 
   def subject
     @subject ||= Adhearsion::Twilio::TestController.new(mock_call, metadata)
@@ -175,6 +176,6 @@ RSpec.configure do |config|
     stub_call_controller!
     stub_mock_call!
     set_default_config!
-    Adhearsion::Logging.silence!
+    silence_logging!
   end
 end

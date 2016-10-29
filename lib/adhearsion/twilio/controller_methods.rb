@@ -8,20 +8,6 @@ require_relative "util/url"
 module Adhearsion::Twilio::ControllerMethods
   extend ActiveSupport::Concern
 
-  TWILIO_CALL_STATUSES = {
-    :no_answer => "no-answer",
-    :answer => "completed",
-    :timeout => "no-answer",
-    :error => "failed",
-    :in_progress => "in-progress",
-    :ringing => "ringing"
-  }
-
-  TWILIO_CALL_DIRECTIONS = {
-    :inbound => "inbound",
-    :outbound_api => "outbound-api"
-  }
-
   INFINITY = 100
   SLEEP_BETWEEN_REDIRECTS = 1
 
@@ -36,22 +22,34 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def answer!
-    answer unless answered?
+    answer if !answered?
     @answered = true
   end
 
   def notify_voice_request_url
     execute_twiml(
-      notify_http(
-        voice_request_url, voice_request_method, :ringing
-      )
+      http_client.notify_voice_request_url
+    )
+  end
+
+  def http_client
+    @http_client ||= Adhearsion::Twilio::HttpClient.new(
+      :voice_request_url => voice_request_url,
+      :voice_request_method => voice_request_method,
+      :status_callback_url => status_callback_url,
+      :status_callback_method => status_callback_method,
+      :twilio_call => twilio_call,
+      :call_sid => call_sid,
+      :call_direction => metadata[:call_direction],
+      :auth_token => auth_token,
+      :logger => logger
     )
   end
 
   def redirect(url = nil, options = {})
     execute_twiml(
-      notify_http(
-        URI.join(@last_request_url, url.to_s).to_s,
+      http_client.notify_http(
+        URI.join(http_client.last_request_url, url.to_s).to_s,
         options.delete("method") || "post",
         :in_progress, options
       )
@@ -59,58 +57,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def notify_status_callback_url
-    notify_http(
-      status_callback_url,
-      status_callback_method,
-      answered? ? :answer : :no_answer,
-      "CallDuration" => call.duration.to_i,
-    ) if status_callback_url.present?
-  end
-
-  def notify_http(url, method, status, options = {})
-    basic_auth, sanitized_url = Adhearsion::Twilio::Util::Url.new(url).extract_auth
-    @last_request_url = sanitized_url
-    request_body = {
-      "CallStatus" => TWILIO_CALL_STATUSES[status],
-    }.merge(build_request_body).merge(options)
-
-    headers = build_twilio_signature_header(sanitized_url, request_body)
-    request_options = {
-      :body => request_body,
-      :headers => headers
-    }
-
-    request_options.merge!(:basic_auth => basic_auth) if basic_auth.any?
-
-    logger.info("Notifying HTTP with method: #{method}, URL: #{sanitized_url} and options: #{request_options}")
-
-    HTTParty.send(
-      method.downcase,
-      sanitized_url,
-      request_options
-    ).body
-  end
-
-  def build_request_body
-    {
-      "From" => twilio_call.from,
-      "To" => twilio_call.to,
-      "CallSid" => call_sid,
-      "Direction" => call_direction,
-      "ApiVersion" => api_version
-    }
-  end
-
-  def build_twilio_signature_header(url, params)
-    {"X-Twilio-Signature" => twilio_request_validator.build_signature_for(url, params)}
-  end
-
-  def api_version
-    "adhearsion-twilio-#{Adhearsion::Twilio::VERSION}"
-  end
-
-  def twilio_request_validator
-    @twilio_request_validator ||= Adhearsion::Twilio::Util::RequestValidator.new(auth_token)
+    http_client.notify_status_callback_url(answered? ? :answer : :no_answer)
   end
 
   def execute_twiml(response)
@@ -261,7 +208,7 @@ module Adhearsion::Twilio::ControllerMethods
     dial_status = dial(to, params)
 
     dial_call_status_options = {
-      "DialCallStatus" => TWILIO_CALL_STATUSES[dial_status.result]
+      "DialCallStatus" => Adhearsion::Twilio::HttpClient::CALL_STATUSES[dial_status.result]
     }
 
     # try to find the joined call
@@ -355,10 +302,6 @@ module Adhearsion::Twilio::ControllerMethods
 
   def call_sid
     resolve_configuration(:call_sid, false) || twilio_call.id
-  end
-
-  def call_direction
-    TWILIO_CALL_DIRECTIONS[(metadata[:call_direction] || :inbound).to_sym]
   end
 
   def resolve_configuration(name, has_global_configuration = true)

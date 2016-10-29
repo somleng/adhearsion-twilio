@@ -34,6 +34,20 @@ describe Adhearsion::Twilio::Call do
     end
   end
 
+  describe "#duration" do
+    let(:result) { subject.duration }
+
+    before do
+      setup_scenario
+    end
+
+    def setup_scenario
+      allow(mock_call).to receive(:duration).and_return("26.4")
+    end
+
+    it { expect(result).to eq(26) }
+  end
+
   describe "#from" do
     let(:result) { subject.from }
 

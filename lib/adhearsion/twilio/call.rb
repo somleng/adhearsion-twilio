@@ -10,6 +10,10 @@ class Adhearsion::Twilio::Call
     call.id
   end
 
+  def duration
+    call.duration.to_i
+  end
+
   private
 
   def set_call_variables!
