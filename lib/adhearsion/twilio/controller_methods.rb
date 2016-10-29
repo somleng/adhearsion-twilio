@@ -38,7 +38,8 @@ module Adhearsion::Twilio::ControllerMethods
       :voice_request_method => voice_request_method,
       :status_callback_url => status_callback_url,
       :status_callback_method => status_callback_method,
-      :twilio_call => twilio_call,
+      :call_from => twilio_call.from,
+      :call_to => twilio_call.to,
       :call_sid => call_sid,
       :call_direction => metadata[:call_direction],
       :auth_token => auth_token,
@@ -57,7 +58,11 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def notify_status_callback_url
-    http_client.notify_status_callback_url(answered? ? :answer : :no_answer)
+    options = {}
+    options.merge!("CallDuration" => twilio_call.duration) if answered?
+    http_client.notify_status_callback_url(
+      answered? ? :answer : :no_answer, options
+    )
   end
 
   def execute_twiml(response)

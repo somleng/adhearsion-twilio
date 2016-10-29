@@ -38,8 +38,9 @@ describe Adhearsion::Twilio::HttpClient do
   let(:voice_request_method) { "POST" }
   let(:status_callback_url) { nil }
   let(:status_callback_method) { nil }
-  let(:twilio_call) { Adhearsion::Twilio::Call.new(mock_call) }
-  let(:call_sid) { "" }
+  let(:call_from) { "+85512345678" }
+  let(:call_to) { "+85512345679" }
+  let(:call_sid) { "abcdefg" }
   let(:call_direction) { nil }
   let(:auth_token) { "some_auth_token" }
 
@@ -49,8 +50,9 @@ describe Adhearsion::Twilio::HttpClient do
       :voice_request_method => voice_request_method,
       :status_callback_url => status_callback_url,
       :status_callback_method => status_callback_method,
-      :twilio_call => twilio_call,
       :call_sid => call_sid,
+      :call_from => call_from,
+      :call_to => call_to,
       :call_direction => call_direction,
       :auth_token => auth_token,
       :logger => logger
@@ -160,6 +162,21 @@ describe Adhearsion::Twilio::HttpClient do
         let(:asserted_direction) { "outbound-api" }
         it { assert_request! }
       end
+    end
+  end
+
+  shared_examples_for "http_body" do
+    context "HTTP Body" do
+      def assert_request!
+        expect(http_request_params).to have_key("CallStatus")
+        expect(http_request_params).to have_key("Direction")
+        expect(http_request_params).to have_key("ApiVersion")
+        expect(http_request_params["From"]).to eq(call_from)
+        expect(http_request_params["To"]).to eq(call_to)
+        expect(http_request_params["CallSid"]).to eq(call_sid)
+      end
+
+      it { assert_request! }
     end
   end
 
@@ -274,6 +291,7 @@ describe Adhearsion::Twilio::HttpClient do
     include_examples "http_method"
     include_examples "request_signature"
     include_examples "call_direction"
+    include_examples "http_body"
   end
 
   describe "#notify_status_callback_url(status, options = {})" do
@@ -326,13 +344,14 @@ describe Adhearsion::Twilio::HttpClient do
 
     def setup_scenario
       super
-      allow(mock_call).to receive(:duration).and_return("61.5")
       expect_http_request! do
         do_notify_status_callback_url
       end
     end
 
     context "CallDuration" do
+      let(:options) { { "CallDuration" => "61" } }
+
       def assert_request!
         expect(http_request_params["CallDuration"]).to eq("61")
       end
@@ -375,5 +394,6 @@ describe Adhearsion::Twilio::HttpClient do
     include_examples "http_method"
     include_examples "request_signature"
     include_examples "call_direction"
+    include_examples "http_body"
   end
 end
