@@ -279,7 +279,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def setup_twilio_call
-    logger.info("Setting up Adhearsion::Twilio::Call with #{call}")
+    logger.info("Setting up Adhearsion::Twilio::Call with call variables: #{call.variables}")
     Adhearsion::Twilio::Call.new(call)
   end
 
