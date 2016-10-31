@@ -165,6 +165,7 @@ module CallControllerHelpers
     allow(mock_call).to receive(:register_controller)
     allow(mock_call).to receive(:duration)
     allow(mock_call).to receive(:on_end)
+    allow(mock_call).to receive(:variables).and_return({})
   end
 end
 

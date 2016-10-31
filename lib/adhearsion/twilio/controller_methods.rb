@@ -2,6 +2,7 @@ require_relative "configuration"
 require_relative "call"
 require_relative "twiml_error"
 require_relative "rest_api/phone_call"
+require_relative "util/sip_header"
 require_relative "util/request_validator"
 require_relative "util/url"
 
@@ -274,7 +275,12 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_call
-    @twilio_call ||= Adhearsion::Twilio::Call.new(call)
+    @twilio_call ||= setup_twilio_call
+  end
+
+  def setup_twilio_call
+    logger.info("Setting up Adhearsion::Twilio::Call with #{call}")
+    Adhearsion::Twilio::Call.new(call)
   end
 
   def configuration
@@ -309,9 +315,13 @@ module Adhearsion::Twilio::ControllerMethods
     resolve_configuration(:call_sid, false) || twilio_call.id
   end
 
+  def sip_header_util
+    @sip_header_util || Adhearsion::Twilio::Util::SipHeader.new
+  end
+
   def resolve_configuration(name, has_global_configuration = true)
     logger.info("Resolving configuration: #{name}")
-    (metadata[name] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
+    (metadata[name] || twilio_call.variables[sip_header_util.construct_header_name(name)] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
   def not_yet_supported!
