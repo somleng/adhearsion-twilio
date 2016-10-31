@@ -39,8 +39,8 @@ module Adhearsion::Twilio::ControllerMethods
       :voice_request_method => voice_request_method,
       :status_callback_url => status_callback_url,
       :status_callback_method => status_callback_method,
-      :call_from => twilio_call.from,
-      :call_to => twilio_call.to,
+      :call_from => call_from,
+      :call_to => call_to,
       :call_sid => call_sid,
       :call_direction => metadata[:call_direction],
       :auth_token => auth_token,
@@ -307,6 +307,14 @@ module Adhearsion::Twilio::ControllerMethods
     resolve_configuration(:status_callback_method)
   end
 
+  def call_to
+    twilio_call.variables[sip_header_util.construct_call_variable_name("call_to")] || twilio_call.to
+  end
+
+  def call_from
+    twilio_call.variables[sip_header_util.construct_call_variable_name("call_from")] || twilio_call.from
+  end
+
   def auth_token
     resolve_configuration(:auth_token)
   end
@@ -321,7 +329,7 @@ module Adhearsion::Twilio::ControllerMethods
 
   def resolve_configuration(name, has_global_configuration = true)
     logger.info("Resolving configuration: #{name}")
-    (metadata[name] || twilio_call.variables[sip_header_util.construct_call_variable_name(name)] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
+    (metadata[name] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
   def not_yet_supported!

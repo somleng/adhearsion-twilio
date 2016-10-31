@@ -1,3 +1,5 @@
+require_relative "util/number_normalizer"
+
 class Adhearsion::Twilio::Call
   attr_accessor :call, :to, :from
 
@@ -20,35 +22,27 @@ class Adhearsion::Twilio::Call
 
   private
 
+  def number_normalizer
+    @number_normalizer ||= Adhearsion::Twilio::Util::NumberNormalizer.new
+  end
+
   def set_call_variables!
     normalize_from!
     normalize_to!
   end
 
   def normalize_from!
-    from = normalized_destination(call.from)
-    if !destination_valid?(from)
-      normalized_p_asserted_identity = normalized_destination(
+    from = number_normalizer.normalize(call.from)
+    if !number_normalizer.valid?(from)
+      normalized_p_asserted_identity = number_normalizer.normalize(
         call.variables["variable_sip_p_asserted_identity"]
       )
-      from = normalized_p_asserted_identity if destination_valid?(normalized_p_asserted_identity)
+      from = normalized_p_asserted_identity if number_normalizer.valid?(normalized_p_asserted_identity)
     end
     self.from = from
   end
 
   def normalize_to!
-    self.to = normalized_destination(call.to)
-  end
-
-  def normalized_destination(raw_destination)
-    # remove port if and scheme if given
-    destination = raw_destination.gsub(/(\d+)\:\d+/, '\1').gsub(/^[a-z]+\:/, "") if raw_destination
-    destination = Mail::Address.new(destination).local
-    destination = File.basename(destination.to_s)
-    destination_valid?(destination) ? "+#{destination.gsub('+', '')}" : destination
-  end
-
-  def destination_valid?(raw_destination)
-    raw_destination =~ /\A\+?\d+\z/
+    self.to = number_normalizer.normalize(call.to)
   end
 end

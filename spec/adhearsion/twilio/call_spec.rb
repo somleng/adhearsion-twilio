@@ -9,16 +9,9 @@ describe Adhearsion::Twilio::Call do
     it { expect(subject.id).to eq(mock_call.id) }
   end
 
-  # Phone Numbers
-
-  # All phone numbers in requests from Twilio are in E.164 format if possible.
-  # For example, (415) 555-4345 would come through as '+14155554345'.
-  # However, there are occasionally cases where Twilio cannot normalize an
-  # incoming caller ID to E.164. In these situations Twilio will report
-  # the raw caller ID string.
-
   describe "#to" do
     let(:result) { subject.to }
+    let(:to) { "+85512345678" }
 
     before do
       setup_scenario
@@ -28,10 +21,7 @@ describe Adhearsion::Twilio::Call do
       allow(mock_call).to receive(:to).and_return(to)
     end
 
-    context "normalization examples" do
-      let(:to) { "sofia/gateway/pin_kh_01/85512345678" }
-      it { expect(result).to eq("+85512345678") }
-    end
+    it { expect(result).to eq("+85512345678") }
   end
 
   describe "#duration" do
@@ -58,26 +48,6 @@ describe Adhearsion::Twilio::Call do
     context "given a call is received from:" do
       def setup_scenario
         allow(mock_call).to receive(:from).and_return(from)
-      end
-
-      context "'sip:1000@192.168.1.128'" do
-        let(:from) { "sip:1000@192.168.1.128" }
-        it { expect(result).to eq("+1000") }
-      end
-
-      context "' <85513827719@117.55.252.146:5060>'" do
-        let(:from) { " <85513827719@117.55.252.146:5060>" }
-        it { expect(result).to eq("+85513827719") }
-      end
-
-      context "'<+85510212050@anonymous.invalid>'" do
-        let(:from) { "<+85510212050@anonymous.invalid>" }
-        it { expect(result).to eq("+85510212050") }
-      end
-
-      context "'<85510212050@anonymous.invalid>'" do
-        let(:from) { "<85510212050@anonymous.invalid>" }
-        it { expect(result).to eq("+85510212050") }
       end
 
       context "'<anonymous@anonymous.invalid>'" do
