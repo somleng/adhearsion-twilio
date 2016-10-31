@@ -321,7 +321,7 @@ module Adhearsion::Twilio::ControllerMethods
 
   def resolve_configuration(name, has_global_configuration = true)
     logger.info("Resolving configuration: #{name}")
-    (metadata[name] || twilio_call.variables[sip_header_util.construct_header_name(name)] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
+    (metadata[name] || twilio_call.variables[sip_header_util.construct_call_variable_name(name)] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
   def not_yet_supported!
