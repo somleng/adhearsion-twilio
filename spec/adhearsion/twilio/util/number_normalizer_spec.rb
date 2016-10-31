@@ -1,4 +1,5 @@
 require 'spec_helper'
+require "adhearsion/twilio/util/number_normalizer"
 
 describe Adhearsion::Twilio::Util::NumberNormalizer do
   # Phone Numbers

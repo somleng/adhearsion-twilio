@@ -1,4 +1,5 @@
 require 'spec_helper'
+require "adhearsion/twilio/util/request_validator"
 
 describe Adhearsion::Twilio::Util::RequestValidator do
   let(:auth_token) { '2bd9e9638872de601313dc77410d3b23' }

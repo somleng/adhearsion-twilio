@@ -2,9 +2,6 @@ require_relative "configuration"
 require_relative "call"
 require_relative "twiml_error"
 require_relative "rest_api/phone_call"
-require_relative "util/sip_header"
-require_relative "util/request_validator"
-require_relative "util/url"
 
 module Adhearsion::Twilio::ControllerMethods
   extend ActiveSupport::Concern
@@ -308,11 +305,11 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def call_to
-    twilio_call.variables[sip_header_util.construct_call_variable_name("call_to")] || twilio_call.to
+    metadata[:adhearsion_twilio_to] || twilio_call.to
   end
 
   def call_from
-    twilio_call.variables[sip_header_util.construct_call_variable_name("call_from")] || twilio_call.from
+    metadata[:adhearsion_twilio_from] || twilio_call.from
   end
 
   def auth_token
@@ -321,10 +318,6 @@ module Adhearsion::Twilio::ControllerMethods
 
   def call_sid
     resolve_configuration(:call_sid, false) || twilio_call.id
-  end
-
-  def sip_header_util
-    @sip_header_util || Adhearsion::Twilio::Util::SipHeader.new
   end
 
   def resolve_configuration(name, has_global_configuration = true)

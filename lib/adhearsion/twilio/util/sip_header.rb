@@ -4,8 +4,4 @@ class Adhearsion::Twilio::Util::SipHeader
   def construct_header_name(name)
     [HEADER_PREFIX, name].join("-")
   end
-
-  def construct_call_variable_name(name)
-    construct_header_name(name).downcase.gsub('-', '_')
-  end
 end

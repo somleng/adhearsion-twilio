@@ -1,3 +1,6 @@
+require_relative "util/url"
+require_relative "util/request_validator"
+
 class Adhearsion::Twilio::HttpClient
   CALL_STATUSES = {
     :no_answer => "no-answer",
