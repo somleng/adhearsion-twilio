@@ -387,6 +387,18 @@ describe Adhearsion::Twilio::HttpClient do
         let(:asserted_call_status) { "no-answer" }
         it { assert_request! }
       end
+
+      context "busy" do
+        let(:status) { :busy }
+        let(:asserted_call_status) { "busy" }
+        it { assert_request! }
+      end
+
+      context "error" do
+        let(:status) { :error }
+        let(:asserted_call_status) { "failed" }
+        it { assert_request! }
+      end
     end
 
     context "status_callback_url is not set" do

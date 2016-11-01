@@ -7,6 +7,7 @@ class Adhearsion::Twilio::HttpClient
     :answer => "completed",
     :timeout => "no-answer",
     :error => "failed",
+    :busy  => "busy",
     :in_progress => "in-progress",
     :ringing => "ringing"
   }
