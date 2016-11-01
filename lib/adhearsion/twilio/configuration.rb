@@ -19,6 +19,10 @@ class Adhearsion::Twilio::Configuration
     config.status_callback_method.presence || DEFAULT_STATUS_CALLBACK_METHOD
   end
 
+  def account_sid
+    config.account_sid
+  end
+
   def auth_token
     config.auth_token || DEFAULT_AUTH_TOKEN
   end

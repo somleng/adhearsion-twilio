@@ -20,6 +20,7 @@ class Adhearsion::Twilio::HttpClient
                 :voice_request_method,
                 :status_callback_url,
                 :status_callback_method,
+                :account_sid,
                 :call_sid,
                 :call_direction,
                 :call_from,
@@ -33,6 +34,7 @@ class Adhearsion::Twilio::HttpClient
     self.voice_request_method = options[:voice_request_method]
     self.status_callback_url = options[:status_callback_url]
     self.status_callback_method = options[:status_callback_method]
+    self.account_sid = options[:account_sid]
     self.call_from = options[:call_from]
     self.call_to = options[:call_to]
     self.call_sid = options[:call_sid]
@@ -105,12 +107,15 @@ class Adhearsion::Twilio::HttpClient
   end
 
   def build_request_body
-    {
+    request_options = {
       "From" => call_from,
       "To" => call_to,
       "CallSid" => call_sid,
       "Direction" => twilio_call_direction,
       "ApiVersion" => api_version
     }
+
+    request_options.merge!("AccountSid" => account_sid) if account_sid
+    request_options
   end
 end

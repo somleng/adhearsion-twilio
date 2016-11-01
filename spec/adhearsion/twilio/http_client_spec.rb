@@ -41,6 +41,7 @@ describe Adhearsion::Twilio::HttpClient do
   let(:call_from) { "+85512345678" }
   let(:call_to) { "+85512345679" }
   let(:call_sid) { "abcdefg" }
+  let(:account_sid) { "AC938112122121" }
   let(:call_direction) { nil }
   let(:auth_token) { "some_auth_token" }
 
@@ -51,6 +52,7 @@ describe Adhearsion::Twilio::HttpClient do
       :status_callback_url => status_callback_url,
       :status_callback_method => status_callback_method,
       :call_sid => call_sid,
+      :account_sid => account_sid,
       :call_from => call_from,
       :call_to => call_to,
       :call_direction => call_direction,
@@ -166,16 +168,26 @@ describe Adhearsion::Twilio::HttpClient do
   end
 
   shared_examples_for "http_body" do
-    context "HTTP Body" do
-      def assert_request!
-        expect(http_request_params).to have_key("CallStatus")
-        expect(http_request_params).to have_key("Direction")
-        expect(http_request_params).to have_key("ApiVersion")
-        expect(http_request_params["From"]).to eq(call_from)
-        expect(http_request_params["To"]).to eq(call_to)
-        expect(http_request_params["CallSid"]).to eq(call_sid)
+    def assert_request!
+      expect(http_request_params).to have_key("CallStatus")
+      expect(http_request_params).to have_key("Direction")
+      expect(http_request_params).to have_key("ApiVersion")
+      expect(http_request_params["From"]).to eq(call_from)
+      expect(http_request_params["To"]).to eq(call_to)
+      expect(http_request_params["CallSid"]).to eq(call_sid)
+      if account_sid
+        expect(http_request_params["AccountSid"]).to eq(account_sid)
+      else
+        expect(http_request_params).not_to have_key("AccountSid")
       end
+    end
 
+    context "HTTP Body" do
+      it { assert_request! }
+    end
+
+    context "no account sid" do
+      let(:account_sid) { nil }
       it { assert_request! }
     end
   end

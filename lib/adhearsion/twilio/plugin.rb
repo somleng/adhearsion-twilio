@@ -10,6 +10,11 @@ module Adhearsion
       # Basic configuration for the plugin
       #
       config :twilio do
+        account_sid(
+          nil,
+          :desc => "The default Account Sid to be used in voice_url and status_callback_url requests"
+        )
+
         auth_token(
           nil,
           :desc => "The Auth Token to be used to generate the request signature"

@@ -101,6 +101,23 @@ describe Adhearsion::Twilio::Configuration do
     end
   end
 
+  describe "#account_sid" do
+    let(:result) { subject.account_sid }
+    let(:account_sid) { "abcde" }
+
+    context "with global configuration" do
+      before do
+        stub_env(:ahn_twilio_account_sid => account_sid)
+      end
+
+      it { expect(result).to eq(account_sid) }
+    end
+
+    context "by default" do
+      it { expect(result).to eq(nil) }
+    end
+  end
+
   describe "#auth_token" do
     let(:result) { subject.auth_token }
     let(:auth_token) { "abcde" }

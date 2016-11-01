@@ -40,6 +40,7 @@ module Adhearsion::Twilio::ControllerMethods
       :call_to => call_to,
       :call_sid => call_sid,
       :call_direction => metadata[:call_direction],
+      :account_sid => account_sid,
       :auth_token => auth_token,
       :logger => logger
     )
@@ -310,6 +311,10 @@ module Adhearsion::Twilio::ControllerMethods
 
   def call_from
     metadata[:adhearsion_twilio_from] || twilio_call.from
+  end
+
+  def account_sid
+    resolve_configuration(:account_sid)
   end
 
   def auth_token
