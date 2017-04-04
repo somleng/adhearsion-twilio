@@ -1,5 +1,6 @@
 require_relative "env_helpers"
 require_relative "mock_call"
+require_relative "logging_helpers"
 
 module CallControllerHelpers
   include EnvHelpers
