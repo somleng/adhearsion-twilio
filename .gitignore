@@ -17,3 +17,4 @@ test/version_tmp
 tmp
 vendor/ruby
 remove_focus.rb
+.ruby-version
