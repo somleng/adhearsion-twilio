@@ -6,7 +6,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
 
   let(:to) { "+85512234567" }
   let(:twilio_call) { Adhearsion::Twilio::Call.new(mock_call) }
-  let(:phone_calls_url) { "http://39baa733-219b-406c-bc39-6befae21bbd3:559d810057b9ddaea40215ba389478ac4b25da3d49f00223d4ec1e77fe930ae9@localhost:5000/api/admin/phone_calls" }
+  let(:phone_calls_url) { "http://ad2dae01-81da-4183-9c82-3b2e7c19a954:d6203008c04ff84647e0ab61ff3f9d47179687ff3f7cedb0cd0d533cecad1f7c@localhost:3000/api/admin/phone_calls" }
 
   subject { described_class.new(twilio_call) }
 
@@ -30,7 +30,8 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
   remote_attributes = [
     :voice_request_url, :voice_request_method,
     :status_callback_url, :status_callback_method,
-    :auth_token, :call_sid, :to, :from, :account_sid
+    :auth_token, :call_sid, :to, :from, :account_sid,
+    :twilio_request_to
   ]
 
   context "given the phone call was successfully created on the REST API" do

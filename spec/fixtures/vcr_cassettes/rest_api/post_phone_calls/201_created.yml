@@ -2,10 +2,10 @@
 http_interactions:
 - request:
     method: post
-    uri: http://localhost:5000/api/admin/phone_calls
+    uri: http://localhost:3000/api/admin/phone_calls
     body:
       encoding: UTF-8
-      string: From=%2B1000&To=%2B85512234567&ExternalSid=df4cc67e-c934-4619-8684-000274e2e107
+      string: From=%2B1000&To=%2B85512234567&ExternalSid=20e97268-80a4-4ce3-8881-178339236a29
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -14,7 +14,7 @@ http_interactions:
       User-Agent:
       - Ruby
       Authorization:
-      - Basic MzliYWE3MzMtMjE5Yi00MDZjLWJjMzktNmJlZmFlMjFiYmQzOjU1OWQ4MTAwNTdiOWRkYWVhNDAyMTViYTM4OTQ3OGFjNGIyNWRhM2Q0OWYwMDIyM2Q0ZWMxZTc3ZmU5MzBhZTk=
+      - Basic YWQyZGFlMDEtODFkYS00MTgzLTljODItM2IyZTdjMTlhOTU0OmQ2MjAzMDA4YzA0ZmY4NDY0N2UwYWI2MWZmM2Y5ZDQ3MTc5Njg3ZmYzZjdjZWRiMGNkMGQ1MzNjZWNhZDFmN2M=
   response:
     status:
       code: 201
@@ -27,22 +27,22 @@ http_interactions:
       X-Content-Type-Options:
       - nosniff
       Location:
-      - http://localhost:5000/api/admin/phone_calls/e61b6ad7-7e8e-4716-a631-419f7df31a46
+      - http://localhost:3000/api/admin/phone_calls/d3bfc7b1-a24d-4c5e-8d8e-92a4316d0dbe
       Content-Type:
       - application/json; charset=utf-8
       Etag:
-      - W/"f6235a22662b8100a1fe77092eef35c1"
+      - W/"2e35d33105d4f7befa1fba029daff9a0"
       Cache-Control:
       - max-age=0, private, must-revalidate
       X-Request-Id:
-      - fc52e71c-fe18-4a39-be6d-d68571037e37
+      - 219581ca-ad78-4b46-adb5-bec6f66a6af2
       X-Runtime:
-      - '0.022866'
+      - '0.118078'
       Transfer-Encoding:
       - chunked
     body:
       encoding: UTF-8
-      string: '{"to":"+85512234567","from":"+1000","voice_url":"http://localhost:3000/test","voice_method":"POST","status_callback_url":"http://localhost:3000/test","status_callback_method":"POST","sid":"e61b6ad7-7e8e-4716-a631-419f7df31a46","account_sid":"c80a019d-e0fe-414b-bc8f-3e3ea0a29f7f","account_auth_token":"bef825ffa77f2c015ccaa5e835edfae9bb4985f654394d3a6c520885861f699c"}'
+      string: '{"to":"+85512234567","from":"+1000","voice_url":"http://www.example.com/foo/bar","voice_method":"POST","status_callback_url":"http://www.example.com/foo/bar","status_callback_method":"POST","sid":"d3bfc7b1-a24d-4c5e-8d8e-92a4316d0dbe","account_sid":"4a366554-13a4-4cd4-8e01-8b990bd98b1f","account_auth_token":"661686e192385eccbe53b9eedac63f8b96c61951069cfcc08ea32d97dd77218a","twilio_request_to":"123456789"}'
     http_version: 
-  recorded_at: Mon, 19 Sep 2016 05:05:41 GMT
+  recorded_at: Tue, 04 Apr 2017 08:28:59 GMT
 recorded_with: VCR 3.0.3

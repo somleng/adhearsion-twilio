@@ -44,6 +44,10 @@ class Adhearsion::Twilio::RestApi::PhoneCall
     fetch_remote(:to)
   end
 
+  def twilio_request_to
+    fetch_remote(:twilio_request_to)
+  end
+
   private
 
   def log(*args)
