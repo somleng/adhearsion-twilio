@@ -306,7 +306,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def call_to
-    metadata[:adhearsion_twilio_to] || twilio_call.to
+    metadata[:adhearsion_twilio_to] || twilio_request_to || twilio_call.to
   end
 
   def call_from
@@ -323,6 +323,10 @@ module Adhearsion::Twilio::ControllerMethods
 
   def call_sid
     resolve_configuration(:call_sid, false) || twilio_call.id
+  end
+
+  def twilio_request_to
+    resolve_configuration(:twilio_request_to, false)
   end
 
   def resolve_configuration(name, has_global_configuration = true)
