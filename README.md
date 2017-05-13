@@ -2,7 +2,8 @@
 
 Provides a simple way to use Adhearsion with your existing apps built for Twilio
 
-[![Build Status](https://travis-ci.org/dwilkie/adhearsion-twilio.png)](https://travis-ci.org/dwilkie/adhearsion-twilio) [![Dependency Status](https://gemnasium.com/dwilkie/adhearsion-twilio.png)](https://gemnasium.com/dwilkie/adhearsion-twilio) [![Coverage Status](https://coveralls.io/repos/dwilkie/adhearsion-twilio/badge.png)](https://coveralls.io/r/dwilkie/adhearsion-twilio) [![Code Climate](https://codeclimate.com/github/dwilkie/adhearsion-twilio.png)](https://codeclimate.com/github/dwilkie/adhearsion-twilio)
+[![Build Status](https://travis-ci.org/dwilkie/adhearsion-twilio.png)](https://travis-ci.org/dwilkie/adhearsion-twilio)
+[![Test Coverage](https://codeclimate.com/github/dwilkie/adhearsion-twilio/badges/coverage.svg)](https://codeclimate.com/github/dwilkie/adhearsion-twilio/coverage)
 
 ## Installation
 

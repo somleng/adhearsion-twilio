@@ -22,6 +22,8 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "adhearsion", "~> 3.0.0.rc1"
 
   gem.add_development_dependency "rspec"
+  gem.add_development_dependency "simplecov"
+  gem.add_development_dependency "codeclimate-test-reporter", "~> 1.0.0"
   gem.add_development_dependency "vcr"
   gem.add_development_dependency "webmock"
   gem.add_development_dependency "rack-test"

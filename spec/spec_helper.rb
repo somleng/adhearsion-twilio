@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start
+
 require 'adhearsion-twilio'
 
 RSpec.configure do |config|
