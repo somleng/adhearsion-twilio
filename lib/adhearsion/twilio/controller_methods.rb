@@ -8,6 +8,7 @@ module Adhearsion::Twilio::ControllerMethods
 
   INFINITY = 100
   SLEEP_BETWEEN_REDIRECTS = 1
+  DEFAULT_TWILIO_RECORD_TIMEOUT = 5
 
   included do
     after :twilio_hangup
@@ -90,6 +91,8 @@ module Adhearsion::Twilio::ControllerMethods
         not_yet_supported!
       when 'Dial'
         break if redirection = execute_twiml_verb(:dial, true, node, options)
+      when 'Record'
+        break if redirection = execute_twiml_verb(:record, true, options)
       else
         raise(ArgumentError, "Invalid element '#{node.name}'")
       end
@@ -100,6 +103,32 @@ module Adhearsion::Twilio::ControllerMethods
   def execute_twiml_verb(verb, answer_call, *args)
     answer! if answer_call
     send("twilio_#{verb}", *args)
+  end
+
+  def twilio_record(twilio_options = {})
+    record_component = record(options_for_twilio_record(twilio_options))
+    recording = record_component.recording
+    recording_duration = recording.duration
+    recording_uri = recording.uri
+
+    [
+      twilio_options["action"],
+      {
+        "RecordingUrl" => recording_uri,
+        "RecordingDuration" => recording_duration,
+        "method" => twilio_options["method"]
+      }
+    ] if !recording_duration.zero?
+  end
+
+  def options_for_twilio_record(twilio_options = {})
+    twilio_play_beep = twilio_options["playBeep"]
+    twilio_timeout = twilio_options["timeout"]
+
+    {
+      :start_beep => twilio_play_beep != 'false',
+      :final_timeout => (twilio_timeout && twilio_timeout.to_i) || DEFAULT_TWILIO_RECORD_TIMEOUT
+    }
   end
 
   def twilio_reject(options = {})
