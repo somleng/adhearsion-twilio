@@ -1,11 +1,8 @@
-require_relative "../util/url"
+require_relative "resource"
 
-class Adhearsion::Twilio::RestApi::PhoneCall
-  attr_accessor :twilio_call, :options
-
-  def initialize(twilio_call, options = {})
-    self.twilio_call = twilio_call
-    self.options = options
+class Adhearsion::Twilio::RestApi::PhoneCall < Adhearsion::Twilio::RestApi::Resource
+  def twilio_call
+    options[:twilio_call]
   end
 
   def voice_request_url
@@ -50,10 +47,6 @@ class Adhearsion::Twilio::RestApi::PhoneCall
 
   private
 
-  def log(*args)
-    options[:logger] && options[:logger].public_send(*args)
-  end
-
   def created?
     @remote_response && @remote_response.success?
   end
@@ -62,16 +55,12 @@ class Adhearsion::Twilio::RestApi::PhoneCall
     (remote_response && created? && remote_response[attribute.to_s]).presence
   end
 
-  def configuration
-    @configuration ||= Adhearsion::Twilio::Configuration.new
-  end
-
   def remote_response
     @remote_response ||= create_remote_phone_call!
   end
 
   def create_remote_phone_call!
-    basic_auth, url = Adhearsion::Twilio::Util::Url.new(configuration.rest_api_phone_calls_url).extract_auth
+    basic_auth, url = extract_auth(configuration.rest_api_phone_calls_url)
 
     request_options = {
       :body => {

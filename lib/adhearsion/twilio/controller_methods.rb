@@ -2,6 +2,7 @@ require_relative "configuration"
 require_relative "call"
 require_relative "twiml_error"
 require_relative "rest_api/phone_call"
+require_relative "rest_api/phone_call_event"
 
 module Adhearsion::Twilio::ControllerMethods
   extend ActiveSupport::Concern
@@ -11,18 +12,31 @@ module Adhearsion::Twilio::ControllerMethods
   DEFAULT_TWILIO_RECORD_TIMEOUT = 5
 
   included do
-    after :twilio_hangup
+    before :register_event_handlers
   end
 
   private
 
+  def phone_call_event
+    @phone_call_event ||= Adhearsion::Twilio::RestApi::PhoneCallEvent.new
+  end
+
+  def register_event_handlers
+    call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(event) }
+    call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(event) }
+    call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(event) }
+  end
+
+  def handle_phone_call_event(event)
+    Adhearsion::Twilio::RestApi::PhoneCallEvent.new(:event => event).notify!
+  end
+
   def answered?
-    !!@answered
+    call && call.answer_time
   end
 
   def answer!
     answer if !answered?
-    @answered = true
   end
 
   def notify_voice_request_url
@@ -54,14 +68,6 @@ module Adhearsion::Twilio::ControllerMethods
         options.delete("method") || "post",
         :in_progress, options
       )
-    )
-  end
-
-  def notify_status_callback_url
-    options = {}
-    options.merge!("CallDuration" => twilio_call.duration) if answered?
-    http_client.notify_status_callback_url(
-      answered? ? :answer : :no_answer, options
     )
   end
 
@@ -133,11 +139,6 @@ module Adhearsion::Twilio::ControllerMethods
 
   def twilio_reject(options = {})
     reject(options["reason"] == "busy" ? :busy : :decline)
-  end
-
-  def twilio_hangup
-    logger.info("Executing after callback :twilio_hangup")
-    notify_status_callback_url
   end
 
   def twilio_redirect(url, options = {})
@@ -315,7 +316,9 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def rest_api_phone_call
-    @rest_api_phone_call ||= Adhearsion::Twilio::RestApi::PhoneCall.new(twilio_call, :logger => logger)
+    @rest_api_phone_call ||= Adhearsion::Twilio::RestApi::PhoneCall.new(
+      :twilio_call => twilio_call, :logger => logger
+    )
   end
 
   def voice_request_url

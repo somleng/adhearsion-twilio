@@ -19,8 +19,6 @@ class Adhearsion::Twilio::HttpClient
 
   attr_accessor :voice_request_url,
                 :voice_request_method,
-                :status_callback_url,
-                :status_callback_method,
                 :account_sid,
                 :call_sid,
                 :call_direction,
@@ -33,8 +31,6 @@ class Adhearsion::Twilio::HttpClient
   def initialize(options = {})
     self.voice_request_url = options[:voice_request_url]
     self.voice_request_method = options[:voice_request_method]
-    self.status_callback_url = options[:status_callback_url]
-    self.status_callback_method = options[:status_callback_method]
     self.account_sid = options[:account_sid]
     self.call_from = options[:call_from]
     self.call_to = options[:call_to]
@@ -50,15 +46,6 @@ class Adhearsion::Twilio::HttpClient
       voice_request_method,
       :ringing
     )
-  end
-
-  def notify_status_callback_url(status, options = {})
-    notify_http(
-      status_callback_url,
-      status_callback_method,
-      status,
-      options,
-    ) if status_callback_url.present?
   end
 
   def notify_http(url, method, status, options = {})

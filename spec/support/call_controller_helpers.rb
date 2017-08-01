@@ -161,12 +161,12 @@ module CallControllerHelpers
   end
 
   def stub_mock_call!
-    allow(mock_call).to receive(:alive?)
     allow(mock_call).to receive(:async).and_return(mock_call)
     allow(mock_call).to receive(:register_controller)
     allow(mock_call).to receive(:duration)
     allow(mock_call).to receive(:on_end)
     allow(mock_call).to receive(:variables).and_return({})
+    allow(mock_call).to receive(:answer_time).and_return(nil, Time.now)
   end
 end
 

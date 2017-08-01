@@ -43,6 +43,10 @@ class Adhearsion::Twilio::Configuration
     config.rest_api_phone_calls_url
   end
 
+  def rest_api_phone_call_events_url
+    config.rest_api_phone_call_events_url
+  end
+
   private
 
   def config

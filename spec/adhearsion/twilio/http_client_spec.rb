@@ -64,134 +64,6 @@ describe Adhearsion::Twilio::HttpClient do
   let(:http_request_params) { WebMock.request_params(http_request) }
   let(:http_request) { WebMock.requests.last }
 
-  shared_examples_for "authorization_header" do
-    context "Authorization Header" do
-      def setup_scenario
-        subject.public_send(:"#{request_url_method}=", authorization_request_url)
-        super
-      end
-
-      context "without HTTP Basic Auth specified in the URL" do
-        let(:authorization_request_url) { "https://voice-request.com:1234/twiml.xml" }
-
-        def assert_request!
-          expect(http_request.headers).not_to have_key("Authorization")
-        end
-
-        it { assert_request! }
-      end
-
-      context "with HTTP Basic Auth specified in the URL" do
-        let(:request_url) { "https://voice-request.com:1234/twiml.xml" }
-        let(:authorization_request_url) { "https://user:password@voice-request.com:1234/twiml.xml" }
-
-        def assert_request!
-          authorization = Base64.decode64(http_request.headers["Authorization"].sub(/^Basic\s/, ""))
-          user, password = authorization.split(":")
-          expect(user).to eq("user")
-          expect(password).to eq("password")
-        end
-
-        it { assert_request! }
-      end
-    end
-  end
-
-  shared_examples_for "http_method" do
-    context "HTTP method" do
-      def assert_request!
-        expect(http_request.method).to eq(asserted_http_method)
-      end
-
-      def setup_scenario
-        subject.public_send(:"#{request_url_http_method}=", http_method_request_method)
-        super
-      end
-
-      context "POST" do
-        let(:http_method_request_method) { "POST" }
-        let(:asserted_http_method) { :post }
-        it { assert_request! }
-      end
-
-      context "GET" do
-        let(:http_method_request_method) { "GET" }
-        let(:asserted_http_method) { :get }
-
-        it { assert_request! }
-      end
-    end
-  end
-
-  shared_examples_for "request_signature" do
-    context "Request Signature" do
-      let(:request_validator) { ::Adhearsion::Twilio::Util::RequestValidator.new(auth_token) }
-      let(:request_signature) { http_request.headers["X-Twilio-Signature"] }
-
-      def assert_request!
-        expect(
-          request_validator.validate(
-            request_url, http_request_params, request_signature
-          )
-        ).to eq(true)
-      end
-
-      context "default auth token" do
-        let(:auth_token) { Adhearsion::Twilio::Configuration::DEFAULT_AUTH_TOKEN }
-        it { assert_request! }
-      end
-
-      context "custom auth token" do
-        let(:auth_token) { "my_auth_token" }
-        it { assert_request! }
-      end
-    end
-  end
-
-  shared_examples_for "call_direction" do
-    context "Direction" do
-      def assert_request!
-        expect(http_request_params["Direction"]).to eq(asserted_direction)
-      end
-
-      context "for inbound calls" do
-        let(:asserted_direction) { "inbound" }
-        it { assert_request! }
-      end
-
-      context "for outbound calls" do
-        let(:call_direction) { :outbound_api }
-        let(:asserted_direction) { "outbound-api" }
-        it { assert_request! }
-      end
-    end
-  end
-
-  shared_examples_for "http_body" do
-    def assert_request!
-      expect(http_request_params).to have_key("CallStatus")
-      expect(http_request_params).to have_key("Direction")
-      expect(http_request_params).to have_key("ApiVersion")
-      expect(http_request_params["From"]).to eq(call_from)
-      expect(http_request_params["To"]).to eq(call_to)
-      expect(http_request_params["CallSid"]).to eq(call_sid)
-      if account_sid
-        expect(http_request_params["AccountSid"]).to eq(account_sid)
-      else
-        expect(http_request_params).not_to have_key("AccountSid")
-      end
-    end
-
-    context "HTTP Body" do
-      it { assert_request! }
-    end
-
-    context "no account sid" do
-      let(:account_sid) { nil }
-      it { assert_request! }
-    end
-  end
-
   describe "#notify_voice_request_url" do
     # From: http://www.twilio.com/docs/api/twiml/twilio_request
 
@@ -299,125 +171,122 @@ describe Adhearsion::Twilio::HttpClient do
       it { assert_request! }
     end
 
-    include_examples "authorization_header"
-    include_examples "http_method"
-    include_examples "request_signature"
-    include_examples "call_direction"
-    include_examples "http_body"
-  end
+    context "Authorization Header" do
+      def setup_scenario
+        subject.public_send(:"#{request_url_method}=", authorization_request_url)
+        super
+      end
 
-  describe "#notify_status_callback_url(status, options = {})" do
-    # From: http://www.twilio.com/docs/api/twiml/twilio_request
+      context "without HTTP Basic Auth specified in the URL" do
+        let(:authorization_request_url) { "https://voice-request.com:1234/twiml.xml" }
 
-    # adhearsion-twilio configuration:
-    # config.twilio.status_callback_url
-    # config.twilio.status_callback_method
+        def assert_request!
+          expect(http_request.headers).not_to have_key("Authorization")
+        end
 
-    # After receiving a call, requesting TwiML from your app, processing it,
-    # and finally ending the call, Twilio will make an asynchronous HTTP request
-    # to the StatusCallback URL configured for the called Twilio number (if there is one).
-    # By providing a StatusCallback URL for your Twilio number and capturing this
-    # request you can determine when a call ends and receive information about the call.
+        it { assert_request! }
+      end
 
-    # Request Parameters
+      context "with HTTP Basic Auth specified in the URL" do
+        let(:request_url) { "https://voice-request.com:1234/twiml.xml" }
+        let(:authorization_request_url) { "https://user:password@voice-request.com:1234/twiml.xml" }
 
-    # The parameters Twilio passes to your application in an asynchronous request
-    # to the StatusCallback URL include all those passed in a synchronous TwiML request.
+        def assert_request!
+          authorization = Base64.decode64(http_request.headers["Authorization"].sub(/^Basic\s/, ""))
+          user, password = authorization.split(":")
+          expect(user).to eq("user")
+          expect(password).to eq("password")
+        end
 
-    # The Status Callback request also passes these additional parameters:
-
-    # | Parameter         | Description                                              |
-    # |                   |                                                          |
-    # | CallDuration      | The duration in seconds of the just-completed call.      |
-    # |                   |                                                          |
-    # | RecordingUrl      | The URL of the phone call's recorded audio.              |
-    # |                   | This parameter is included only if Record=true is set on |
-    # |                   | the REST API request,                                    |
-    # |                   | and does not include recordings from <Dial> or <Record>. |
-    # |                   |                                                          |
-    # | RecordingSid      | The unique id of the Recording from this call.           |
-    # |                   |                                                          |
-    # | RecordingDuration | The duration of the recorded audio (in seconds).         |
-
-    let(:status_callback_url) { "https://voice-request.com/status_callback.xml" }
-    let(:status_callback_method) { "POST" }
-
-    let(:request_url_method) { :status_callback_url }
-    let(:request_url_http_method) { :status_callback_method }
-
-    let(:request_url) { subject.status_callback_url }
-    let(:request_method) { subject.status_callback_method }
-    let(:status) { :answered }
-    let(:options) { {} }
-
-    def do_notify_status_callback_url
-      subject.notify_status_callback_url(status, options)
-    end
-
-    def setup_scenario
-      super
-      expect_http_request! do
-        do_notify_status_callback_url
+        it { assert_request! }
       end
     end
 
-    context "CallDuration" do
-      let(:options) { { "CallDuration" => "61" } }
+    context "HTTP method" do
+      def assert_request!
+        expect(http_request.method).to eq(asserted_http_method)
+      end
+
+      def setup_scenario
+        subject.public_send(:"#{request_url_http_method}=", http_method_request_method)
+        super
+      end
+
+      context "POST" do
+        let(:http_method_request_method) { "POST" }
+        let(:asserted_http_method) { :post }
+        it { assert_request! }
+      end
+
+      context "GET" do
+        let(:http_method_request_method) { "GET" }
+        let(:asserted_http_method) { :get }
+
+        it { assert_request! }
+      end
+    end
+
+    context "Request Signature" do
+      let(:request_validator) { ::Adhearsion::Twilio::Util::RequestValidator.new(auth_token) }
+      let(:request_signature) { http_request.headers["X-Twilio-Signature"] }
 
       def assert_request!
-        expect(http_request_params["CallDuration"]).to eq("61")
+        expect(
+          request_validator.validate(
+            request_url, http_request_params, request_signature
+          )
+        ).to eq(true)
+      end
+
+      context "default auth token" do
+        let(:auth_token) { Adhearsion::Twilio::Configuration::DEFAULT_AUTH_TOKEN }
+        it { assert_request! }
+      end
+
+      context "custom auth token" do
+        let(:auth_token) { "my_auth_token" }
+        it { assert_request! }
+      end
+    end
+
+    context "Direction" do
+      def assert_request!
+        expect(http_request_params["Direction"]).to eq(asserted_direction)
+      end
+
+      context "for inbound calls" do
+        let(:asserted_direction) { "inbound" }
+        it { assert_request! }
+      end
+
+      context "for outbound calls" do
+        let(:call_direction) { :outbound_api }
+        let(:asserted_direction) { "outbound-api" }
+        it { assert_request! }
+      end
+    end
+
+    context "HTTP Body" do
+      def assert_request!
+        expect(http_request_params).to have_key("CallStatus")
+        expect(http_request_params).to have_key("Direction")
+        expect(http_request_params).to have_key("ApiVersion")
+        expect(http_request_params["From"]).to eq(call_from)
+        expect(http_request_params["To"]).to eq(call_to)
+        expect(http_request_params["CallSid"]).to eq(call_sid)
+        if account_sid
+          expect(http_request_params["AccountSid"]).to eq(account_sid)
+        else
+          expect(http_request_params).not_to have_key("AccountSid")
+        end
       end
 
       it { assert_request! }
-    end
 
-    context "CallStatus" do
-      def assert_request!
-        expect(http_request_params["CallStatus"]).to eq(asserted_call_status)
-      end
-
-      context "answer" do
-        let(:status) { :answer }
-        let(:asserted_call_status) { "completed" }
-        it { assert_request! }
-      end
-
-      context "no_answer" do
-        let(:status) { :no_answer }
-        let(:asserted_call_status) { "no-answer" }
-        it { assert_request! }
-      end
-
-      context "busy" do
-        let(:status) { :busy }
-        let(:asserted_call_status) { "busy" }
-        it { assert_request! }
-      end
-
-      context "error" do
-        let(:status) { :error }
-        let(:asserted_call_status) { "failed" }
+      context "no account sid" do
+        let(:account_sid) { nil }
         it { assert_request! }
       end
     end
-
-    context "status_callback_url is not set" do
-      # Twilio will make an asynchronous HTTP request
-      # to the StatusCallback URL configured for the called Twilio number (if there is one).
-
-      let(:status_callback_url) { nil }
-
-      def assert_request!
-        expect(http_request).to eq(nil)
-      end
-
-      it { assert_request! }
-    end
-
-    include_examples "authorization_header"
-    include_examples "http_method"
-    include_examples "request_signature"
-    include_examples "call_direction"
-    include_examples "http_body"
   end
 end

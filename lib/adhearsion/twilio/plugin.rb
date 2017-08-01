@@ -59,6 +59,11 @@ module Adhearsion
           nil,
           :desc => "The Twilio REST API's endpoint for creating new phone calls"
         )
+
+        rest_api_phone_call_events_url(
+          nil,
+          :desc => "The Twilio REST API's endpoint for creating new phone call events"
+        )
       end
 
       # Defining a Rake task is easy

@@ -8,7 +8,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
   let(:twilio_call) { Adhearsion::Twilio::Call.new(mock_call) }
   let(:phone_calls_url) { "http://ad2dae01-81da-4183-9c82-3b2e7c19a954:d6203008c04ff84647e0ab61ff3f9d47179687ff3f7cedb0cd0d533cecad1f7c@localhost:3000/api/admin/phone_calls" }
 
-  subject { described_class.new(twilio_call) }
+  subject { described_class.new(:twilio_call => twilio_call) }
 
   def setup_scenario
     stub_env(:ahn_twilio_rest_api_phone_calls_url => phone_calls_url)
