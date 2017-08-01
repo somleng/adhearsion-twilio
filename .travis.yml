@@ -1,6 +1,8 @@
 language: ruby
 rvm:
   - 2.3.4
+env:
+  - START_SIMPLECOV=1
 addons:
   code_climate:
     repo_token:
