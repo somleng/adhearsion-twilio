@@ -49,8 +49,6 @@ module Adhearsion::Twilio::ControllerMethods
     @http_client ||= Adhearsion::Twilio::HttpClient.new(
       :voice_request_url => voice_request_url,
       :voice_request_method => voice_request_method,
-      :status_callback_url => status_callback_url,
-      :status_callback_method => status_callback_method,
       :call_from => call_from,
       :call_to => call_to,
       :call_sid => call_sid,
@@ -327,14 +325,6 @@ module Adhearsion::Twilio::ControllerMethods
 
   def voice_request_method
     resolve_configuration(:voice_request_method)
-  end
-
-  def status_callback_url
-    resolve_configuration(:status_callback_url)
-  end
-
-  def status_callback_method
-    resolve_configuration(:status_callback_method)
   end
 
   def call_to

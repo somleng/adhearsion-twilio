@@ -5,7 +5,7 @@ http_interactions:
     uri: http://localhost:3000/api/admin/phone_calls
     body:
       encoding: UTF-8
-      string: From=%2B1000&To=%2B85512234567&ExternalSid=20e97268-80a4-4ce3-8881-178339236a29
+      string: From=%2B1000&To=%2B85512234567&ExternalSid=ef4929e8-54b8-4f20-ab47-d05b98a58949
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -27,22 +27,22 @@ http_interactions:
       X-Content-Type-Options:
       - nosniff
       Location:
-      - http://localhost:3000/api/admin/phone_calls/d3bfc7b1-a24d-4c5e-8d8e-92a4316d0dbe
+      - http://localhost:3000/api/admin/phone_calls/c97f5934-568c-413e-b53c-0250f58279d5
       Content-Type:
       - application/json; charset=utf-8
       Etag:
-      - W/"2e35d33105d4f7befa1fba029daff9a0"
+      - W/"162f7b370bbce7d2f4c8c983af4c87d9"
       Cache-Control:
       - max-age=0, private, must-revalidate
       X-Request-Id:
-      - 219581ca-ad78-4b46-adb5-bec6f66a6af2
+      - f30c0d0e-c1c2-499e-93f3-c2f2dcfe717d
       X-Runtime:
-      - '0.118078'
+      - '0.296346'
       Transfer-Encoding:
       - chunked
     body:
       encoding: UTF-8
-      string: '{"to":"+85512234567","from":"+1000","voice_url":"http://www.example.com/foo/bar","voice_method":"POST","status_callback_url":"http://www.example.com/foo/bar","status_callback_method":"POST","sid":"d3bfc7b1-a24d-4c5e-8d8e-92a4316d0dbe","account_sid":"4a366554-13a4-4cd4-8e01-8b990bd98b1f","account_auth_token":"661686e192385eccbe53b9eedac63f8b96c61951069cfcc08ea32d97dd77218a","twilio_request_to":"123456789"}'
+      string: '{"to":"+85512234567","from":"+1000","voice_url":"http://www.example.com/foo/bar","voice_method":"POST","sid":"c97f5934-568c-413e-b53c-0250f58279d5","account_sid":"4a366554-13a4-4cd4-8e01-8b990bd98b1f","account_auth_token":"661686e192385eccbe53b9eedac63f8b96c61951069cfcc08ea32d97dd77218a","twilio_request_to":"123456789"}'
     http_version: 
-  recorded_at: Tue, 04 Apr 2017 08:28:59 GMT
+  recorded_at: Fri, 11 Aug 2017 09:37:28 GMT
 recorded_with: VCR 3.0.3

@@ -29,7 +29,6 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
 
   remote_attributes = [
     :voice_request_url, :voice_request_method,
-    :status_callback_url, :status_callback_method,
     :auth_token, :call_sid, :to, :from, :account_sid,
     :twilio_request_to
   ]
