@@ -20,6 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "mail"
   gem.add_runtime_dependency "httparty"
   gem.add_runtime_dependency "adhearsion", "~> 3.0.0.rc1"
+  gem.add_runtime_dependency "somleng-twilio_http_client"
 
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "simplecov"

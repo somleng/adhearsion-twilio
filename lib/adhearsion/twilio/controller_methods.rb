@@ -4,6 +4,8 @@ require_relative "twiml_error"
 require_relative "rest_api/phone_call"
 require_relative "rest_api/phone_call_event"
 
+require "somleng/twilio_http_client/client"
+
 module Adhearsion::Twilio::ControllerMethods
   extend ActiveSupport::Concern
 
@@ -40,15 +42,13 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def notify_voice_request_url
-    execute_twiml(
-      http_client.notify_voice_request_url
-    )
+    execute_twiml(http_client.execute_request!)
   end
 
   def http_client
-    @http_client ||= Adhearsion::Twilio::HttpClient.new(
-      :voice_request_url => voice_request_url,
-      :voice_request_method => voice_request_method,
+    @http_client ||= Somleng::TwilioHttpClient::Client.new(
+      :request_url => voice_request_url,
+      :request_method => voice_request_method,
       :call_from => call_from,
       :call_to => call_to,
       :call_sid => call_sid,
@@ -60,13 +60,15 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def redirect(url = nil, options = {})
-    execute_twiml(
-      http_client.notify_http(
-        URI.join(http_client.last_request_url, url.to_s).to_s,
-        options.delete("method") || "post",
-        :in_progress, options
-      )
-    )
+    request_options = {
+      :request_url => URI.join(http_client.last_request_url, url.to_s).to_s,
+      :request_method => options.delete("method") || "post",
+      :call_status => :in_progress
+    }
+
+    request_options.merge!(:body => options) if options.any?
+
+    execute_twiml(http_client.execute_request!(request_options))
   end
 
   def execute_twiml(response)
@@ -240,7 +242,7 @@ module Adhearsion::Twilio::ControllerMethods
     dial_status = dial(to, params)
 
     dial_call_status_options = {
-      "DialCallStatus" => Adhearsion::Twilio::HttpClient::CALL_STATUSES[dial_status.result]
+      "DialCallStatus" => Somleng::TwilioHttpClient::Client::CALL_STATUSES[dial_status.result]
     }
 
     # try to find the joined call

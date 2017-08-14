@@ -1,4 +1,4 @@
-require_relative "../util/url"
+require 'somleng/twilio_http_client/util/url'
 
 class Adhearsion::Twilio::RestApi::Resource
   attr_accessor :options
@@ -18,6 +18,6 @@ class Adhearsion::Twilio::RestApi::Resource
   end
 
   def extract_auth(url)
-    Adhearsion::Twilio::Util::Url.new(url).extract_auth
+    Somleng::TwilioHttpClient::Util::Url.new(url).extract_auth
   end
 end
