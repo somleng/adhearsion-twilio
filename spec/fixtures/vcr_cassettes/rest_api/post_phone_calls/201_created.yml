@@ -5,7 +5,7 @@ http_interactions:
     uri: http://localhost:3000/api/admin/phone_calls
     body:
       encoding: UTF-8
-      string: From=%2B1000&To=%2B85512234567&ExternalSid=ef4929e8-54b8-4f20-ab47-d05b98a58949
+      string: From=%2B1000&To=%2B85512234567&ExternalSid=642d676d-2944-46ca-90b2-4b05b9e5a460
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -27,22 +27,22 @@ http_interactions:
       X-Content-Type-Options:
       - nosniff
       Location:
-      - http://localhost:3000/api/admin/phone_calls/c97f5934-568c-413e-b53c-0250f58279d5
+      - http://localhost:3000/api/admin/phone_calls/c611fb14-520b-4a83-938d-5209f0f8d5e2
       Content-Type:
       - application/json; charset=utf-8
       Etag:
-      - W/"162f7b370bbce7d2f4c8c983af4c87d9"
+      - W/"48c1ae2547697714e6c8fd6a8ac61ed1"
       Cache-Control:
       - max-age=0, private, must-revalidate
       X-Request-Id:
-      - f30c0d0e-c1c2-499e-93f3-c2f2dcfe717d
+      - 8d9475f0-0fd1-41cb-bc1c-ee36f4644b3c
       X-Runtime:
-      - '0.296346'
+      - '0.165659'
       Transfer-Encoding:
       - chunked
     body:
       encoding: UTF-8
-      string: '{"to":"+85512234567","from":"+1000","voice_url":"http://www.example.com/foo/bar","voice_method":"POST","sid":"c97f5934-568c-413e-b53c-0250f58279d5","account_sid":"4a366554-13a4-4cd4-8e01-8b990bd98b1f","account_auth_token":"661686e192385eccbe53b9eedac63f8b96c61951069cfcc08ea32d97dd77218a","twilio_request_to":"123456789"}'
+      string: '{"to":"+85512234567","from":"+1000","voice_url":"http://www.example.com/foo/bar","voice_method":"POST","sid":"c611fb14-520b-4a83-938d-5209f0f8d5e2","account_sid":"4a366554-13a4-4cd4-8e01-8b990bd98b1f","account_auth_token":"661686e192385eccbe53b9eedac63f8b96c61951069cfcc08ea32d97dd77218a","direction":"inbound","api_version":"2010-04-01","twilio_request_to":"123456789"}'
     http_version: 
-  recorded_at: Fri, 11 Aug 2017 09:37:28 GMT
+  recorded_at: Tue, 15 Aug 2017 05:03:58 GMT
 recorded_with: VCR 3.0.3

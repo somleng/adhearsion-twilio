@@ -5,6 +5,7 @@ require_relative "rest_api/phone_call"
 require_relative "rest_api/phone_call_event"
 
 require "somleng/twilio_http_client/client"
+require "somleng/twilio_http_client/request"
 
 module Adhearsion::Twilio::ControllerMethods
   extend ActiveSupport::Concern
@@ -12,6 +13,16 @@ module Adhearsion::Twilio::ControllerMethods
   INFINITY = 100
   SLEEP_BETWEEN_REDIRECTS = 1
   DEFAULT_TWILIO_RECORD_TIMEOUT = 5
+
+  DIAL_CALL_STATUSES = {
+    :no_answer => "no-answer",
+    :answer => "completed",
+    :timeout => "no-answer",
+    :error => "failed",
+    :busy  => "busy",
+    :in_progress => "in-progress",
+    :ringing => "ringing"
+  }
 
   included do
     before :register_event_handlers
@@ -42,33 +53,49 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def notify_voice_request_url
-    execute_twiml(http_client.execute_request!)
+    http_request = build_twilio_http_request(
+      :request_url => voice_request_url,
+      :request_method => voice_request_method,
+      :call_status => "ringing"
+    )
+
+    response = http_request.execute!
+    execute_twiml(response.body)
   end
 
   def http_client
     @http_client ||= Somleng::TwilioHttpClient::Client.new(
-      :request_url => voice_request_url,
-      :request_method => voice_request_method,
-      :call_from => call_from,
-      :call_to => call_to,
-      :call_sid => call_sid,
-      :call_direction => metadata[:call_direction],
-      :account_sid => account_sid,
-      :auth_token => auth_token,
       :logger => logger
     )
   end
 
-  def redirect(url = nil, options = {})
-    request_options = {
-      :request_url => URI.join(http_client.last_request_url, url.to_s).to_s,
-      :request_method => options.delete("method") || "post",
-      :call_status => :in_progress
+  def default_twilio_http_request_options
+    {
+      :client => http_client,
+      :call_from => call_from,
+      :call_to => call_to,
+      :call_sid => call_sid,
+      :call_direction => call_direction,
+      :account_sid => account_sid,
+      :api_version => api_version,
+      :auth_token => auth_token
     }
+  end
 
-    request_options.merge!(:body => options) if options.any?
+  def build_twilio_http_request(options = {})
+    Somleng::TwilioHttpClient::Request.new(default_twilio_http_request_options.merge(options))
+  end
 
-    execute_twiml(http_client.execute_request!(request_options))
+  def redirect(url = nil, options = {})
+    http_request = build_twilio_http_request(
+      :request_method => options.delete("method") || "post",
+      :request_url => URI.join(http_client.last_request_url, url.to_s).to_s,
+      :call_status => "in-progress",
+      :body => options
+    )
+
+    response = http_request.execute!
+    execute_twiml(response.body)
   end
 
   def execute_twiml(response)
@@ -242,7 +269,7 @@ module Adhearsion::Twilio::ControllerMethods
     dial_status = dial(to, params)
 
     dial_call_status_options = {
-      "DialCallStatus" => Somleng::TwilioHttpClient::Client::CALL_STATUSES[dial_status.result]
+      "DialCallStatus" => DIAL_CALL_STATUSES[dial_status.result]
     }
 
     # try to find the joined call
@@ -335,6 +362,14 @@ module Adhearsion::Twilio::ControllerMethods
 
   def call_from
     metadata[:adhearsion_twilio_from] || twilio_call.from
+  end
+
+  def call_direction
+    resolve_configuration(:direction, false)
+  end
+
+  def api_version
+    resolve_configuration(:api_version, false)
   end
 
   def account_sid

@@ -30,7 +30,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
   remote_attributes = [
     :voice_request_url, :voice_request_method,
     :auth_token, :call_sid, :to, :from, :account_sid,
-    :twilio_request_to
+    :twilio_request_to, :direction, :api_version
   ]
 
   context "given the phone call was successfully created on the REST API" do

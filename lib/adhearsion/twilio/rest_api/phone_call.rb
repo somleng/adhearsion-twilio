@@ -41,6 +41,14 @@ class Adhearsion::Twilio::RestApi::PhoneCall < Adhearsion::Twilio::RestApi::Reso
     fetch_remote(:to)
   end
 
+  def direction
+    fetch_remote(:direction)
+  end
+
+  def api_version
+    fetch_remote(:api_version)
+  end
+
   def twilio_request_to
     fetch_remote(:twilio_request_to)
   end
