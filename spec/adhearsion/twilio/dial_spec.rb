@@ -253,9 +253,10 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             end
 
             def assert_call_controller_assertions!
+              assert_hungup!
             end
 
-            it { expect { run_and_assert! }.to raise_error(Adhearsion::Twilio::TwimlError, "Nested noun '<Sip>' not allowed within '<Dial>'") }
+            it { run_and_assert! }
           end # describe "none"
         end # describe "Noun Attributes"
       end # context "<Sip>"

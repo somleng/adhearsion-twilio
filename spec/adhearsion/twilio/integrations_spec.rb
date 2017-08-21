@@ -40,6 +40,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:cassette) { "gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/post_testtwiml.xml" }
 
     def assert_call_controller_assertions!
+      assert_hungup!
     end
 
     def default_config
@@ -49,6 +50,6 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       )
     end
 
-    it { expect { run_and_assert! }.to raise_error(Adhearsion::Twilio::TwimlError) }
+    it { run_and_assert! }
   end
 end

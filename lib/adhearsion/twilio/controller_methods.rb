@@ -311,9 +311,13 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def with_twiml(raw_response, &block)
-    doc = parse_twiml(raw_response)
-    doc.each do |node|
-      yield node
+    begin
+      doc = parse_twiml(raw_response)
+      doc.each do |node|
+        yield node
+      end
+    rescue Adhearsion::Twilio::TwimlError => e
+      logger.error(e.message)
     end
   end
 

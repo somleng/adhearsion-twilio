@@ -25,7 +25,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         #   <Redirect/>
         # </Response>
 
-        it { expect { run_and_assert! }.to raise_error(Adhearsion::Twilio::TwimlError, "invalid redirect url") }
+        def assert_call_controller_assertions!
+          assert_hungup!
+        end
+
+        it { run_and_assert! }
       end # context "empty"
 
       context "present" do
