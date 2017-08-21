@@ -10,7 +10,7 @@ Provides a simple way to use Adhearsion with your existing apps built for Twilio
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'adhearsion-twilio', :git => git://github.com/dwilkie/adhearsion-twilio.git
+gem 'adhearsion-twilio', :git => git://github.com/somleng/adhearsion-twilio.git
 ```
 
 And then execute:
@@ -62,91 +62,30 @@ end
 
 `notify_voice_request_url` will send a [Twilio Request](http://www.twilio.com/docs/api/twiml/twilio_request) using the url you configured in `voice_request_url` then execute any TwiML you respond back with.
 
-## Testing
-
-Currently, RSpec is the only testing framework supported.
-
-Add the following lines to your application's Gemfile
-
-```ruby
-group :test do
-  gem 'vcr'
-  gem 'webmock'
-  gem 'rack-test'
-end
-```
-
-And then execute:
-
-```shell
-$ bundle
-```
-
-If this is your CallController:
-
-```ruby
-class CallController < Adhearsion::CallController
-  include Adhearsion::Twilio::ControllerMethods
-
-  def run
-    notify_voice_request_url
-  end
-end
-```
-
-Then you can test it like this:
-
-```ruby
-require 'spec_helper'
-require 'adhearsion/twilio/spec/helpers'
-
-describe CallController do
-  include Adhearsion::Twilio::Spec::Helpers
-
-  subject { CallController.new(mock_call) }
-
-  describe "#run" do
-    it "should answer the call" do
-      expect_call_status_update { subject.run }
-    end
-  end
-end
-```
-
-The helper method `mock_call` returns a mock of a Call with the appropriate methods stubbed out. `expect_call_status_update` inserts the default cassette `hangup` using VCR. You can test other methods by inserting different cassette using the `:cassette` option. For a list of the available cassettes look in: [https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/fixtures/vcr_cassettes](https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/fixtures/vcr_cassettes). For more info about the test helper methods available look at: [https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/helpers.rb](https://github.com/dwilkie/adhearsion-twilio/tree/master/lib/adhearsion/twilio/spec/helpers.rb)
-
 ## Documentation
 
-Read through [the specs](http://rdoc.info/list/github/dwilkie/adhearsion-twilio/master/file). Each spec contains TwiML examples for each Verb Attribute and Noun along with the relevant [documentation from Twilio](http://www.twilio.com/docs/api/twiml).
+Read through [the specs](https://github.com/somleng/adhearsion-twilio/tree/master/spec/adhearsion/twilio). Each spec contains TwiML examples for each Verb Attribute and Noun along with the relevant [documentation from Twilio](http://www.twilio.com/docs/api/twiml).
 
 ## Already Implemented
 
 The following verbs have been already implemented:
 
-* [Play](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/play_spec.rb)
-* [Say](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/say_spec.rb)
-* [Dial](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/dial_spec.rb)
-    * plain text
-* [Gather](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/gather_spec.rb)
-* [Redirect](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/redirect_spec.rb)
-* [Hangup](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/hangup_spec.rb)
-* [Reject](http://rdoc.info/github/dwilkie/adhearsion-twilio/master/file/spec/adhearsion/twilio/reject_spec.rb)
+* [Play](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/play_spec.rb)
+* [Say](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/say_spec.rb)
+* [Dial](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/dial_spec.rb)
+* [Gather](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/gather_spec.rb)
+* [Redirect](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/redirect_spec.rb)
+* [Hangup](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/hangup_spec.rb)
+* [Reject](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/reject_spec.rb)
+* [Record](https://github.com/somleng/adhearsion-twilio/blob/master/spec/adhearsion/twilio/record_spec.rb)
 
 ## Todo
 
 The following verbs are not yet fully implemented:
 
-* Dial
-    * Number
-    * Sip
-    * Client
-    * Conference
-    * Queue
-* Record
 * SMS
 * Enqueue
 * Leave
-* Reject
 * Pause
 
 ## Contributing
