@@ -6,6 +6,6 @@ env:
 addons:
   code_climate:
     repo_token:
-      secure: "RXGVk3DWvvamLMk5JvUAb4fk3auRD5btFQD4HJO1RysAtELVWwy1q5qT6W9ayPqbWP4EO+0YzC6YrKMk6Yvq+rq8UiobEFwTlyCqYTb50030WtV34yFpSl32Sh7doAxNfNLy9G3xfbmOcfX5jZkRkLMjf7Q7iL2phR97qvGu5xI="
+      secure: "gIGHWZlysowFpCz/DJBENxNhFe6CiV4+Nxbwu6YgIk16cgUbJ13NunW2n3mBwPRtWRi7BWfKZfzRYvL0f7+KVCBX8ldcwog7NM4b2er91pm8f8Z1XLBQsi2P036f0GrXk7fWyqDLNrD9FPMlkbZX/f9E+adehsUy9AXoobvsgLY="
 after_success:
   - bundle exec codeclimate-test-reporter
