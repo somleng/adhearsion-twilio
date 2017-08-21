@@ -5,9 +5,11 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
   describe "#notify!", :vcr => false do
     let(:stanza) { build_rayo_event_stanza }
-    let(:event) { Adhearsion::Rayo::RayoNode.from_xml(parse_stanza(stanza).root, '9f00061', '1') }
+    let(:rayo_event_namespace) { "urn:xmpp:rayo:1" }
+    let(:event) { Adhearsion::Rayo::RayoNode.from_xml(parse_stanza(stanza).root, target_call_id, '1') }
     let(:basic_auth_credentials) { "user:secret" }
-    let(:variable_uuid) { "3a05f57f-c664-4986-b619-44ec0a2fd60c" }
+    let(:target_call_id) { "3a05f57f-c664-4986-b619-44ec0a2fd60c" }
+    let(:variable_uuid) { target_call_id }
     let(:asserted_phone_call_id) { variable_uuid }
 
     subject { described_class.new(:event => event) }
@@ -79,7 +81,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
       end
 
       <<-MESSAGE
-        <#{rayo_event_type} xmlns="urn:xmpp:rayo:1">
+        <#{rayo_event_type} xmlns="#{rayo_event_namespace}">
           #{children_xml.join("\n")}
         </#{rayo_event_type}>
       MESSAGE
@@ -111,6 +113,63 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
       let(:asserted_phone_call_event_type) { :answered }
       let(:rayo_event_type) { :answered }
       it { assert_notify! }
+    end
+
+    context "#event => Adhearsion::Event::Complete" do
+      let(:rayo_event_type) { :complete }
+      let(:rayo_event_namespace) { "urn:xmpp:rayo:ext:1" }
+
+      def rayo_event_stanza_headers
+        {}
+      end
+
+      context "recording_complete" do
+        let(:complete_namespace) { "urn:xmpp:rayo:record:complete:1" }
+        let(:recording_duration) { "14440" }
+        let(:recording_size) { "0" }
+        let(:recording_uri) { "file:///var/lib/freeswitch/recordings/2f65c536-47f8-4fb4-9565-49677cf338c6-2.wav" }
+
+        def rayo_event_stanza_children
+          super << {
+            :element_type => "recording",
+            :element_attributes => [
+              {
+                "xmlns" => complete_namespace,
+                "uri" => recording_uri,
+                :duration => recording_duration,
+                :size => recording_size
+              }
+            ]
+          }
+        end
+
+        let(:asserted_phone_call_event_type) { :recording_completed }
+        let(:asserted_recording_duration) { recording_duration }
+        let(:asserted_recording_size) { recording_size }
+        let(:asserted_recording_uri) { recording_uri }
+
+        def asserted_notify_request_body
+          super.merge(
+            :recording_duration => asserted_recording_duration,
+            :recording_size => asserted_recording_size,
+            :recording_uri => asserted_recording_uri
+          )
+        end
+
+        it { assert_notify! }
+      end
+
+      context "fax_complete" do
+        let(:complete_namespace) { "urn:xmpp:rayo:fax:complete:1" }
+
+        def assert_notify!
+          expect(WebMock).not_to have_requested(
+            :post, phone_call_event_url
+          )
+        end
+
+        it { assert_notify! }
+      end
     end
 
     context "#event => Adhearsion::Event::End" do

@@ -38,6 +38,7 @@ module Adhearsion::Twilio::ControllerMethods
     call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(event) }
     call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(event) }
     call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(event) }
+    call.register_event_handler(Adhearsion::Event::Complete) { |event| handle_phone_call_event(event) }
   end
 
   def handle_phone_call_event(event)
