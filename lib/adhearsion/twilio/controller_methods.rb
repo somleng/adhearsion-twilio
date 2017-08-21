@@ -148,7 +148,7 @@ module Adhearsion::Twilio::ControllerMethods
       twilio_options["action"],
       {
         "RecordingUrl" => recording_uri,
-        "RecordingDuration" => recording_duration,
+        "RecordingDuration" => (recording_duration / 1000),
         "method" => twilio_options["method"]
       }
     ] if !recording_duration.zero?

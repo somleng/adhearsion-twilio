@@ -11,7 +11,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:cassette) { :record }
 
     let(:recording_duration) { 0 }
-    let(:non_zero_recording_duration) { 1 }
+    let(:non_zero_recording_duration) { 7019 }
 
     let(:asserted_verb) { :record }
     let(:asserted_start_beep) { true }
@@ -120,13 +120,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         let(:action_request) { requests.last }
         let(:action_request_params) { WebMock.request_params(action_request) }
         let(:recording_duration) { non_zero_recording_duration }
+        let(:asserted_recording_duration) { non_zero_recording_duration / 1000 }
         let(:asserted_requests_count) { 2 }
 
         def assert_requests!
           super
           expect(requests.count).to eq(asserted_requests_count)
           if asserted_requests_count > 1
-            expect(action_request_params["RecordingDuration"]).to eq(non_zero_recording_duration.to_s)
+            expect(action_request_params["RecordingDuration"]).to eq(asserted_recording_duration.to_s)
             expect(action_request_params["RecordingUrl"]).to eq(recording_uri)
             expect(action_request_params).not_to have_key("Digits") # Not Implemented
           end
