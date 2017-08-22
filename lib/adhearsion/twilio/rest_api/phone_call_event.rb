@@ -20,8 +20,11 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
   }
 
   def notify!
+    logger.info("Notifying REST API of Phone Call Event")
     if configuration.rest_api_phone_call_events_url
+      logger.info("REST API phone_call_events_url configured")
       if event_details = parse_event
+        logger.info("Event parsed with details: #{event_details}")
         event_url = phone_call_event_url(:phone_call_id => event_details[:phone_call_id])
 
         request_body = event_details[:params]
