@@ -36,6 +36,8 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
         log(:info, "POSTING to Twilio REST API at: #{url} with options: #{request_options}")
 
         HTTParty.post(url, request_options).body
+      else
+        logger.info("No Event Parser for #{event}")
       end
     end
   end
