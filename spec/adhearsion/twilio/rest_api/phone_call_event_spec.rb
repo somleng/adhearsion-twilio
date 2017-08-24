@@ -18,6 +18,8 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
       "https://#{basic_auth_credentials}@somleng.example.com/api/admin/phone_calls/:phone_call_id/phone_call_events"
     }
 
+    let(:response_status) { 201 }
+
     let(:phone_call_event_url) {
       interpolate_phone_call_events_url(
         :phone_call_id => asserted_phone_call_id
@@ -26,7 +28,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
     def setup_scenario
       stub_env(:ahn_twilio_rest_api_phone_call_events_url => phone_call_events_url)
-      stub_request(:post, phone_call_event_url) if phone_call_events_url
+      stub_request(:post, phone_call_event_url).to_return(:status => response_status) if phone_call_events_url
       subject.notify!
     end
 

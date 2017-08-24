@@ -30,12 +30,7 @@ module Adhearsion::Twilio::ControllerMethods
 
   private
 
-  def phone_call_event
-    @phone_call_event ||= Adhearsion::Twilio::RestApi::PhoneCallEvent.new
-  end
-
   def register_event_handlers
-    logger.info("Registering Event Handlers")
     call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(event) }
     call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(event) }
     call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(event) }
@@ -43,8 +38,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def handle_phone_call_event(event)
-    logger.info("Handling Phone Call Event: #{event}")
-    Adhearsion::Twilio::RestApi::PhoneCallEvent.new(:event => event).notify!
+    Adhearsion::Twilio::RestApi::PhoneCallEvent.new(:event => event, :logger => logger).notify!
   end
 
   def answered?

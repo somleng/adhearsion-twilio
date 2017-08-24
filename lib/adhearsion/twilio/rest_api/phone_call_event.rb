@@ -20,11 +20,9 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
   }
 
   def notify!
-    logger.info("Notifying REST API of Phone Call Event")
     if configuration.rest_api_phone_call_events_url
-      logger.info("REST API phone_call_events_url configured")
       if event_details = parse_event
-        logger.info("Event parsed with details: #{event_details}")
+        log(:info, "Event parsed with details: #{event_details}")
         event_url = phone_call_event_url(:phone_call_id => event_details[:phone_call_id])
 
         request_body = event_details[:params]
@@ -35,9 +33,11 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
 
         log(:info, "POSTING to Twilio REST API at: #{url} with options: #{request_options}")
 
-        HTTParty.post(url, request_options).body
+        response = HTTParty.post(url, request_options)
+
+        log(:info, "Finished POSTING to Twilio REST API with response: #{response.code}")
       else
-        logger.info("No Event Parser for #{event}")
+        log(:info, "No Event Parser or event not parsed for #{event}")
       end
     end
   end
