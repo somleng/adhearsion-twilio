@@ -33,6 +33,20 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       )
     }
 
+    # 1. Original TwiML request (zero recording duration)
+    let(:asserted_requests_count) { 1 }
+    let(:requests) { WebMock.requests }
+
+    let(:call_id) { "call-id" }
+
+    def call_params
+      super.merge(:id => call_id)
+    end
+
+    def asserted_event_params
+      {}
+    end
+
     def asserted_verb_options
       {
         :start_beep => asserted_start_beep,
@@ -42,6 +56,16 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     def asserted_verb_args
       [asserted_verb_options]
+    end
+
+    def assert_verb!
+      super
+      expect(Adhearsion::Twilio::Event::RecordingStarted).to receive(:new).with(call_id, hash_including(asserted_event_params))
+    end
+
+    def assert_requests!
+      super
+      expect(requests.count).to eq(asserted_requests_count)
     end
 
     def setup_scenario
@@ -116,71 +140,70 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # format by default. To request the recording in MP3 format,
         # append ".mp3" to the RecordingUrl.
 
-        let(:requests) { WebMock.requests }
-        let(:action_request) { requests.last }
-        let(:action_request_params) { WebMock.request_params(action_request) }
-        let(:recording_duration) { non_zero_recording_duration }
-        let(:asserted_recording_duration) { non_zero_recording_duration / 1000 }
-        let(:asserted_requests_count) { 2 }
+        context "non-empty recording" do
+          let(:recording_duration) { non_zero_recording_duration }
 
-        def assert_requests!
-          super
-          expect(requests.count).to eq(asserted_requests_count)
-          if asserted_requests_count > 1
+          let(:asserted_requests_count) { 2 }
+          let(:action_request) { requests.last }
+          let(:action_request_params) { WebMock.request_params(action_request) }
+          let(:asserted_recording_duration) { non_zero_recording_duration / 1000 }
+
+          def assert_requests!
+            super
             expect(action_request_params["RecordingDuration"]).to eq(asserted_recording_duration.to_s)
             expect(action_request_params["RecordingUrl"]).to eq(recording_uri)
             expect(action_request_params).not_to have_key("Digits") # Not Implemented
           end
-        end
 
-        context "not specified" do
-          let(:cassette) { :record_with_result }
+          context "not specified" do
+            let(:cassette) { :record_with_result }
 
-          def cassette_options
-            super.merge(:redirect_url => current_config[:voice_request_url])
+            def cassette_options
+              super.merge(:redirect_url => current_config[:voice_request_url])
+            end
+
+            # From: https://www.twilio.com/docs/api/twiml/record#attributes-action
+
+            # If no 'action' is provided, <Record> will default to
+            # requesting the current document's URL.
+
+            # Given the following example:
+
+            # <?xml version="1.0" encoding="UTF-8" ?>
+            # <Response>
+            #   <Record/>
+            # </Response>
+
+            def assert_requests!
+              super
+              expect(action_request.uri.to_s).to eq(current_config[:voice_request_url])
+            end
+
+            it { run_and_assert! }
           end
 
-          # From: https://www.twilio.com/docs/api/twiml/record#attributes-action
+          context "specified" do
+            let(:cassette) { :record_with_action }
 
-          # If no 'action' is provided, <Record> will default to
-          # requesting the current document's URL.
+            # From: https://www.twilio.com/docs/api/twiml/record#attributes-action
 
-          # Given the following example:
+            # The 'action' attribute takes a relative or absolute URL as a value.
+            # When recording is finished Twilio will make a GET or POST request to this URL.
 
-          # <?xml version="1.0" encoding="UTF-8" ?>
-          # <Response>
-          #   <Record/>
-          # </Response>
+            # Given the following examples:
 
-          def assert_requests!
-            super
-            expect(action_request.uri.to_s).to eq(current_config[:voice_request_url])
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record action="http://localhost:3000/some_other_endpoint.xml"/>
+            # </Response>
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record action="../relative_endpoint.xml"/>
+            # </Response>
+
+            it_should_behave_like "a TwiML 'action' attribute"
           end
-
-          it { run_and_assert! }
-        end
-
-        context "specified" do
-          let(:cassette) { :record_with_action }
-
-          # From: https://www.twilio.com/docs/api/twiml/record#attributes-action
-
-          # The 'action' attribute takes a relative or absolute URL as a value.
-          # When recording is finished Twilio will make a GET or POST request to this URL.
-
-          # Given the following examples:
-
-          # <?xml version="1.0" encoding="UTF-8"?>
-          # <Response>
-          #   <Record action="http://localhost:3000/some_other_endpoint.xml"/>
-          # </Response>
-
-          # <?xml version="1.0" encoding="UTF-8"?>
-          # <Response>
-          #   <Record action="../relative_endpoint.xml"/>
-          # </Response>
-
-          it_should_behave_like "a TwiML 'action' attribute"
         end
 
         context "empty recording" do
@@ -205,6 +228,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
       describe "'method'" do
         let(:recording_duration) { non_zero_recording_duration }
+        let(:asserted_requests_count) { 2 }
 
         # From: https://www.twilio.com/docs/api/twiml/record#attributes-method
 
@@ -331,6 +355,119 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end
         end
       end # describe "'playBeep'"
+
+      describe "'recordingStatusCallback'" do
+        # From: # https://www.twilio.com/docs/api/twiml/record#attributes-recording-status-callback
+
+        # The 'recordingStatusCallback' attribute takes a relative or absolute URL
+        # as an argument. If a 'recordingStatusCallback' URL is given,
+        # Twilio will make a GET or POST request to the specified URL when the recording
+        # is available to access.
+
+        # Request Parameters
+
+        # Twilio will pass the following parameters with its request to the
+        # 'recordingStatusCallback' URL:
+
+        # | Parameter         | Description                                           |
+        # |                   |                                                       |
+        # | AccountSid        | The unique identifier of the Account                  |
+        # |                   | responsible for this recording.                       |
+        # |                   |                                                       |
+        # | CallSid           | A unique identifier for the call associated           |
+        # |                   | with the recording.                                   |
+        # |                   |                                                       |
+        # |                   | To get a final accurate recording duration after any  |
+        # |                   | trimming of silence, use recordingStatusCallback.     |
+        # |                   |                                                       |
+        # | RecordingSid      | The unique identifier for the recording.              |
+        # |                   |                                                       |
+        # | RecordingStatus   | The status of the recording.                          |
+        # |                   | Possible values are: completed.                       |
+        # |                   |                                                       |
+        # | RecordingDuration | The length of the recording, in seconds.              |
+        # |                   |                                                       |
+        # | RecordingChannels | The number of channels in the final recording         |
+        # |                   | file as an integer.                                   |
+        # |                   | Only 1 channel is supported for the <Record> verb.    |
+        # |                   |                                                       |
+        # | RecordingSource   | The type of call that created this recording.         |
+        # |                   | RecordVerb is returned for recordings                 |
+        # |                   | initiated via the <Record> verb.                      |
+
+        context "specified" do
+          # Given the following example:
+
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Record recordingStatusCallback='https://somleng.org/recording_status_callback'/>
+          # </Response>
+
+          let(:recording_status_callback) { "https://somleng.org/recording_status_callback" }
+          let(:cassette) { :record_with_recoding_status_callback }
+
+          def asserted_event_params
+            super.merge("recordingStatusCallback" => recording_status_callback)
+          end
+
+          def cassette_options
+            super.merge(:recording_status_callback => recording_status_callback)
+          end
+
+          it { run_and_assert! }
+        end
+
+        context "not specified" do
+          # Given the following example:
+
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Record/>
+          # </Response>
+
+          it { run_and_assert! }
+        end
+      end # describe "'recordingStatusCallback'"
+
+      describe "'recordingStatusCallbackMethod'" do
+        #From: https://www.twilio.com/docs/api/twiml/record#attributes-recording-status-callback-method
+
+        # This attribute indicates which HTTP method to use when
+        # requesting 'recordingStatusCallback'. It defaults to 'POST'.
+
+        context "specified" do
+          # Given the following example:
+
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Record recordingStatusCallbackMethod='GET'/>
+          # </Response>
+
+          let(:recording_status_callback_method) { "GET" }
+          let(:cassette) { :record_with_recoding_status_callback_method }
+
+          def asserted_event_params
+            super.merge("recordingStatusCallbackMethod" => recording_status_callback_method)
+          end
+
+          def cassette_options
+            super.merge(:recording_status_callback_method => recording_status_callback_method)
+          end
+
+          it { run_and_assert! }
+        end
+
+        context "not specified" do
+          # Given the following example:
+
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Record/>
+          # </Response>
+
+          it { run_and_assert! }
+        end
+      end # describe "'recordingStatusCallbackMethod'"
     end # describe "Verb Attributes"
   end # describe "<Record>"
 end

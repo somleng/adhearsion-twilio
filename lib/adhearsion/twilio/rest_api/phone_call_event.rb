@@ -1,4 +1,5 @@
 require_relative "resource"
+require_relative "../event/recording_started"
 
 class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi::Resource
   EVENT_MAPPINGS = {
@@ -16,6 +17,10 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
     },
     Adhearsion::Event::Complete => {
       :event_parser => Proc.new { |event| event.parse_complete_event }
+    },
+    Adhearsion::Twilio::Event::RecordingStarted => {
+      :type => :recording_started,
+      :event_parser => Proc.new { |event| event.parse_recording_started_event },
     }
   }
 
@@ -50,30 +55,37 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
     build_request_options(phone_call_id_from_headers, default_request_params)
   end
 
-  def parse_end_event
-    headers = event.headers
-    request_params = compact_hash(
+  def parse_recording_started_event
+    build_request_options(
+      event.call_id,
       default_request_params.merge(
-        :sip_term_status => headers["variable-sip_term_status"],
-        :answer_epoch => headers["variable-answer_epoch"]
+        :event_params => compact_hash(event.params)
       )
     )
+  end
 
-    build_request_options(phone_call_id_from_headers, request_params)
+  def parse_end_event
+    build_request_options(
+      phone_call_id_from_headers,
+      default_request_params.merge(
+        :event_params => compact_hash(
+          :sip_term_status => event.headers["variable-sip_term_status"],
+          :answer_epoch => event.headers["variable-answer_epoch"]
+        )
+      )
+    )
   end
 
   def parse_complete_event
     if recording = event.recording
-      request_params = compact_hash(
-        :type => :recording_completed,
-        :recording_duration => recording.duration.to_s,
-        :recording_size => recording.size.to_s,
-        :recording_uri => recording.uri
-      )
-
       build_request_options(
         event.target_call_id,
-        request_params
+        :type => :recording_completed,
+        :event_params => compact_hash(
+          :recording_duration => recording.duration.to_s,
+          :recording_size => recording.size.to_s,
+          :recording_uri => recording.uri
+        )
       )
     end
   end

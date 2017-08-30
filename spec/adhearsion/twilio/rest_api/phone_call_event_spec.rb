@@ -93,15 +93,24 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
       {:type => asserted_phone_call_event_type.to_s}
     end
 
+    def assert_request_body_param!(request_params, asserted_request_body)
+      asserted_request_body.each do |asserted_key, asserted_value|
+        if asserted_value.is_a?(Hash)
+          expect(request_params[asserted_key.to_s]).to be_a(Hash)
+          assert_request_body_param!(request_params[asserted_key.to_s], asserted_value)
+        else
+          expect(request_params[asserted_key.to_s]).to eq(asserted_value.to_s)
+        end
+      end
+    end
+
     def assert_notify!
       expect(WebMock).to have_requested(
         :post, phone_call_event_url
       ).with { |request|
         expect(request.headers["Authorization"]).to eq("Basic #{Base64.strict_encode64(basic_auth_credentials).chomp}")
         request_params = WebMock.request_params(request)
-        asserted_notify_request_body.each do |asserted_key, asserted_value|
-          expect(request_params[asserted_key.to_s]).to eq(asserted_value.to_s)
-        end
+        assert_request_body_param!(request_params, asserted_notify_request_body)
       }
     end
 
@@ -114,6 +123,29 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
     context "#event => Adhearsion::Event::Answered" do
       let(:asserted_phone_call_event_type) { :answered }
       let(:rayo_event_type) { :answered }
+      it { assert_notify! }
+    end
+
+    context "#event => Adhearsion::Twilio::Event::RecordingStarted" do
+      let(:asserted_phone_call_event_type) { :recording_started }
+      let(:recording_status_callback) { "http://somleng.example.com/recording_status_callback" }
+
+      let(:event_params) {
+        {
+          "recordingStatusCallback" => recording_status_callback
+        }
+      }
+
+      let(:event) { Adhearsion::Twilio::Event::RecordingStarted.new(target_call_id, event_params) }
+
+      def asserted_notify_request_body
+        super.merge(
+          :event_params => {
+            "recordingStatusCallback" => recording_status_callback
+          }
+        )
+      end
+
       it { assert_notify! }
     end
 
@@ -152,9 +184,11 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
         def asserted_notify_request_body
           super.merge(
-            :recording_duration => asserted_recording_duration,
-            :recording_size => asserted_recording_size,
-            :recording_uri => asserted_recording_uri
+            :event_params => {
+              :recording_duration => asserted_recording_duration,
+              :recording_size => asserted_recording_size,
+              :recording_uri => asserted_recording_uri
+            }
           )
         end
 
@@ -203,8 +237,10 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
       def asserted_notify_request_body
         super.merge(
-          :sip_term_status => asserted_sip_term_status,
-          :answer_epoch => asserted_answer_epoch
+          :event_params => {
+            :sip_term_status => asserted_sip_term_status,
+            :answer_epoch => asserted_answer_epoch
+          }
         )
       end
 

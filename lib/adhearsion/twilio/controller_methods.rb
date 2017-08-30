@@ -3,6 +3,7 @@ require_relative "call"
 require_relative "twiml_error"
 require_relative "rest_api/phone_call"
 require_relative "rest_api/phone_call_event"
+require_relative "event/recording_started"
 
 require "somleng/twilio_http_client/client"
 require "somleng/twilio_http_client/request"
@@ -31,14 +32,14 @@ module Adhearsion::Twilio::ControllerMethods
   private
 
   def register_event_handlers
-    call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(event) }
-    call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(event) }
-    call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(event) }
-    call.register_event_handler(Adhearsion::Event::Complete) { |event| handle_phone_call_event(event) }
+    call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(:event => event) }
+    call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(:event => event) }
+    call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(:event => event) }
+    call.register_event_handler(Adhearsion::Event::Complete) { |event| handle_phone_call_event(:event => event) }
   end
 
-  def handle_phone_call_event(event)
-    Adhearsion::Twilio::RestApi::PhoneCallEvent.new(:event => event, :logger => logger).notify!
+  def handle_phone_call_event(options = {})
+    Adhearsion::Twilio::RestApi::PhoneCallEvent.new({:logger => logger}.merge(options)).notify!
   end
 
   def answered?
@@ -136,6 +137,10 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_record(twilio_options = {})
+    handle_phone_call_event(
+      :event => Adhearsion::Twilio::Event::RecordingStarted.new(twilio_call.id, twilio_options)
+    )
+
     record_component = record(options_for_twilio_record(twilio_options))
     recording = record_component.recording
     recording_duration = recording.duration
