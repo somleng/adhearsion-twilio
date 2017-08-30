@@ -59,7 +59,7 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
     build_request_options(
       event.call_id,
       default_request_params.merge(
-        :event_params => compact_hash(event.params)
+        :params => compact_hash(event.params)
       )
     )
   end
@@ -68,7 +68,7 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
     build_request_options(
       phone_call_id_from_headers,
       default_request_params.merge(
-        :event_params => compact_hash(
+        :params => compact_hash(
           :sip_term_status => event.headers["variable-sip_term_status"],
           :answer_epoch => event.headers["variable-answer_epoch"]
         )
@@ -81,7 +81,7 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
       build_request_options(
         event.target_call_id,
         :type => :recording_completed,
-        :event_params => compact_hash(
+        :params => compact_hash(
           :recording_duration => recording.duration.to_s,
           :recording_size => recording.size.to_s,
           :recording_uri => recording.uri

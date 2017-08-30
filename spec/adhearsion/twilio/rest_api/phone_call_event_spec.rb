@@ -140,7 +140,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
       def asserted_notify_request_body
         super.merge(
-          :event_params => {
+          :params => {
             "recordingStatusCallback" => recording_status_callback
           }
         )
@@ -184,7 +184,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
         def asserted_notify_request_body
           super.merge(
-            :event_params => {
+            :params => {
               :recording_duration => asserted_recording_duration,
               :recording_size => asserted_recording_size,
               :recording_uri => asserted_recording_uri
@@ -237,7 +237,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
 
       def asserted_notify_request_body
         super.merge(
-          :event_params => {
+          :params => {
             :sip_term_status => asserted_sip_term_status,
             :answer_epoch => asserted_answer_epoch
           }
