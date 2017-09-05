@@ -3,7 +3,8 @@ require 'spec_helper'
 describe Adhearsion::Twilio::Configuration do
   include EnvHelpers
 
-  let(:url) { "https://rapidpro.com/my_twiml.xml" }
+  let(:host) { "cdn.somleng.org" }
+  let(:url) { "https://#{host}/my_twiml.xml" }
   let(:http_method) { "GET" }
   let(:voice) { "arky" }
 
@@ -46,6 +47,22 @@ describe Adhearsion::Twilio::Configuration do
       end
 
       it { expect(result).to eq(url) }
+    end
+
+    context "by default" do
+      it { expect(result).to eq(nil) }
+    end
+  end
+
+  describe "#recording_url_host" do
+    let(:result) { subject.recording_url_host }
+
+    context "with global configuration" do
+      before do
+        stub_env(:ahn_twilio_recording_url_host => host)
+      end
+
+      it { expect(result).to eq(host) }
     end
 
     context "by default" do

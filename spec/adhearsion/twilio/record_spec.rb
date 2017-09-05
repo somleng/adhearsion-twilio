@@ -17,6 +17,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:asserted_start_beep) { true }
     let(:asserted_final_timeout) { 5 }
     let(:recording_uri) { "file://abcd.wav" }
+    let(:rest_api_phone_call_event_recording_url) { "https://somleng.org/Recording/12345" }
 
     let(:recording) {
       instance_double(
@@ -30,6 +31,21 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       instance_double(
         "Adhearsion::Rayo::Component::Record",
         :recording => recording
+      )
+    }
+
+    let(:recording_started_event) {
+      instance_double(
+        "Adhearsion::Twilio::Event::RecordingStarted"
+      )
+    }
+
+    let(:rest_api_phone_call_event) {
+      instance_double(
+        "Adhearsion::Twilio::RestApi::PhoneCallEvent",
+        :notify! => nil,
+        :fetch_details! => nil,
+        :recording_url => rest_api_phone_call_event_recording_url
       )
     }
 
@@ -61,6 +77,8 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     def assert_verb!
       super
       expect(Adhearsion::Twilio::Event::RecordingStarted).to receive(:new).with(call_id, hash_including(asserted_event_params))
+      expect(Adhearsion::Twilio::RestApi::PhoneCallEvent).to receive(:new).with(hash_including(:event => recording_started_event))
+      expect(rest_api_phone_call_event).to receive(:notify!)
     end
 
     def assert_requests!
@@ -70,6 +88,8 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     def setup_scenario
       allow(subject).to receive(:record).and_return(record_component)
+      allow(Adhearsion::Twilio::Event::RecordingStarted).to receive(:new).and_return(recording_started_event)
+      allow(Adhearsion::Twilio::RestApi::PhoneCallEvent).to receive(:new).and_return(rest_api_phone_call_event)
     end
 
     before do
@@ -147,11 +167,12 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:action_request) { requests.last }
           let(:action_request_params) { WebMock.request_params(action_request) }
           let(:asserted_recording_duration) { non_zero_recording_duration / 1000 }
+          let(:asserted_recording_url) { rest_api_phone_call_event_recording_url }
 
           def assert_requests!
             super
             expect(action_request_params["RecordingDuration"]).to eq(asserted_recording_duration.to_s)
-            expect(action_request_params["RecordingUrl"]).to eq(recording_uri)
+            expect(action_request_params["RecordingUrl"]).to eq(asserted_recording_url)
             expect(action_request_params).not_to have_key("Digits") # Not Implemented
           end
 
@@ -180,6 +201,13 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             end
 
             it { run_and_assert! }
+
+            context "no recording_url is returned by the REST API" do
+              let(:asserted_recording_url) { recording_uri }
+              let(:rest_api_phone_call_event_recording_url) { nil }
+
+              it { run_and_assert! }
+            end
           end
 
           context "specified" do

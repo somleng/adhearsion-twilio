@@ -2,6 +2,8 @@ require_relative "resource"
 require_relative "../event/recording_started"
 
 class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi::Resource
+  attr_reader :notify_response, :fetch_details_response
+
   EVENT_MAPPINGS = {
     Adhearsion::Event::Ringing => {
       :type => :ringing,
@@ -20,7 +22,7 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
     },
     Adhearsion::Twilio::Event::RecordingStarted => {
       :type => :recording_started,
-      :event_parser => Proc.new { |event| event.parse_recording_started_event },
+      :event_parser => Proc.new { |event| event.parse_recording_started_event }
     }
   }
 
@@ -38,12 +40,31 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
 
         log(:info, "POSTING to Twilio REST API at: #{url} with options: #{request_options}")
 
-        response = HTTParty.post(url, request_options)
+        @notify_response = HTTParty.post(url, request_options)
 
-        log(:info, "Finished POSTING to Twilio REST API with response: #{response.code}")
+        log(:info, "Finished POSTING to Twilio REST API with response: #{notify_response.code}")
       else
         log(:info, "No Event Parser or event not parsed for #{event}")
       end
+    end
+  end
+
+  def fetch_details!
+    if details_location = notify_response && notify_response.headers["Location"]
+      notify_request = notify_response.request
+      url = build_url_from_response(notify_response, details_location)
+
+      request_options = {}
+      basic_auth = notify_request.options[:basic_auth] || {}
+      request_options.merge!(:basic_auth => basic_auth) if basic_auth.any?
+
+      log(:info, "Fetching event details from #{url} with options: #{request_options}")
+
+      @fetch_details_response = HTTParty.get(url, request_options)
+
+      log(:info, "Finished fetching event details. Got response: #{fetch_details_response.code}, :body => fetch_details_response.json")
+    else
+      log(:info, "No Location header found in notify_response or notify_response empty")
     end
   end
 
@@ -94,7 +115,23 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
     options[:event]
   end
 
+  def recording_uri
+    recording["uri"]
+  end
+
+  def recording_url
+    build_url_from_response(fetch_details_response, recording_uri, :host => configuration.recording_url_host)
+  end
+
+  def recording
+    fetch_details_attribute("recording") || {}
+  end
+
   private
+
+  def fetch_details_attribute(attribute)
+    (fetch_details_response || {})[attribute.to_s]
+  end
 
   def compact_hash(hash)
     hash.delete_if { |k, v| v.nil? || v.empty? }
@@ -127,6 +164,15 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
       event_url.sub!(":#{interpolation}", value.to_s)
     end
     event_url
+  end
+
+  def build_url_from_response(response, path, options = {})
+    if response && path
+      uri = response.request.uri.dup
+      uri.host = options[:host] if options[:host]
+      uri.path = path
+      uri.to_s
+    end
   end
 
   def event_mapping

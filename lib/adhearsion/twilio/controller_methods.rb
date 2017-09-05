@@ -39,7 +39,11 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def handle_phone_call_event(options = {})
-    Adhearsion::Twilio::RestApi::PhoneCallEvent.new({:logger => logger}.merge(options)).notify!
+    build_rest_api_phone_call_event(options).notify!
+  end
+
+  def build_rest_api_phone_call_event(options = {})
+    Adhearsion::Twilio::RestApi::PhoneCallEvent.new({:logger => logger}.merge(options))
   end
 
   def answered?
@@ -137,19 +141,21 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_record(twilio_options = {})
-    handle_phone_call_event(
-      :event => Adhearsion::Twilio::Event::RecordingStarted.new(twilio_call.id, twilio_options)
-    )
+    phone_call_event = Adhearsion::Twilio::Event::RecordingStarted.new(twilio_call.id, twilio_options)
+    rest_api_phone_call_event = build_rest_api_phone_call_event(:event => phone_call_event)
+    rest_api_phone_call_event.notify!
+    rest_api_phone_call_event.fetch_details!
+    action_recording_url = rest_api_phone_call_event.recording_url
 
     record_component = record(options_for_twilio_record(twilio_options))
     recording = record_component.recording
     recording_duration = recording.duration
-    recording_uri = recording.uri
+    action_recording_url ||= recording.uri
 
     [
       twilio_options["action"],
       {
-        "RecordingUrl" => recording_uri,
+        "RecordingUrl" => action_recording_url,
         "RecordingDuration" => (recording_duration / 1000),
         "method" => twilio_options["method"]
       }
