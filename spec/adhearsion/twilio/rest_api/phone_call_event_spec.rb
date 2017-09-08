@@ -48,8 +48,10 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
     let(:mocked_notify_response) {
       {
         :status => 201,
+        :body => "{\"recording_url\":\"https://somleng.example.com/api/2010-04-01/Accounts/88a45328-8a3e-4ef3-bd36-ead175696163/Recordings/1c0d2d34-a9ba-452a-a0dd-26fa926df2b6\"}",
         :headers => {
-          "Location" => "/api/admin/phone_calls/3abdc281-c202-4a84-9f65-5b7a97439ba8/phone_call_events/ff3e16c4-f988-4712-bca0-08d24db7a5db"
+          "Location" => "/api/admin/phone_calls/3abdc281-c202-4a84-9f65-5b7a97439ba8/phone_call_events/ff3e16c4-f988-4712-bca0-08d24db7a5db",
+          "Content-Type" => "application/json"
         }
       }
     }
@@ -138,6 +140,7 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
       expect(response).to be_present
       expect(response.code).to eq(mocked_notify_response[:status])
       expect(response.headers["Location"]).to eq(mocked_notify_response[:headers]["Location"])
+      expect(response["recording_url"]).to eq(JSON.parse(mocked_notify_response[:body])["recording_url"])
     end
 
     context "#event => Adhearsion::Event::Ringing" do
@@ -173,104 +176,6 @@ describe Adhearsion::Twilio::RestApi::PhoneCallEvent do
       end
 
       it { assert_notify! }
-
-      describe "#fetch_details!" do
-        let(:asserted_recording_uri) { "/api/2010-04-01/Accounts/54290cf9-3561-490b-b789-e692cc68afcc/Recordings/5ee7bae7-5dd6-4f2a-a19e-bb764e531492" }
-
-        let(:mocked_fetch_details_response) {
-          {
-            :status => 200,
-            :body => "{\"recording\":{\"uri\":\"#{asserted_recording_uri}\"}}",
-            :headers => { "Content-Type" => "application/json" }
-          }
-        }
-
-        def build_asserted_url_from_path(path, options = {})
-          uri = URI.parse(phone_call_event_url)
-          uri.host = options[:host] if options[:host]
-          uri.path = path
-          uri.to_s
-        end
-
-        let(:asserted_fetch_details_url) {
-          build_asserted_url_from_path(mocked_notify_response[:headers]["Location"])
-        }
-
-        def do_fetch_details!
-          stub_request(
-            :get, asserted_fetch_details_url
-          ).to_return(mocked_fetch_details_response) if asserted_fetch_details_url
-          subject.fetch_details!
-        end
-
-        def setup_scenario
-          super
-          do_fetch_details!
-        end
-
-        context "#notify_response is available" do
-          def assert_fetch_details!
-            expect(WebMock).to have_requested(
-              :get, asserted_fetch_details_url
-            ).with { |request|
-              assert_basic_auth!(request)
-            }
-            response = subject.fetch_details_response
-            expect(response).to be_present
-            expect(response.code).to eq(mocked_fetch_details_response[:status])
-          end
-
-          it { assert_fetch_details! }
-
-          describe "#recording_uri" do
-            def assert_fetch_details!
-              super
-              expect(subject.recording_uri).to eq(asserted_recording_uri)
-            end
-
-            it { assert_fetch_details! }
-          end
-
-          describe "#recording_url" do
-            let(:asserted_recording_url) {
-              build_asserted_url_from_path(asserted_recording_uri)
-            }
-
-            def assert_fetch_details!
-              super
-              expect(subject.recording_url).to eq(asserted_recording_url)
-            end
-
-            it { assert_fetch_details! }
-
-            context "recording_url_host configuration is set" do
-              let(:recording_url_host) { "cdn.somleng.org" }
-              let(:asserted_recording_url) {
-                build_asserted_url_from_path(asserted_recording_uri, :host => recording_url_host)
-              }
-
-              def env
-                super.merge(
-                  :ahn_twilio_recording_url_host => recording_url_host
-                )
-              end
-
-              it { assert_fetch_details! }
-            end
-          end
-        end
-
-        context "#notify! is not setup" do
-          let(:asserted_fetch_details_url) { nil }
-          let(:phone_call_events_url) { nil }
-
-          def assert_fetch_details!
-            expect(subject.fetch_details_response).to eq(nil)
-          end
-
-          it { assert_fetch_details! }
-        end
-      end
     end
 
     context "#event => Adhearsion::Event::Complete" do

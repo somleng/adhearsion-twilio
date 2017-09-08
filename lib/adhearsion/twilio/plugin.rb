@@ -64,11 +64,6 @@ module Adhearsion
           nil,
           :desc => "The Twilio REST API's endpoint for creating new phone call events"
         )
-
-        recording_url_host(
-          nil,
-          :desc => "The host of the RecordingUrl to send to the action method of the <Record> verb. Defaults to the host set in ADHEARSION_TWILIO_REST_API_PHONE_CALL_EVENTS_URL"
-        )
       end
 
       # Defining a Rake task is easy

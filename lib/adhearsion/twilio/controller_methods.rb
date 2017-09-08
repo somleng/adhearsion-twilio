@@ -144,8 +144,8 @@ module Adhearsion::Twilio::ControllerMethods
     phone_call_event = Adhearsion::Twilio::Event::RecordingStarted.new(twilio_call.id, twilio_options)
     rest_api_phone_call_event = build_rest_api_phone_call_event(:event => phone_call_event)
     rest_api_phone_call_event.notify!
-    rest_api_phone_call_event.fetch_details!
-    action_recording_url = rest_api_phone_call_event.recording_url
+    notify_response = rest_api_phone_call_event.notify_response
+    action_recording_url = notify_response["recording_url"]
 
     record_component = record(options_for_twilio_record(twilio_options))
     recording = record_component.recording

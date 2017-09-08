@@ -47,10 +47,6 @@ class Adhearsion::Twilio::Configuration
     config.rest_api_phone_call_events_url
   end
 
-  def recording_url_host
-    config.recording_url_host
-  end
-
   private
 
   def config

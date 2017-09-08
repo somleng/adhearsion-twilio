@@ -44,9 +44,13 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       instance_double(
         "Adhearsion::Twilio::RestApi::PhoneCallEvent",
         :notify! => nil,
-        :fetch_details! => nil,
-        :recording_url => rest_api_phone_call_event_recording_url
+        :notify_response => notify_response
       )
+    }
+
+    let(:notify_response) {
+      # cannot use instance double here because of method_missing
+      double("HTTParty::Response")
     }
 
     # 1. Original TwiML request (zero recording duration)
@@ -90,6 +94,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       allow(subject).to receive(:record).and_return(record_component)
       allow(Adhearsion::Twilio::Event::RecordingStarted).to receive(:new).and_return(recording_started_event)
       allow(Adhearsion::Twilio::RestApi::PhoneCallEvent).to receive(:new).and_return(rest_api_phone_call_event)
+      allow(notify_response).to receive(:[]).with("recording_url").and_return(rest_api_phone_call_event_recording_url)
     end
 
     before do
@@ -408,7 +413,9 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # |                   | To get a final accurate recording duration after any  |
         # |                   | trimming of silence, use recordingStatusCallback.     |
         # |                   |                                                       |
-        # | RecordingSid      | The unique identifier for the recording.              |
+        # | RecordingSid      | he URL of the recorded audio.                         |
+        # |                   |                                                       |
+        # | RecordingUrl      | The unique identifier for the recording.              |
         # |                   |                                                       |
         # | RecordingStatus   | The status of the recording.                          |
         # |                   | Possible values are: completed.                       |

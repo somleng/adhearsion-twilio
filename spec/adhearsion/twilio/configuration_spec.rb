@@ -54,22 +54,6 @@ describe Adhearsion::Twilio::Configuration do
     end
   end
 
-  describe "#recording_url_host" do
-    let(:result) { subject.recording_url_host }
-
-    context "with global configuration" do
-      before do
-        stub_env(:ahn_twilio_recording_url_host => host)
-      end
-
-      it { expect(result).to eq(host) }
-    end
-
-    context "by default" do
-      it { expect(result).to eq(nil) }
-    end
-  end
-
   describe "#voice_request_url" do
     let(:result) { subject.voice_request_url }
 
