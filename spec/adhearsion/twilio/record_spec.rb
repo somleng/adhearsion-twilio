@@ -431,25 +431,44 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # |                   | initiated via the <Record> verb.                      |
 
         context "specified" do
-          # Given the following example:
-
-          # <?xml version="1.0" encoding="UTF-8"?>
-          # <Response>
-          #   <Record recordingStatusCallback='https://somleng.org/recording_status_callback'/>
-          # </Response>
-
-          let(:recording_status_callback) { "https://somleng.org/recording_status_callback" }
           let(:cassette) { :record_with_recoding_status_callback }
 
           def asserted_event_params
-            super.merge("recordingStatusCallback" => recording_status_callback)
+            super.merge("recordingStatusCallback" => asserted_recording_status_callback)
           end
 
           def cassette_options
             super.merge(:recording_status_callback => recording_status_callback)
           end
 
-          it { run_and_assert! }
+          context "absolute url" do
+            # Given the following example:
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record recordingStatusCallback='https://somleng.org/recording_status_callback'/>
+            # </Response>
+
+            let(:recording_status_callback) { "https://somleng.org/recording_status_callback" }
+            let(:asserted_recording_status_callback) { recording_status_callback }
+            it { run_and_assert! }
+          end
+
+          context "relative url" do
+            # Given the following example:
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record recordingStatusCallback=/recording_status_callback'/>
+            # </Response>
+
+            let(:recording_status_callback) { "/recording_status_callback" }
+            let(:asserted_recording_status_callback) {
+              URI.join(default_config[:voice_request_url], recording_status_callback).to_s
+            }
+
+            it { run_and_assert! }
+          end
         end
 
         context "not specified" do

@@ -91,13 +91,17 @@ module Adhearsion::Twilio::ControllerMethods
   def redirect(url = nil, options = {})
     http_request = build_twilio_http_request(
       :request_method => options.delete("method") || "post",
-      :request_url => URI.join(http_client.last_request_url, url.to_s).to_s,
+      :request_url => relative_or_absolute_uri(url),
       :call_status => "in-progress",
       :body => options
     )
 
     response = http_request.execute!
     execute_twiml(response.body)
+  end
+
+  def relative_or_absolute_uri(uri)
+    URI.join(http_client.last_request_url, uri.to_s).to_s
   end
 
   def execute_twiml(response)
@@ -141,7 +145,9 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_record(twilio_options = {})
-    phone_call_event = Adhearsion::Twilio::Event::RecordingStarted.new(twilio_call.id, twilio_options)
+    phone_call_event = Adhearsion::Twilio::Event::RecordingStarted.new(
+      twilio_call.id, twilio_options_for_record_event(twilio_options)
+    )
     rest_api_phone_call_event = build_rest_api_phone_call_event(:event => phone_call_event)
     rest_api_phone_call_event.notify!
     notify_response = rest_api_phone_call_event.notify_response
@@ -160,6 +166,17 @@ module Adhearsion::Twilio::ControllerMethods
         "method" => twilio_options["method"]
       }
     ] if !recording_duration.zero?
+  end
+
+  def twilio_options_for_record_event(twilio_options = {})
+    parsed_options = twilio_options.dup
+
+    if recording_status_callback = parsed_options["recordingStatusCallback"]
+      url = relative_or_absolute_uri(recording_status_callback)
+      parsed_options["recordingStatusCallback"] = url
+    end
+
+    parsed_options
   end
 
   def options_for_twilio_record(twilio_options = {})
