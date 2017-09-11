@@ -42,7 +42,7 @@ class Adhearsion::Twilio::RestApi::PhoneCallEvent < Adhearsion::Twilio::RestApi:
 
         @notify_response = HTTParty.post(url, request_options)
 
-        log(:info, "Finished POSTING to Twilio REST API with response: #{notify_response.code}")
+        log(:info, "Finished POSTING to Twilio REST API with response: #{notify_response.code} and body: #{notify_response.body}")
       else
         log(:info, "No Event Parser or event not parsed for #{event}")
       end
