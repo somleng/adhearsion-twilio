@@ -25,9 +25,15 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
     super.merge(:to => to)
   end
 
+  def asserted_request_variables
+    {
+      "sip_from_host" => call_params[:variables]["variable_sip_from_host"]
+    }
+  end
+
   def assert_remote_attribute!(attribute, matcher)
     expect(VCR.use_cassette(cassette) { subject.public_send(attribute) }).to matcher
-    expect(remote_request_body["Variables"].keys).to match_array(["sip_from_host"])
+    expect(remote_request_body["Variables"]).to eq(asserted_request_variables)
     expect(subject.public_send(attribute)).to matcher
   end
 

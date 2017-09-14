@@ -56,9 +56,13 @@ class Adhearsion::Twilio::RestApi::PhoneCall < Adhearsion::Twilio::RestApi::Reso
   private
 
   def whitelisted_call_variables
-    {
-      "sip_from_host" => twilio_call.variables["sip_from_host"]
-    }
+    call_variables = {}
+    optional_merge!(call_variables, "sip_from_host", twilio_call.variables["variable_sip_from_host"])
+    call_variables
+  end
+
+  def optional_merge!(hash, key, value)
+    hash.merge!(key => value) if value && !value.empty?
   end
 
   def created?
