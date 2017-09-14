@@ -6,7 +6,8 @@ module MockCall
       :id => SecureRandom.uuid,
       :variables => {
         "variable_sip_from_host" => "192.168.1.1",
-        "variable_sip_to_host" => "192.168.2.1"
+        "variable_sip_to_host" => "192.168.2.1",
+        "variable_sip_network_ip" => "192.168.3.1"
       }
     }
   end

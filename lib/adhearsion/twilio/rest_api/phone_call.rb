@@ -58,6 +58,8 @@ class Adhearsion::Twilio::RestApi::PhoneCall < Adhearsion::Twilio::RestApi::Reso
   def whitelisted_call_variables
     call_variables = {}
     optional_merge!(call_variables, "sip_from_host", twilio_call.variables["variable_sip_from_host"])
+    optional_merge!(call_variables, "sip_to_host", twilio_call.variables["variable_sip_to_host"])
+    optional_merge!(call_variables, "sip_network_ip", twilio_call.variables["variable_sip_network_ip"])
     call_variables
   end
 

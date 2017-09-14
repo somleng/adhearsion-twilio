@@ -27,7 +27,9 @@ describe Adhearsion::Twilio::RestApi::PhoneCall do
 
   def asserted_request_variables
     {
-      "sip_from_host" => call_params[:variables]["variable_sip_from_host"]
+      "sip_from_host" => call_params[:variables]["variable_sip_from_host"],
+      "sip_to_host" => call_params[:variables]["variable_sip_to_host"],
+      "sip_network_ip" => call_params[:variables]["variable_sip_network_ip"]
     }
   end
 
