@@ -38,6 +38,10 @@ describe Adhearsion::Twilio::Call do
     it { expect(result).to eq(26) }
   end
 
+  describe "#variables" do
+    it { expect(subject.variables).to eq(mock_call.variables) }
+  end
+
   describe "#from" do
     let(:result) { subject.from }
 

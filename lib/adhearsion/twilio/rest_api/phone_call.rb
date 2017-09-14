@@ -55,6 +55,12 @@ class Adhearsion::Twilio::RestApi::PhoneCall < Adhearsion::Twilio::RestApi::Reso
 
   private
 
+  def whitelisted_call_variables
+    {
+      "sip_from_host" => twilio_call.variables["sip_from_host"]
+    }
+  end
+
   def created?
     @remote_response && @remote_response.success?
   end
@@ -74,7 +80,8 @@ class Adhearsion::Twilio::RestApi::PhoneCall < Adhearsion::Twilio::RestApi::Reso
       :body => {
         "From" => twilio_call.from,
         "To" => twilio_call.to,
-        "ExternalSid" => twilio_call.id
+        "ExternalSid" => twilio_call.id,
+        "Variables" => whitelisted_call_variables
       }
     }
 
