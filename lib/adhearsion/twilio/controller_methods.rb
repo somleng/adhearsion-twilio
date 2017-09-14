@@ -390,7 +390,7 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def call_from
-    metadata[:adhearsion_twilio_from] || twilio_call.from
+    metadata[:adhearsion_twilio_from] || resolve_configuration(:from, false) || twilio_call.from
   end
 
   def call_direction
@@ -418,7 +418,6 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def resolve_configuration(name, has_global_configuration = true)
-    logger.info("Resolving configuration: #{name}")
     (metadata[name] || (configuration.rest_api_enabled? && metadata[:rest_api_enabled] != false && rest_api_phone_call.public_send(name)) || has_global_configuration && configuration.public_send(name)).presence
   end
 
