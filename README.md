@@ -3,15 +3,15 @@
 Provides a simple way to use Adhearsion with your existing apps built for Twilio
 
 [![Build Status](https://travis-ci.org/somleng/adhearsion-twilio.png)](https://travis-ci.org/somleng/adhearsion-twilio)
-[![Test Coverage](https://codeclimate.com/github/somleng/adhearsion-twilio/badges/coverage.svg)](https://codeclimate.com/github/somleng/adhearsion-twilio/coverage)
-[![Code Climate](https://codeclimate.com/github/somleng/adhearsion-twilio/badges/gpa.svg)](https://codeclimate.com/github/somleng/adhearsion-twilio)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/53eeb3962cc799a69441/test_coverage)](https://codeclimate.com/github/somleng/adhearsion-twilio/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/53eeb3962cc799a69441/maintainability)](https://codeclimate.com/github/somleng/adhearsion-twilio/maintainability)
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'adhearsion-twilio', :git => git://github.com/somleng/adhearsion-twilio.git
+gem 'adhearsion-twilio', :github => somleng/adhearsion-twilio.git
 ```
 
 And then execute:
