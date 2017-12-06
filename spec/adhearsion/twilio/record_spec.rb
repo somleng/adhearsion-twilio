@@ -16,6 +16,8 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:asserted_verb) { :record }
     let(:asserted_start_beep) { true }
     let(:asserted_final_timeout) { 5 }
+    let(:asserted_interruptible) { true }
+    let(:asserted_max_duration) { 3600 }
     let(:recording_uri) { "file://abcd.wav" }
     let(:rest_api_phone_call_event_recording_url) { "https://somleng.org/Recording/12345" }
 
@@ -70,7 +72,9 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     def asserted_verb_options
       {
         :start_beep => asserted_start_beep,
-        :final_timeout => asserted_final_timeout
+        :final_timeout => asserted_final_timeout,
+        :interruptible => asserted_interruptible,
+        :max_duration => asserted_max_duration
       }
     end
 
@@ -388,6 +392,105 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end
         end
       end # describe "'playBeep'"
+
+      describe "'finishOnKey'" do
+        # From: https://www.twilio.com/docs/api/twiml/record#attributes-finishonkey
+
+        # The 'finishOnKey' attribute lets you choose a set of digits that end
+        # the recording when entered. For example, if you set 'finishOnKey' to '#'
+        # and the caller presses '#', Twilio will immediately stop recording
+        # and submit 'RecordingUrl', 'RecordingDuration', and the '#' as parameters
+        # in a request to the 'action' URL.
+        # The allowed values are the digits 0-9, '#' and '*'.
+        # The default is '1234567890*#' (i.e. any key will end the recording).
+        # Unlike <Gather>, you may specify more than one character as a 'finishOnKey' value.
+
+        context "not specified" do
+          # Given the following example:
+
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Record/>
+          # </Response>
+
+          it { run_and_assert! }
+        end
+
+        context "specified" do
+          let(:cassette) { :record_with_finish_on_key }
+
+          def cassette_options
+            super.merge(:finish_on_key => finish_on_key)
+          end
+
+          context "'*'" do
+            # Given the following example:
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record finishOnKey='*'/>
+            # </Response>
+
+            let(:finish_on_key) { "*" }
+            it { run_and_assert! }
+          end
+        end
+      end # describe "'finishOnKey'"
+
+      describe "'maxLength'", :focus do
+        # From: https://www.twilio.com/docs/api/twiml/record#attributes-maxlength
+
+        # The 'maxLength' attribute lets you set the maximum length
+        # for the recording in seconds. If you set 'maxLength' to '30',
+        # the recording will automatically end after 30 seconds of recorded time has elapsed
+        # This defaults to 3600 seconds (one hour) for a normal recording and 120 seconds
+        # (two minutes) for a transcribed recording.
+        # Twilio Client calls using <Record> are limited to 600 seconds (ten minutes).
+
+        context "not specified" do
+          # Given the following example:
+
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Record/>
+          # </Response>
+
+          it { run_and_assert! }
+        end
+
+        context "specified" do
+          let(:cassette) { :record_with_max_length }
+
+          def cassette_options
+            super.merge(:max_length => max_length)
+          end
+
+          context "'0'" do
+            # Given the following example:
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record maxLength='0'/>
+            # </Response>
+
+            let(:max_length) { "0" }
+            it { run_and_assert! }
+          end
+
+          context "'10'" do
+            # Given the following example:
+
+            # <?xml version="1.0" encoding="UTF-8"?>
+            # <Response>
+            #   <Record maxLength='10'/>
+            # </Response>
+
+            let(:asserted_max_duration) { max_length.to_i }
+            let(:max_length) { "10" }
+            it { run_and_assert! }
+          end
+        end
+      end # describe "'finishOnKey'"
 
       describe "'recordingStatusCallback'" do
         # From: # https://www.twilio.com/docs/api/twiml/record#attributes-recording-status-callback

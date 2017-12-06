@@ -14,6 +14,7 @@ module Adhearsion::Twilio::ControllerMethods
   INFINITY = 100
   SLEEP_BETWEEN_REDIRECTS = 1
   DEFAULT_TWILIO_RECORD_TIMEOUT = 5
+  DEFAULT_TWILIO_MAX_LENGTH = 3600
 
   DIAL_CALL_STATUSES = {
     :no_answer => "no-answer",
@@ -182,10 +183,13 @@ module Adhearsion::Twilio::ControllerMethods
   def options_for_twilio_record(twilio_options = {})
     twilio_play_beep = twilio_options["playBeep"]
     twilio_timeout = twilio_options["timeout"]
+    twilio_max_length = twilio_options["maxLength"]
 
     {
       :start_beep => twilio_play_beep != 'false',
-      :final_timeout => (twilio_timeout && twilio_timeout.to_i) || DEFAULT_TWILIO_RECORD_TIMEOUT
+      :final_timeout => (twilio_timeout && twilio_timeout.to_i) || DEFAULT_TWILIO_RECORD_TIMEOUT,
+      :interruptible => true,
+      :max_duration => (twilio_max_length.to_i > 0 ? twilio_max_length.to_i : DEFAULT_TWILIO_MAX_LENGTH)
     }
   end
 
