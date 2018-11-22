@@ -1,11 +1,1 @@
 language: ruby
-rvm:
-  - 2.3.4
-env:
-  - START_SIMPLECOV=1
-addons:
-  code_climate:
-    repo_token:
-      secure: "gIGHWZlysowFpCz/DJBENxNhFe6CiV4+Nxbwu6YgIk16cgUbJ13NunW2n3mBwPRtWRi7BWfKZfzRYvL0f7+KVCBX8ldcwog7NM4b2er91pm8f8Z1XLBQsi2P036f0GrXk7fWyqDLNrD9FPMlkbZX/f9E+adehsUy9AXoobvsgLY="
-after_success:
-  - bundle exec codeclimate-test-reporter
