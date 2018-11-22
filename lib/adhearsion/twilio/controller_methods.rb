@@ -17,14 +17,14 @@ module Adhearsion::Twilio::ControllerMethods
   DEFAULT_TWILIO_MAX_LENGTH = 3600
 
   DIAL_CALL_STATUSES = {
-    :no_answer => "no-answer",
-    :answer => "completed",
-    :timeout => "no-answer",
-    :error => "failed",
-    :busy  => "busy",
-    :in_progress => "in-progress",
-    :ringing => "ringing"
-  }
+    no_answer: "no-answer",
+    answer: "completed",
+    timeout: "no-answer",
+    error: "failed",
+    busy: "busy",
+    in_progress: "in-progress",
+    ringing: "ringing"
+  }.freeze
 
   included do
     before :register_event_handlers
@@ -33,10 +33,10 @@ module Adhearsion::Twilio::ControllerMethods
   private
 
   def register_event_handlers
-    call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(:event => event) }
-    call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(:event => event) }
-    call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(:event => event) }
-    call.register_event_handler(Adhearsion::Event::Complete) { |event| handle_phone_call_event(:event => event) }
+    call.register_event_handler(Adhearsion::Event::Ringing) { |event| handle_phone_call_event(event: event) }
+    call.register_event_handler(Adhearsion::Event::Answered) { |event| handle_phone_call_event(event: event) }
+    call.register_event_handler(Adhearsion::Event::End) { |event| handle_phone_call_event(event: event) }
+    call.register_event_handler(Adhearsion::Event::Complete) { |event| handle_phone_call_event(event: event) }
   end
 
   def handle_phone_call_event(options = {})
@@ -44,22 +44,22 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def build_rest_api_phone_call_event(options = {})
-    Adhearsion::Twilio::RestApi::PhoneCallEvent.new({:logger => logger}.merge(options))
+    Adhearsion::Twilio::RestApi::PhoneCallEvent.new({ logger: logger }.merge(options))
   end
 
   def answered?
-    call && call.answer_time
+    call&.answer_time
   end
 
   def answer!
-    answer if !answered?
+    answer unless answered?
   end
 
   def notify_voice_request_url
     http_request = build_twilio_http_request(
-      :request_url => voice_request_url,
-      :request_method => voice_request_method,
-      :call_status => "ringing"
+      request_url: voice_request_url,
+      request_method: voice_request_method,
+      call_status: "ringing"
     )
 
     response = http_request.execute!
@@ -68,20 +68,20 @@ module Adhearsion::Twilio::ControllerMethods
 
   def http_client
     @http_client ||= Somleng::TwilioHttpClient::Client.new(
-      :logger => logger
+      logger: logger
     )
   end
 
   def default_twilio_http_request_options
     {
-      :client => http_client,
-      :call_from => call_from,
-      :call_to => call_to,
-      :call_sid => call_sid,
-      :call_direction => call_direction,
-      :account_sid => account_sid,
-      :api_version => api_version,
-      :auth_token => auth_token
+      client: http_client,
+      call_from: call_from,
+      call_to: call_to,
+      call_sid: call_sid,
+      call_direction: call_direction,
+      account_sid: account_sid,
+      api_version: api_version,
+      auth_token: auth_token
     }
   end
 
@@ -91,10 +91,10 @@ module Adhearsion::Twilio::ControllerMethods
 
   def redirect(url = nil, options = {})
     http_request = build_twilio_http_request(
-      :request_method => options.delete("method") || "post",
-      :request_url => relative_or_absolute_uri(url),
-      :call_status => "in-progress",
-      :body => options
+      request_method: options.delete("method") || "post",
+      request_url: relative_or_absolute_uri(url),
+      call_status: "in-progress",
+      body: options
     )
 
     response = http_request.execute!
@@ -111,27 +111,27 @@ module Adhearsion::Twilio::ControllerMethods
       content = node.content
       options = twilio_options(node)
       case node.name
-      when 'Reject'
+      when "Reject"
         execute_twiml_verb(:reject, false, options)
         break
-      when 'Play'
+      when "Play"
         execute_twiml_verb(:play, true, content, options)
-      when 'Gather'
+      when "Gather"
         break if redirection = execute_twiml_verb(:gather, true, node, options)
-      when 'Redirect'
+      when "Redirect"
         redirection = execute_twiml_verb(:redirect, false, content, options)
         break
-      when 'Hangup'
+      when "Hangup"
         break
-      when 'Say'
+      when "Say"
         execute_twiml_verb(:say, true, content, options)
-      when 'Pause'
+      when "Pause"
         not_yet_supported!
-      when 'Bridge'
+      when "Bridge"
         not_yet_supported!
-      when 'Dial'
+      when "Dial"
         break if redirection = execute_twiml_verb(:dial, true, node, options)
-      when 'Record'
+      when "Record"
         break if redirection = execute_twiml_verb(:record, true, options)
       else
         raise(ArgumentError, "Invalid element '#{node.name}'")
@@ -149,7 +149,7 @@ module Adhearsion::Twilio::ControllerMethods
     phone_call_event = Adhearsion::Twilio::Event::RecordingStarted.new(
       twilio_call.id, twilio_options_for_record_event(twilio_options)
     )
-    rest_api_phone_call_event = build_rest_api_phone_call_event(:event => phone_call_event)
+    rest_api_phone_call_event = build_rest_api_phone_call_event(event: phone_call_event)
     rest_api_phone_call_event.notify!
     notify_response = rest_api_phone_call_event.notify_response
     action_recording_url = notify_response["recording_url"]
@@ -159,14 +159,16 @@ module Adhearsion::Twilio::ControllerMethods
     recording_duration = recording.duration
     action_recording_url ||= recording.uri
 
-    [
-      twilio_options["action"],
-      {
-        "RecordingUrl" => action_recording_url,
-        "RecordingDuration" => (recording_duration / 1000),
-        "method" => twilio_options["method"]
-      }
-    ] if !recording_duration.zero?
+    unless recording_duration.zero?
+      [
+        twilio_options["action"],
+        {
+          "RecordingUrl" => action_recording_url,
+          "RecordingDuration" => (recording_duration / 1000),
+          "method" => twilio_options["method"]
+        }
+      ]
+    end
   end
 
   def twilio_options_for_record_event(twilio_options = {})
@@ -186,10 +188,10 @@ module Adhearsion::Twilio::ControllerMethods
     twilio_max_length = twilio_options["maxLength"]
 
     {
-      :start_beep => twilio_play_beep != 'false',
-      :final_timeout => (twilio_timeout && twilio_timeout.to_i) || DEFAULT_TWILIO_RECORD_TIMEOUT,
-      :interruptible => true,
-      :max_duration => (twilio_max_length.to_i > 0 ? twilio_max_length.to_i : DEFAULT_TWILIO_MAX_LENGTH)
+      start_beep: twilio_play_beep != "false",
+      final_timeout: (twilio_timeout&.to_i) || DEFAULT_TWILIO_RECORD_TIMEOUT,
+      interruptible: true,
+      max_duration: (twilio_max_length.to_i > 0 ? twilio_max_length.to_i : DEFAULT_TWILIO_MAX_LENGTH)
     }
   end
 
@@ -198,7 +200,8 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_redirect(url, options = {})
-    raise(Adhearsion::Twilio::TwimlError, "invalid redirect url") if url && url.empty?
+    raise(Adhearsion::Twilio::TwimlError, "invalid redirect url") if url&.empty?
+
     sleep(SLEEP_BETWEEN_REDIRECTS)
     [url, options]
   end
@@ -209,42 +212,44 @@ module Adhearsion::Twilio::ControllerMethods
 
     node.children.each do |nested_verb_node|
       verb = nested_verb_node.name
-      raise(
-        Adhearsion::Twilio::TwimlError,
-        "Nested verb '<#{verb}>' not allowed within '<#{node.name}>'"
-      ) unless ["Say", "Play", "Pause"].include?(verb)
+      unless %w[Say Play Pause].include?(verb)
+        raise(
+          Adhearsion::Twilio::TwimlError,
+          "Nested verb '<#{verb}>' not allowed within '<#{node.name}>'"
+        )
+      end
 
       nested_verb_options = twilio_options(nested_verb_node)
-      output_count = twilio_loop(nested_verb_options, :finite => true).count
+      output_count = twilio_loop(nested_verb_options, finite: true).count
       ask_options.merge!(send("options_for_twilio_#{verb.downcase}", nested_verb_options))
       ask_params << Array.new(output_count, nested_verb_node.content)
     end
 
-    ask_options.merge!(:timeout => (options["timeout"] || 5).to_i.seconds)
+    ask_options[:timeout] = (options["timeout"] || 5).to_i.seconds
 
     if options["finishOnKey"]
-      ask_options.merge!(
-        :terminator => options["finishOnKey"]
-      ) if options["finishOnKey"] =~ /^(?:\d|\*|\#)$/
+      ask_options[:terminator] = options["finishOnKey"] if options["finishOnKey"] =~ /^(?:\d|\*|\#)$/
     else
-      ask_options.merge!(:terminator => "#")
+      ask_options[:terminator] = "#"
     end
 
-    ask_options.merge!(:limit => options["numDigits"].to_i) if options["numDigits"]
+    ask_options[:limit] = options["numDigits"].to_i if options["numDigits"]
     ask_params << nil if ask_params.blank?
     ask_params.flatten!
 
     logger.info("Executing ask with params: #{ask_params} and options: #{ask_options}")
     result = ask(*ask_params, ask_options)
 
-    digits = result.utterance if [:match, :nomatch].include?(result.status)
+    digits = result.utterance if %i[match nomatch].include?(result.status)
 
-    [
-      options["action"],
-      {
-        "Digits" => digits, "method" => options["method"]
-      }
-    ] if digits.present?
+    if digits.present?
+      [
+        options["action"],
+        {
+          "Digits" => digits, "method" => options["method"]
+        }
+      ]
+    end
   end
 
   def twilio_say(words, options = {})
@@ -255,13 +260,10 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def options_for_twilio_say(options = {})
-    params = {}
-    voice = options["voice"].to_s.downcase == "woman" ? configuration.default_female_voice : configuration.default_male_voice
-    params[:voice] = voice if voice
-    params
+    { voice: options.fetch("voice") { "man" } }
   end
 
-  def options_for_twilio_play(options = {})
+  def options_for_twilio_play(_options = {})
     {}
   end
 
@@ -281,14 +283,17 @@ module Adhearsion::Twilio::ControllerMethods
 
     node.children.each do |nested_noun_node|
       break if nested_noun_node.text?
+
       noun = nested_noun_node.name
-      raise(
-        Adhearsion::Twilio::TwimlError,
-        "Nested noun '<#{noun}>' not allowed within '<#{node.name}>'"
-      ) unless ["Number"].include?(noun)
+      unless ["Number"].include?(noun)
+        raise(
+          Adhearsion::Twilio::TwimlError,
+          "Nested noun '<#{noun}>' not allowed within '<#{node.name}>'"
+        )
+      end
 
       nested_noun_options = twilio_options(nested_noun_node)
-      specific_dial_options = options_for_twilio_dial(nested_noun_options.merge(:global => false))
+      specific_dial_options = options_for_twilio_dial(nested_noun_options.merge(global: false))
 
       to[nested_noun_node.content.strip] = specific_dial_options
     end
@@ -302,21 +307,23 @@ module Adhearsion::Twilio::ControllerMethods
     }
 
     # try to find the joined call
-    outbound_call = dial_status.joins.select do |outbound_leg, join_status|
+    outbound_call = dial_status.joins.select do |_outbound_leg, join_status|
       join_status.result == :joined
     end.keys.first
 
-    dial_call_status_options.merge!(
-      "DialCallSid" => outbound_call.id,
-      "DialCallDuration" => dial_status.joins[outbound_call].duration.to_i
-    ) if outbound_call
+    if outbound_call
+      dial_call_status_options["DialCallSid"] = outbound_call.id
+      dial_call_status_options["DialCallDuration"] = dial_status.joins[outbound_call].duration.to_i
+    end
 
-    [
-      options["action"],
-      {
-        "method" => options["method"],
-      }.merge(dial_call_status_options)
-    ] if options["action"]
+    if options["action"]
+      [
+        options["action"],
+        {
+          "method" => options["method"]
+        }.merge(dial_call_status_options)
+      ]
+    end
   end
 
   def twilio_play(path, options = {})
@@ -335,18 +342,17 @@ module Adhearsion::Twilio::ControllerMethods
       raise(Adhearsion::Twilio::TwimlError, "Error while parsing XML: #{e.message}. XML Document: #{xml}")
     end
     raise(Adhearsion::Twilio::TwimlError, "The root element must be the '<Response>' element") if doc.root.name != "Response"
+
     doc.root.children
   end
 
-  def with_twiml(raw_response, &block)
-    begin
-      doc = parse_twiml(raw_response)
-      doc.each do |node|
-        yield node
-      end
-    rescue Adhearsion::Twilio::TwimlError => e
-      logger.error(e.message)
+  def with_twiml(raw_response)
+    doc = parse_twiml(raw_response)
+    doc.each do |node|
+      yield node
     end
+  rescue Adhearsion::Twilio::TwimlError => e
+    logger.error(e.message)
   end
 
   def twilio_loop(twilio_options, options = {})
@@ -377,7 +383,7 @@ module Adhearsion::Twilio::ControllerMethods
 
   def rest_api_phone_call
     @rest_api_phone_call ||= Adhearsion::Twilio::RestApi::PhoneCall.new(
-      :twilio_call => twilio_call, :logger => logger
+      twilio_call: twilio_call, logger: logger
     )
   end
 

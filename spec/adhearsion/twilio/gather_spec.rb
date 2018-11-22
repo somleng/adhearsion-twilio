@@ -79,7 +79,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:cassette) { :gather_say }
-            let(:asserted_verb_args) { [words, hash_including(:voice => current_config[:default_female_voice])] }
+            let(:asserted_verb_args) { [words, any_args] }
 
             def setup_scenario
               super

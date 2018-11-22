@@ -437,7 +437,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end
       end # describe "'finishOnKey'"
 
-      describe "'maxLength'", :focus do
+      describe "'maxLength'" do
         # From: https://www.twilio.com/docs/api/twiml/record#attributes-maxlength
 
         # The 'maxLength' attribute lets you set the maximum length

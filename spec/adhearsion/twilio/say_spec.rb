@@ -1,26 +1,13 @@
-require 'spec_helper'
+# frozen_string_literal: true
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+require "spec_helper"
+
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
   describe "<Say>" do
     # http://www.twilio.com/docs/api/twiml/say
 
     # The <Say> verb converts text to speech that is read back to the caller.
     # <Say> is useful for development or saying dynamic text that is difficult to pre-record.
-
-    let(:cassette) { :say }
-    let(:asserted_verb) { :say }
-    let(:asserted_verb_args) { [words, hash_including(asserted_verb_options)] }
-
-    before do
-      setup_scenario
-    end
-
-    def setup_scenario
-    end
-
-    def cassette_options
-      super.merge(:words => words)
-    end
 
     describe "Nouns" do
       # From: http://www.twilio.com/docs/api/twiml/say
@@ -33,13 +20,19 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | plain text  | The text Twilio will read to the caller. |
       # |             | Limited to 4KB (4,000 ASCII characters)  |
 
-      context "plain text" do
-        # <?xml version="1.0" encoding="UTF-8" ?>
-        # <Response>
-        #    <Say>Hello World</Say>
-        # </Response>
+      # <?xml version="1.0" encoding="UTF-8" ?>
+      # <Response>
+      #    <Say>Hello World</Say>
+      # </Response>
 
-        it { run_and_assert! }
+      it "calls say on the controller" do
+        controller = build_controller(allow: :say)
+
+        VCR.use_cassette(:say, erb: generate_cassette_erb(words: "Hello World")) do
+          controller.run
+        end
+
+        expect(controller).to have_received(:say).with("Hello World", any_args).once
       end
     end
 
@@ -53,7 +46,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | language       | en, en-gb, es, fr, de, it | en            |
       # | loop           | integer >= 0              | 1             |
 
-      describe "'voice' (Differs from Twilio)" do
+      describe "voice" do
         # From: http://www.twilio.com/docs/api/twiml/say
 
         # The 'voice' attribute allows you to choose
@@ -62,86 +55,65 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # | Attribute Name | Allowed Values | Default Value |
         # | voice          | man, woman     | man           |
 
-        def setup_scenario
-          set_dummy_voices
-        end
-
-        let(:voice) { current_config[:default_male_voice] }
-        let(:asserted_verb_options) { { :voice => voice } }
-
-        context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/say
-
+        it "defaults to man" do
           # "The default value is 'man'."
-
-          # Note: The behaviour differs here from the behaviour or Twilio.
-          # If the voice attribute is not specified, it will default to
-          # AHN_TWILIO_DEFAULT_MALE_VOICE or config.twilio.default_male_voice
 
           # <?xml version="1.0" encoding="UTF-8"?>
           # <Response>
           #   <Say>Hello World</Say>
           # </Response>
 
-          it { run_and_assert! }
+          controller = build_controller(allow: :say)
+
+          VCR.use_cassette(:say, erb: generate_cassette_erb(words: "Hello World")) do
+            controller.run
+          end
+
+          expect(controller).to have_received(:say).with("Hello World", voice: "man").once
         end
 
-        context "specified" do
+        it "sets the voice to man" do
           # From: http://www.twilio.com/docs/api/twiml/say
 
           # "The 'voice' attribute allows you to choose
-          # a male or female voice to read text back."
+          # a male voice to read text back."
 
-          let(:cassette) { :say_with_voice }
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Say voice="man">Hello World</Say>
+          # </Response>
 
-          context "'man'" do
-            # From: http://www.twilio.com/docs/api/twiml/say
+          controller = build_controller(allow: :say)
 
-            # "The 'voice' attribute allows you to choose
-            # a male voice to read text back."
-
-            # Note: The behaviour differs here from the behaviour or Twilio.
-            # If the voice attribute is 'man' it will default to
-            # AHN_TWILIO_DEFAULT_MALE_VOICE or config.twilio.default_male_voice
-
-            # <?xml version="1.0" encoding="UTF-8"?>
-            # <Response>
-            #   <Say voice="man">Hello World</Say>
-            # </Response>
-
-            def cassette_options
-              super.merge(:voice => "man")
-            end
-
-            it { run_and_assert! }
+          VCR.use_cassette(:say_with_voice, erb: generate_cassette_erb(voice: "man", words: "Hello World")) do
+            controller.run
           end
 
-          context "'woman'" do
-            # From: http://www.twilio.com/docs/api/twiml/say
+          expect(controller).to have_received(:say).with("Hello World", voice: "man").once
+        end
 
-            # "The 'voice' attribute allows you to choose
-            # a female voice to read text back."
+        it "sets the voice to woman" do
+          # From: http://www.twilio.com/docs/api/twiml/say
 
-            # Note: The behaviour differs here from the behaviour or Twilio.
-            # If the voice attribute is 'woman' it will default to
-            # AHN_TWILIO_DEFAULT_FEMALE_VOICE or config.twilio.default_female_voice
+          # "The 'voice' attribute allows you to choose
+          # a female voice to read text back."
 
-            # <?xml version="1.0" encoding="UTF-8"?>
-            # <Response>
-            #   <Say voice="woman">Hello World</Say>
-            # </Response>
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Say voice="woman">Hello World</Say>
+          # </Response>
 
-            def cassette_options
-              super.merge(:voice => "woman")
-            end
+          controller = build_controller(allow: :say)
 
-            let(:voice) { current_config[:default_female_voice] }
-            it { run_and_assert! }
+          VCR.use_cassette(:say_with_voice, erb: generate_cassette_erb(voice: "woman", words: "Hello World")) do
+            controller.run
           end
+
+          expect(controller).to have_received(:say).with("Hello World", voice: "woman").once
         end
       end
 
-      describe "language (Differs from Twilio)" do
+      describe "language" do
         # From: http://www.twilio.com/docs/api/twiml/say
 
         # The 'language' attribute allows you pick a voice with a
@@ -155,7 +127,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # The language option is not yet supported in adhearsion-twilio
         # so the option is ignored
 
-        context "not specified" do
+        it "does not set the language by default" do
           # From: http://www.twilio.com/docs/api/twiml/say
 
           # "The default is English with an American accent (en)."
@@ -165,32 +137,23 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           #    <Say>Hello World</Say>
           # </Response>
 
-          it { run_and_assert! }
+          controller = build_controller(allow: :say)
+
+          VCR.use_cassette(:say, erb: generate_cassette_erb(words: "Hello World")) do
+            controller.run
+          end
+
+          expect(controller).to have_received(:say).with("Hello World", hash_not_including(:language)).once
         end
 
-        context "specified" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+        it "ignores the language when specifying the language attribute" do
+          controller = build_controller(allow: :say)
 
-          # "The 'language' attribute allows you pick a voice with a
-          # specific language's accent and pronunciations."
-
-          let(:cassette) { :say_with_language }
-
-          def cassette_options
-            super.merge(:language => language)
+          VCR.use_cassette(:say_with_language, erb: generate_cassette_erb(language: "de", words: "Hello World")) do
+            controller.run
           end
 
-          context 'de' do
-            # Twilio currently supports German (de)
-
-            # <?xml version="1.0" encoding="UTF-8" ?>
-            # <Response>
-            #    <Say language="de">Hello World</Say>
-            # </Response>
-
-            let(:language) { "de" }
-            it { run_and_assert! }
-          end
+          expect(controller).to have_received(:say).with("Hello World", hash_not_including(:language)).once
         end
       end
 
@@ -201,7 +164,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # The default is once.
         # Specifying '0' will cause the <Say> verb to loop until the call is hung up.
 
-        context "not specified" do
+        it "plays only once by default" do
           # From: http://www.twilio.com/docs/api/twiml/say
 
           # "The default is once."
@@ -211,54 +174,52 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           #    <Say>Hello World</Say>
           # </Response>
 
-          it { run_and_assert! }
+          controller = build_controller(allow: :say)
+
+          VCR.use_cassette(:say, erb: generate_cassette_erb(words: "Hello World")) do
+            controller.run
+          end
+
+          expect(controller).to have_received(:say).with("Hello World", any_args).once
         end
 
-        context "specified" do
+        it "loops until hung up if 0 is specified" do
+          # From: http://www.twilio.com/docs/api/twiml/say
+
+          # Specifying '0' will cause the <Say> verb to loop until the call is hung up.
+
+          # <?xml version="1.0" encoding="UTF-8" ?>
+          # <Response>
+          #   <Say loop="0">Hello World</Say>
+          # </Response>
+
+          controller = build_controller(allow: :say)
+          allow(controller).to receive(:loop).and_return(20.times)
+
+          VCR.use_cassette(:say_with_loop, erb: generate_cassette_erb(loop: "0", words: "Hello World")) do
+            controller.run
+          end
+
+          expect(controller).to have_received(:say).with("Hello World", any_args).exactly(20).times
+        end
+
+        it "loops n times when n is specified" do
           # From: http://www.twilio.com/docs/api/twiml/say
 
           # "The 'loop' attribute specifies how many times you'd like the text repeated."
 
-          let(:cassette) { :say_with_loop }
+          # <?xml version="1.0" encoding="UTF-8" ?>
+          # <Response>
+          #   <Say loop="5">Hello World</Say>
+          # </Response>
 
-          def cassette_options
-            super.merge(:loop => loop)
+          controller = build_controller(allow: :say)
+
+          VCR.use_cassette(:say_with_loop, erb: generate_cassette_erb(loop: "5", words: "Hello World")) do
+            controller.run
           end
 
-          context "'0'" do
-            # From: http://www.twilio.com/docs/api/twiml/say
-
-            # Specifying '0' will cause the <Say> verb to loop until the call is hung up.
-
-            def setup_scenario
-              stub_infinite_loop
-            end
-
-            let(:loop) { "0" }
-            let(:asserted_verb_num_runs) { infinity }
-
-            # <?xml version="1.0" encoding="UTF-8" ?>
-            # <Response>
-            #   <Say loop="0">Hello World</Say>
-            # </Response>
-            it { run_and_assert! }
-          end
-
-          context "'5'" do
-            # From: http://www.twilio.com/docs/api/twiml/say
-
-            # "The 'loop' attribute specifies how many times you'd like the text repeated."
-
-            let(:loop) { "5" }
-            let(:asserted_verb_num_runs) { 5 }
-
-            # <?xml version="1.0" encoding="UTF-8" ?>
-            # <Response>
-            #   <Say loop="5">Hello World</Say>
-            # </Response>
-
-            it { run_and_assert! }
-          end
+          expect(controller).to have_received(:say).with("Hello World", any_args).exactly(5).times
         end
       end
     end
