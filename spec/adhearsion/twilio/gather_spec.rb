@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Gather>" do
-    # From: http://www.twilio.com/docs/api/twiml/gather
+    # From: https://www.twilio.com/docs/api/twiml/gather
 
     # The <Gather> verb collects digits that a caller enters into
     # his or her telephone keypad. When the caller is done entering data,
@@ -20,7 +20,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:cassette) { :gather }
     let(:asserted_verb) { :ask }
     let(:asserted_verb_args) { [any_args] }
-    let(:ask_result) { instance_double(Adhearsion::CallController::Input::Result, :status => :noinput) }
+    let(:ask_result) { instance_double(Adhearsion::CallController::Input::Result, status: :noinput) }
     let(:digits) { "32" }
 
     def stub_ask_result(options = {})
@@ -38,7 +38,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     describe "Nested Verbs" do
       context "none" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # This is the simplest case for a <Gather>.
         # When Twilio executes this TwiML the application will pause for up to five seconds,
@@ -59,7 +59,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # context "none"
 
       context "<Say>" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # "After the caller enters digits on the keypad,
         # Twilio sends them in a request to the current URL.
@@ -68,7 +68,6 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
         context "Verb Attributes" do
           context "'voice''" do
-
             # <?xml version="1.0" encoding="UTF-8"?>
             # <Response>
             #   <Gather>
@@ -79,7 +78,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:cassette) { :gather_say }
-            let(:asserted_verb_args) { [words, hash_including(:voice => current_config[:default_female_voice])] }
+            let(:asserted_verb_args) { [words, any_args] }
 
             def setup_scenario
               super
@@ -87,7 +86,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             end
 
             def cassette_options
-              super.merge(:language => "de", :voice => "woman")
+              super.merge(language: "de", voice: "woman")
             end
 
             it { run_and_assert! }
@@ -98,7 +97,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             let(:asserted_verb_args) { [*([words] * asserted_loop), any_args] }
 
             def cassette_options
-              super.merge(:loop => loop)
+              super.merge(loop: loop)
             end
 
             context "'0' (Differs from Twilio)" do
@@ -141,7 +140,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # context "<Say>"
 
       context "<Play>" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # "After the caller enters digits on the keypad,
         # Twilio sends them in a request to the current URL.
@@ -151,7 +150,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         let(:cassette) { :gather_play }
 
         describe "Verb Attributes" do
-          # From: http://www.twilio.com/docs/api/twiml/play
+          # From: https://www.twilio.com/docs/api/twiml/play
 
           # The <Play> verb supports the following attributes that modify its behavior:
 
@@ -161,7 +160,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:asserted_verb_args) { [file_url, any_args] }
 
           def cassette_options
-            super.merge(:file_url => file_url)
+            super.merge(file_url: file_url)
           end
 
           describe "none" do
@@ -178,7 +177,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end
 
           describe "'loop'" do
-            # From: http://www.twilio.com/docs/api/twiml/play
+            # From: https://www.twilio.com/docs/api/twiml/play
 
             # The 'loop' attribute specifies how many times the audio file is played.
             # The default behavior is to play the audio once.
@@ -188,12 +187,12 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             let(:asserted_verb_args) { [*([file_url] * asserted_loop), any_args] }
 
             def cassette_options
-              super.merge(:loop => loop)
+              super.merge(loop: loop)
             end
 
             context "specified" do
               context "'0' (Differs from Twilio)" do
-                # From: http://www.twilio.com/docs/api/twiml/play
+                # From: https://www.twilio.com/docs/api/twiml/play
 
                 # "Specifying '0' will cause the the <Play> verb to loop until the call is hung up."
 
@@ -215,7 +214,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
               end # context "'0'"
 
               context "'5'" do
-                # From: http://www.twilio.com/docs/api/twiml/play
+                # From: https://www.twilio.com/docs/api/twiml/play
 
                 # "The 'loop' attribute specifies how many times the audio file is played."
 
@@ -234,7 +233,6 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             end # context "specified"
           end # describe "'loop'"
         end # describe "Verb Attributes"
-
       end # context "<Play>"
 
       context "<Pause>" do
@@ -242,7 +240,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end # content "Nested Verbs"
 
     describe "Verb Attributes" do
-      # From: http://www.twilio.com/docs/api/twiml/gather
+      # From: https://www.twilio.com/docs/api/twiml/gather
 
       # The <Gather> verb supports the following attributes that modify its behavior:
 
@@ -254,7 +252,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | numDigits      | integer >= 1             | unlimited            |
 
       describe "'action'" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # The 'action' attribute takes an absolute or relative URL as a value.
         # When the caller has finished entering digits
@@ -289,7 +287,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # "If no 'action' is provided, Twilio will by default make a
           # POST request to the current document's URL."
@@ -336,14 +334,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           #   <Gather action="../relative_endpoint.xml"/>
           # </Response>
 
-          it_should_behave_like "a TwiML 'action' attribute" do
+          it_behaves_like "a TwiML 'action' attribute" do
             let(:cassette) { :gather_with_action }
           end
         end # context "specified"
       end # describe "action"
 
       describe "'method'" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # The 'method' attribute takes the value 'GET' or 'POST'.
         # This tells Twilio whether to request the 'action' URL via HTTP GET or POST.
@@ -372,14 +370,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           stub_ask_result
         end
 
-        it_should_behave_like "a TwiML 'method' attribute" do
+        it_behaves_like "a TwiML 'method' attribute" do
           let(:without_method_cassette) { :gather_with_action }
           let(:with_method_cassette) { :gather_with_action_and_method }
         end
       end # describe "'method'"
 
       describe "'timeout'" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # The 'timeout' attribute sets the limit in seconds that Twilio
         # will wait for the caller to press another digit before moving on
@@ -390,14 +388,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # Twilio waits until completing the execution of all nested verbs
         # before beginning the timeout period.
 
-        let(:asserted_verb_args) { [any_args, hash_including(:timeout => asserted_timeout.seconds)] }
+        let(:asserted_verb_args) { [any_args, hash_including(timeout: asserted_timeout.seconds)] }
 
         context "behaviour" do
           let(:asserted_verb_args) { [any_args] }
           let(:cassette) { :gather_with_result }
 
           context "occurs" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # "If no input is received before timeout, <Gather>
             # falls through to the next verb in the TwiML document."
@@ -417,7 +415,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
             def setup_scenario
               super
-              stub_ask_result(:response => "", :status => :timeout)
+              stub_ask_result(response: "", status: :timeout)
             end
 
             def assert_call_controller_assertions!
@@ -453,7 +451,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # context "behaviour"
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # | Attribute Name | Allowed Values           | Default Value        |
           # | timeout        | positive integer         | 5 seconds            |
@@ -469,7 +467,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # context "not specified"
 
         context "specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # The 'timeout' attribute sets the limit in seconds that Twilio
           # will wait for the caller to press another digit before moving on
@@ -478,11 +476,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :gather_with_timeout }
 
           def cassette_options
-            super.merge(:timeout => timeout)
+            super.merge(timeout: timeout)
           end
 
           context "'10'" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # "For example, if 'timeout' is '10', Twilio will wait ten seconds
             # for the caller to press another key before submitting the previously
@@ -502,7 +500,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # describe "'timeout'"
 
       describe "'finishOnKey'" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # The 'finishOnKey' attribute lets you choose one value that submits
         # the received data when entered.
@@ -518,12 +516,12 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # after the timeout has been reached.
         # The default 'finishOnKey' value is '#'. The value can only be a single character.
 
-        let(:asserted_verb_params) { hash_including(:terminator => asserted_terminator) }
+        let(:asserted_verb_params) { hash_including(terminator: asserted_terminator) }
         let(:asserted_verb_args) { [any_args, asserted_verb_params] }
 
         context "behaviour" do
           context "finishOnKey pressed with no digits entered (Differs from Twilio)" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # If the caller enters the 'finishOnKey' value before entering any other digits,
             # Twilio will not make a request to the 'action' URL but instead
@@ -543,7 +541,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # context "behaviour"
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # | Attribute Name | Allowed Values           | Default Value        |
           # | finishOnKey    | any digit, #, *          | #                    |
@@ -560,11 +558,12 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           # </Response>
 
           let(:asserted_terminator) { "#" }
+
           it { run_and_assert! }
         end # context "not specified"
 
         context "specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # "The 'finishOnKey' attribute lets you choose one value that submits
           # the received data when entered."
@@ -572,11 +571,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :gather_with_finish_on_key }
 
           def cassette_options
-            super.merge(:finish_on_key => finish_on_key)
+            super.merge(finish_on_key: finish_on_key)
           end
 
           context "''" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # "(set 'finishOnKey' to '')"
 
@@ -590,14 +589,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             #   <Gather finishOnKey=""/>
             # </Response>
 
-            let(:finish_on_key) { '' }
+            let(:finish_on_key) { "" }
             let(:asserted_verb_params) { hash_excluding(:terminator) }
 
             it { run_and_assert! }
           end # context "empty string"
 
           context "'*'" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # | Attribute Name | Allowed Values           | Default Value        |
             # | finishOnKey    | any digit, #, *          | #                    |
@@ -614,14 +613,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             #   <Gather finishOnKey="*"/>
             # </Response>
 
-            let(:finish_on_key) { '*' }
+            let(:finish_on_key) { "*" }
             let(:asserted_terminator) { "*" }
 
             it { run_and_assert! }
           end # context "'*'"
 
           context "'#'" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # | Attribute Name | Allowed Values           | Default Value        |
             # | finishOnKey    | any digit, #, *          | #                    |
@@ -638,14 +637,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             #   <Gather finishOnKey="#"/>
             # </Response>
 
-            let(:finish_on_key) { '#' }
+            let(:finish_on_key) { "#" }
             let(:asserted_terminator) { "#" }
 
             it { run_and_assert! }
           end # context "'#'"
 
           context "'0'" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # | Attribute Name | Allowed Values           | Default Value        |
             # | finishOnKey    | any digit, #, *          | #                    |
@@ -662,7 +661,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             #   <Gather finishOnKey="#"/>
             # </Response>
 
-            let(:finish_on_key) { '0' }
+            let(:finish_on_key) { "0" }
             let(:asserted_terminator) { "0" }
 
             it { run_and_assert! }
@@ -671,7 +670,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # describe "'finishOnKey'"
 
       describe "'numDigits'" do
-        # From: http://www.twilio.com/docs/api/twiml/gather
+        # From: https://www.twilio.com/docs/api/twiml/gather
 
         # The 'numDigits' attribute lets you set the number of digits you are expecting,
         # and submits the data to the 'action' URL once the caller enters that number of digits.
@@ -679,11 +678,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # to enter a 5 digit zip code. When the caller enters the fifth digit of '94117',
         # Twilio will immediately submit the data to the 'action' URL.
 
-        let(:asserted_verb_params) { hash_including(:limit => asserted_limit) }
+        let(:asserted_verb_params) { hash_including(limit: asserted_limit) }
         let(:asserted_verb_args) { [any_args, asserted_verb_params] }
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # | Attribute Name | Allowed Values           | Default Value        |
           # | numDigits      | integer >= 1             | unlimited            |
@@ -699,7 +698,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # context "not specified"
 
         context "specified" do
-          # From: http://www.twilio.com/docs/api/twiml/gather
+          # From: https://www.twilio.com/docs/api/twiml/gather
 
           # "The 'numDigits' attribute lets you set the number of digits you are expecting,
           # and submits the data to the 'action' URL once the caller enters that number of digits."
@@ -707,11 +706,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :gather_with_num_digits }
 
           def cassette_options
-            super.merge(:num_digits => num_digits)
+            super.merge(num_digits: num_digits)
           end
 
           context "'5'" do
-            # From: http://www.twilio.com/docs/api/twiml/gather
+            # From: https://www.twilio.com/docs/api/twiml/gather
 
             # "For example, one might set 'numDigits' to '5' and ask the caller
             # to enter a 5 digit zip code. When the caller enters the fifth digit of '94117',

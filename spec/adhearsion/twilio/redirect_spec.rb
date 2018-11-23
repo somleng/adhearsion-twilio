@@ -1,16 +1,15 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Redirect>" do
-    # From: http://www.twilio.com/docs/api/twiml/redirect
+    # From: https://www.twilio.com/docs/api/twiml/redirect
 
     # The <Redirect> verb transfers control of a call to the TwiML at a different URL.
     # All verbs after <Redirect> are unreachable and ignored.
 
     let(:cassette) { :redirect }
 
-    def assert_call_controller_assertions!
-    end
+    def assert_call_controller_assertions!; end
 
     describe "Nouns" do
       # The "noun" of a TwiML verb is the stuff nested within the verb that's not a verb itself;
@@ -45,14 +44,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         #   <Redirect>../relative_endpoint.xml</Redirect>
         # </Response>
 
-        it_should_behave_like "a TwiML 'action' attribute" do
+        it_behaves_like "a TwiML 'action' attribute" do
           let(:cassette) { :redirect_with_action }
         end
       end
     end # describe "Nouns"
 
     describe "Verb Attributes" do
-      # From: http://www.twilio.com/docs/api/twiml/redirect
+      # From: https://www.twilio.com/docs/api/twiml/redirect
 
       # The <Redirect> verb supports the following attributes that modify its behavior:
 
@@ -60,7 +59,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | method         | GET, POST      | POST          |
 
       describe "'method'" do
-        # From: http://www.twilio.com/docs/api/twiml/redirect
+        # From: https://www.twilio.com/docs/api/twiml/redirect
 
         # The 'method' attribute takes the value 'GET' or 'POST'.
         # This tells Twilio whether to request the <Redirect> URL via HTTP GET or POST.
@@ -83,7 +82,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         #   <Redirect method="POST">"http://localhost:3000/some_other_endpoint.xml"</Redirect>
         # </Response>
 
-        it_should_behave_like "a TwiML 'method' attribute" do
+        it_behaves_like "a TwiML 'method' attribute" do
           let(:without_method_cassette) { :redirect_with_action }
           let(:with_method_cassette) { :redirect_with_action_and_method }
         end

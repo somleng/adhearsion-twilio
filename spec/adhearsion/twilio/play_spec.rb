@@ -1,9 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
-
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Play>" do
-    # From: http://www.twilio.com/docs/api/twiml/play
+    # From: https://www.twilio.com/docs/api/twiml/play
 
     # "The <Play> verb plays an audio file back to the caller.
     # Twilio retrieves the file from a URL that you provide."
@@ -17,7 +16,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end
 
     def cassette_options
-      super.merge(:file_url => file_url)
+      super.merge(file_url: file_url)
     end
 
     before do
@@ -25,7 +24,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end
 
     describe "Nouns" do
-      # From: http://www.twilio.com/docs/api/twiml/play
+      # From: https://www.twilio.com/docs/api/twiml/play
 
       # The "noun" of a TwiML verb is the stuff nested within the verb
       # that's not a verb itself; it's the stuff the verb acts upon.
@@ -60,7 +59,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end # describe "Nouns"
 
     describe "Verb Attributes" do
-      # From: http://www.twilio.com/docs/api/twiml/play
+      # From: https://www.twilio.com/docs/api/twiml/play
 
       # The <Play> verb supports the following attributes that modify its behavior:
 
@@ -68,14 +67,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | loop           | integer >= 0   | 1             |
 
       describe "'loop'" do
-        # From: http://www.twilio.com/docs/api/twiml/play
+        # From: https://www.twilio.com/docs/api/twiml/play
 
         # The 'loop' attribute specifies how many times the audio file is played.
         # The default behavior is to play the audio once.
         # Specifying '0' will cause the the <Play> verb to loop until the call is hung up.
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/play
+          # From: https://www.twilio.com/docs/api/twiml/play
 
           # "The default behavior is to play the audio once."
 
@@ -91,11 +90,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :play_with_loop }
 
           def cassette_options
-            super.merge(:loop => loop)
+            super.merge(loop: loop)
           end
 
           context "'0'" do
-            # From: http://www.twilio.com/docs/api/twiml/play
+            # From: https://www.twilio.com/docs/api/twiml/play
 
             # "Specifying '0' will cause the the <Play> verb to loop until the call is hung up."
 
@@ -116,7 +115,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end # context "'0'"
 
           context "'5'" do
-            # From: http://www.twilio.com/docs/api/twiml/play
+            # From: https://www.twilio.com/docs/api/twiml/play
 
             # "The 'loop' attribute specifies how many times the audio file is played."
 

@@ -18,3 +18,4 @@ tmp
 vendor/ruby
 remove_focus.rb
 .ruby-version
+examples.txt

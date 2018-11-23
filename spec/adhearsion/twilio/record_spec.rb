@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Record>" do
-    # From: http://www.twilio.com/docs/api/twiml/record
+    # From: https://www.twilio.com/docs/api/twiml/record
 
     # The <Record> verb records the caller's voice and returns to you the URL of a file containing
     # the audio recording. You can optionally generate text transcriptions of recorded calls
@@ -21,39 +21,39 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:recording_uri) { "file://abcd.wav" }
     let(:rest_api_phone_call_event_recording_url) { "https://somleng.org/Recording/12345" }
 
-    let(:recording) {
+    let(:recording) do
       instance_double(
         "Adhearsion::Rayo::Component::Record::Recording",
-        :duration => recording_duration,
-        :uri => recording_uri
+        duration: recording_duration,
+        uri: recording_uri
       )
-    }
+    end
 
-    let(:record_component) {
+    let(:record_component) do
       instance_double(
         "Adhearsion::Rayo::Component::Record",
-        :recording => recording
+        recording: recording
       )
-    }
+    end
 
-    let(:recording_started_event) {
+    let(:recording_started_event) do
       instance_double(
         "Adhearsion::Twilio::Event::RecordingStarted"
       )
-    }
+    end
 
-    let(:rest_api_phone_call_event) {
+    let(:rest_api_phone_call_event) do
       instance_double(
         "Adhearsion::Twilio::RestApi::PhoneCallEvent",
-        :notify! => nil,
-        :notify_response => notify_response
+        notify!: nil,
+        notify_response: notify_response
       )
-    }
+    end
 
-    let(:notify_response) {
+    let(:notify_response) do
       # cannot use instance double here because of method_missing
       double("HTTParty::Response")
-    }
+    end
 
     # 1. Original TwiML request (zero recording duration)
     let(:asserted_requests_count) { 1 }
@@ -62,7 +62,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:call_id) { "call-id" }
 
     def call_params
-      super.merge(:id => call_id)
+      super.merge(id: call_id)
     end
 
     def asserted_event_params
@@ -71,10 +71,10 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     def asserted_verb_options
       {
-        :start_beep => asserted_start_beep,
-        :final_timeout => asserted_final_timeout,
-        :interruptible => asserted_interruptible,
-        :max_duration => asserted_max_duration
+        start_beep: asserted_start_beep,
+        final_timeout: asserted_final_timeout,
+        interruptible: asserted_interruptible,
+        max_duration: asserted_max_duration
       }
     end
 
@@ -85,7 +85,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     def assert_verb!
       super
       expect(Adhearsion::Twilio::Event::RecordingStarted).to receive(:new).with(call_id, hash_including(asserted_event_params))
-      expect(Adhearsion::Twilio::RestApi::PhoneCallEvent).to receive(:new).with(hash_including(:event => recording_started_event))
+      expect(Adhearsion::Twilio::RestApi::PhoneCallEvent).to receive(:new).with(hash_including(event: recording_started_event))
       expect(rest_api_phone_call_event).to receive(:notify!)
     end
 
@@ -108,7 +108,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     it { run_and_assert! }
 
     describe "Verb Attributes" do
-      # From: http://www.twilio.com/docs/api/twiml/record
+      # From: https://www.twilio.com/docs/api/twiml/record
 
       # The <Record> verb supports the following attributes that modify its behavior:
 
@@ -189,7 +189,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             let(:cassette) { :record_with_result }
 
             def cassette_options
-              super.merge(:redirect_url => current_config[:voice_request_url])
+              super.merge(redirect_url: current_config[:voice_request_url])
             end
 
             # From: https://www.twilio.com/docs/api/twiml/record#attributes-action
@@ -239,7 +239,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             #   <Record action="../relative_endpoint.xml"/>
             # </Response>
 
-            it_should_behave_like "a TwiML 'action' attribute"
+            it_behaves_like "a TwiML 'action' attribute"
           end
         end
 
@@ -291,7 +291,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         #   <Record method="POST"/>
         # </Response>
 
-        it_should_behave_like "a TwiML 'method' attribute" do
+        it_behaves_like "a TwiML 'method' attribute" do
           let(:without_method_cassette) { :record_with_action }
           let(:with_method_cassette) { :record_with_action_and_method }
         end
@@ -323,7 +323,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :record_with_timeout }
 
           def cassette_options
-            super.merge(:timeout => timeout)
+            super.merge(timeout: timeout)
           end
 
           context "'10'" do
@@ -336,6 +336,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
             let(:timeout) { 10 }
             let(:asserted_final_timeout) { timeout }
+
             it { run_and_assert! }
           end
         end
@@ -363,7 +364,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :record_with_play_beep }
 
           def cassette_options
-            super.merge(:play_beep => play_beep)
+            super.merge(play_beep: play_beep)
           end
 
           context "'true'" do
@@ -375,6 +376,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:play_beep) { true }
+
             it { run_and_assert! }
           end
 
@@ -388,6 +390,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
             let(:play_beep) { false }
             let(:asserted_start_beep) { false }
+
             it { run_and_assert! }
           end
         end
@@ -420,7 +423,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :record_with_finish_on_key }
 
           def cassette_options
-            super.merge(:finish_on_key => finish_on_key)
+            super.merge(finish_on_key: finish_on_key)
           end
 
           context "'*'" do
@@ -432,12 +435,13 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:finish_on_key) { "*" }
+
             it { run_and_assert! }
           end
         end
       end # describe "'finishOnKey'"
 
-      describe "'maxLength'", :focus do
+      describe "'maxLength'" do
         # From: https://www.twilio.com/docs/api/twiml/record#attributes-maxlength
 
         # The 'maxLength' attribute lets you set the maximum length
@@ -462,7 +466,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :record_with_max_length }
 
           def cassette_options
-            super.merge(:max_length => max_length)
+            super.merge(max_length: max_length)
           end
 
           context "'0'" do
@@ -474,6 +478,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:max_length) { "0" }
+
             it { run_and_assert! }
           end
 
@@ -487,6 +492,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
             let(:asserted_max_duration) { max_length.to_i }
             let(:max_length) { "10" }
+
             it { run_and_assert! }
           end
         end
@@ -541,7 +547,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end
 
           def cassette_options
-            super.merge(:recording_status_callback => recording_status_callback)
+            super.merge(recording_status_callback: recording_status_callback)
           end
 
           context "absolute url" do
@@ -554,6 +560,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
             let(:recording_status_callback) { "https://somleng.org/recording_status_callback" }
             let(:asserted_recording_status_callback) { recording_status_callback }
+
             it { run_and_assert! }
           end
 
@@ -566,9 +573,9 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:recording_status_callback) { "/recording_status_callback" }
-            let(:asserted_recording_status_callback) {
+            let(:asserted_recording_status_callback) do
               URI.join(default_config[:voice_request_url], recording_status_callback).to_s
-            }
+            end
 
             it { run_and_assert! }
           end
@@ -587,7 +594,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # describe "'recordingStatusCallback'"
 
       describe "'recordingStatusCallbackMethod'" do
-        #From: https://www.twilio.com/docs/api/twiml/record#attributes-recording-status-callback-method
+        # From: https://www.twilio.com/docs/api/twiml/record#attributes-recording-status-callback-method
 
         # This attribute indicates which HTTP method to use when
         # requesting 'recordingStatusCallback'. It defaults to 'POST'.
@@ -608,7 +615,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end
 
           def cassette_options
-            super.merge(:recording_status_callback_method => recording_status_callback_method)
+            super.merge(recording_status_callback_method: recording_status_callback_method)
           end
 
           it { run_and_assert! }

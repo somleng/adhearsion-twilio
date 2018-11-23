@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Hangup>" do
-    # From: http://www.twilio.com/docs/api/twiml/hangup
+    # From: https://www.twilio.com/docs/api/twiml/hangup
 
     # The <Hangup> verb ends a call.
     # If used as the first verb in a TwiML response it
