@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Dial>" do
-    # From: http://www.twilio.com/docs/api/twiml/dial
+    # From: https://www.twilio.com/docs/api/twiml/dial
 
     # The <Dial> verb connects the current caller to another phone.
     # If the called party picks up, the two parties are connected and can
@@ -18,14 +18,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     let(:cassette) { :dial }
     let(:asserted_verb) { :dial }
     let(:asserted_verb_args) { [number_to_dial, hash_including(asserted_verb_options)] }
-    let(:dial_status) { instance_double(Adhearsion::CallController::DialStatus, :result => :answer ) }
+    let(:dial_status) { instance_double(Adhearsion::CallController::DialStatus, result: :answer) }
 
     def stub_dial_status(status)
       allow(dial_status).to receive(:result).and_return(status)
     end
 
     def cassette_options
-      super.merge(:to => number_to_dial)
+      super.merge(to: number_to_dial)
     end
 
     def setup_scenario
@@ -38,7 +38,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
     end
 
     describe "Nouns" do
-      # From: http://www.twilio.com/docs/api/twiml/dial
+      # From: https://www.twilio.com/docs/api/twiml/dial
 
       # "The "noun" of a TwiML verb is the stuff nested within the verb that's not a verb itself;
       # it's the stuff the verb acts upon. These are the nouns for <Dial>:"
@@ -54,8 +54,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | <Queue>      | A nested XML element identifying a queue                          |
       # |              | that this call should be connected to.                            |
 
-      context "plain text"  do
-
+      context "plain text" do
         # <?xml version="1.0" encoding="UTF-8"?>
         # <Response>
         #   <Dial>+415-123-4567</Dial>
@@ -65,7 +64,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # context "plain text"
 
       context "<Number> (Differs from Twilio)" do
-        # From: http://www.twilio.com/docs/api/twiml/dial
+        # From: https://www.twilio.com/docs/api/twiml/dial
 
         # The <Number> noun allows you to <Dial> another number while
         # specifying additional behavior pertaining to that number.
@@ -73,7 +72,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # See the documentation on the <Number> noun for a
         # detailed walkthrough of how to use it.
 
-        # From: http://www.twilio.com/docs/api/twiml/number
+        # From: https://www.twilio.com/docs/api/twiml/number
 
         # The <Dial> verb's <Number> noun specifies a phone number to dial.
         # Using the noun's attributes you can specify particular behaviors that
@@ -87,11 +86,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         let(:asserted_verb_args) { [asserted_dial_args, any_args] }
 
         def cassette_options
-          super.merge(:numbers => numbers)
+          super.merge(numbers: numbers)
         end
 
         describe "Noun Attributes" do
-          # From: http://www.twilio.com/docs/api/twiml/number
+          # From: https://www.twilio.com/docs/api/twiml/number
 
           # Noun Attributes
 
@@ -107,7 +106,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           # e.g., (415) 555-1212 or 415-555-1212.
 
           describe "none" do
-            # From: http://www.twilio.com/docs/api/twiml/number
+            # From: https://www.twilio.com/docs/api/twiml/number
 
             # In this case we use several <Number> tags to dial three phone numbers
             # at the same time.
@@ -146,25 +145,25 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response>
 
             let(:cassette) { :dial_number_with_caller_id }
-            let(:asserted_dial_args) {
+            let(:asserted_dial_args) do
               {
-                "858-987-6543" => {:from => "2442"},
-                "415-123-4567" => {:from => "2443"},
+                "858-987-6543" => { from: "2442" },
+                "415-123-4567" => { from: "2443" },
                 "619-765-4321" => {}
               }
-            }
+            end
 
             let(:numbers) { asserted_dial_args }
 
             def cassette_options
-              super.merge(:caller_id => "2441")
+              super.merge(caller_id: "2441")
             end
 
             it { run_and_assert! }
           end # describe "'callerId'"
 
           describe "'sendDigits'" do
-            # From: http://www.twilio.com/docs/api/twiml/number
+            # From: https://www.twilio.com/docs/api/twiml/number
 
             # sendDigits
 
@@ -197,7 +196,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end # describe "'sendDigits'"
 
           describe "'url'" do
-            # From: http://www.twilio.com/docs/api/twiml/number
+            # From: https://www.twilio.com/docs/api/twiml/number
 
             # url
 
@@ -215,7 +214,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           end # describe "'url'"
 
           describe "'method'" do
-            # From: http://www.twilio.com/docs/api/twiml/number
+            # From: https://www.twilio.com/docs/api/twiml/number
 
             # method
 
@@ -229,13 +228,13 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       end # context "<Number>"
 
       context "<Sip>" do
-        # From: http://www.twilio.com/docs/api/twiml/sip
+        # From: https://www.twilio.com/docs/api/twiml/sip
 
         describe "Noun Attributes" do
-          # From: http://www.twilio.com/docs/api/twiml/sip
+          # From: https://www.twilio.com/docs/api/twiml/sip
 
           describe "none" do
-            # From: http://www.twilio.com/docs/api/twiml/sip
+            # From: https://www.twilio.com/docs/api/twiml/sip
 
             # <?xml version="1.0" encoding="UTF-8"?>
             # <Response>
@@ -249,7 +248,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             let(:cassette) { :dial_sip }
 
             def cassette_options
-              super.merge(:sip_string => "sip:jack@example.com")
+              super.merge(sip_string: "sip:jack@example.com")
             end
 
             def assert_call_controller_assertions!
@@ -276,7 +275,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | record       | true, false                                | false                      |
 
       describe "'action'" do
-        # From: http://www.twilio.com/docs/api/twiml/dial
+        # From: https://www.twilio.com/docs/api/twiml/dial
 
         # The 'action' attribute takes a URL as an argument.
         # When the dialed call ends, Twilio will make a GET or POST request to
@@ -297,7 +296,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # Instead the call flow falls through to the next TwiML verb.
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/dial
+          # From: https://www.twilio.com/docs/api/twiml/dial
 
           # If no 'action' is provided, <Dial> will finish and Twilio will move on
           # to the next TwiML verb in the document. If there is no next verb,
@@ -331,7 +330,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # context "not specified"
 
         context "specified" do
-          # From: http://www.twilio.com/docs/api/twiml/dial
+          # From: https://www.twilio.com/docs/api/twiml/dial
 
           # The 'action' attribute takes a URL as an argument.
           # When the dialed call ends, Twilio will make a GET or POST
@@ -389,27 +388,27 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:request_params) { WebMock.request_params(request) }
 
           def cassette_options
-            super.merge(:action => redirect_url, :redirect_url => redirect_url)
+            super.merge(action: redirect_url, redirect_url: redirect_url)
           end
 
-          it_should_behave_like "a TwiML 'action' attribute"
+          it_behaves_like "a TwiML 'action' attribute"
 
           context "the call was joined" do
             let(:outbound_call) { create_outbound_call }
-            let(:outbound_call_joins_status) {
-              create_joins_status(:result => :no_answer)
-            }
+            let(:outbound_call_joins_status) do
+              create_joins_status(result: :no_answer)
+            end
 
             let(:dial_status_result) { :answer }
             let(:joined_outbound_call_sid) { "481f77b9-a95b-4c6a-bbb1-23afcc42c959" }
 
-            let(:joined_outbound_call) {
-              create_outbound_call(:id => joined_outbound_call_sid)
-            }
+            let(:joined_outbound_call) do
+              create_outbound_call(id: joined_outbound_call_sid)
+            end
 
-            let(:joined_outbound_call_joins_status) {
-              create_joins_status(:result => :joined, :duration => 23.7)
-            }
+            let(:joined_outbound_call_joins_status) do
+              create_joins_status(result: :joined, duration: 23.7)
+            end
 
             def create_outbound_call(options = {})
               instance_double(Adhearsion::OutboundCall, options)
@@ -445,10 +444,10 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           context "Adhearsion::CallController::DialStatus#result returns" do
             # Adhearsion -> Twilio dial statuses:
             ahn_twilio_dial_statuses = {
-              :no_answer => "no-answer",
-              :answer => "completed",
-              :timeout => "no-answer",
-              :error => "failed"
+              no_answer: "no-answer",
+              answer: "completed",
+              timeout: "no-answer",
+              error: "failed"
             }
 
             ahn_twilio_dial_statuses.each do |ahn_status, twilio_status|
@@ -476,11 +475,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
               end # context "ahn_status"
             end # ahn_twilio_dial_statuses loop
           end # context "Adhearsion::CallController::DialStatus#result returns"
-        end  # context "specified"
+        end # context "specified"
       end # describe "'action'"
 
       describe "'method'" do
-        # From: http://www.twilio.com/docs/api/twiml/dial
+        # From: https://www.twilio.com/docs/api/twiml/dial
 
         # The 'method' attribute takes the value 'GET' or 'POST'.
         # This tells Twilio whether to request the 'action' URL via HTTP GET or POST.
@@ -510,14 +509,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         #   </Dial>
         # </Response
 
-        it_should_behave_like "a TwiML 'method' attribute" do
+        it_behaves_like "a TwiML 'method' attribute" do
           let(:without_method_cassette) { :dial_with_action }
           let(:with_method_cassette) { :dial_with_action_and_method }
         end
       end # describe "'method'"
 
       describe "'callerId'" do
-        # From: http://www.twilio.com/docs/api/twiml/dial
+        # From: https://www.twilio.com/docs/api/twiml/dial
 
         # The 'callerId' attribute lets you specify the caller ID that will appear
         # to the called party when Twilio calls. By default,
@@ -549,7 +548,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # |           | if you are dialing a <Client>.             |                   |
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/dial
+          # From: https://www.twilio.com/docs/api/twiml/dial
 
           # "By default, when you put a <Dial> in your TwiML response to Twilio's
           # inbound call request, the caller ID that the dialed party sees
@@ -564,7 +563,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # context "not specified"
 
         context "specified" do
-          # From: http://www.twilio.com/docs/api/twiml/dial
+          # From: https://www.twilio.com/docs/api/twiml/dial
 
           # You are allowed to change the phone number that the called party
           # sees to one of the following:
@@ -576,11 +575,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :dial_with_caller_id }
 
           def cassette_options
-            super.merge(:caller_id => caller_id)
+            super.merge(caller_id: caller_id)
           end
 
           def asserted_verb_options
-            {:from => caller_id}
+            { from: caller_id }
           end
 
           context "'2442'" do
@@ -590,13 +589,14 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
             # </Response
 
             let(:caller_id) { "2442" }
+
             it { run_and_assert! }
           end # context "'2442'"
         end # context "specified"
       end # describe "'callerId'"
 
       describe "'timeout'" do
-        # From: http://www.twilio.com/docs/api/twiml/dial
+        # From: https://www.twilio.com/docs/api/twiml/dial
 
         # The 'timeout' attribute sets the limit in seconds that <Dial>
         # waits for the called party to answer the call.
@@ -607,7 +607,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         # | timeout   | positive integer | 30 seconds    |
 
         context "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/dial
+          # From: https://www.twilio.com/docs/api/twiml/dial
 
           # | Attribute | Allowed Values   | Default Value |
           # | timeout   | positive integer | 30 seconds    |
@@ -618,7 +618,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           # </Response
 
           def asserted_verb_options
-            {:for => 30.seconds}
+            { for: 30.seconds }
           end
 
           it { run_and_assert! }
@@ -628,11 +628,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
           let(:cassette) { :dial_with_timeout }
 
           def cassette_options
-            super.merge(:timeout => timeout)
+            super.merge(timeout: timeout)
           end
 
           def asserted_verb_options
-            {:for => timeout.to_i.seconds}
+            { for: timeout.to_i.seconds }
           end
 
           context "'10'" do
@@ -663,11 +663,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         let(:ringback) { "http://api.twilio.com/cowbell.mp3" }
 
         def cassette_options
-          super.merge(:ringback => ringback)
+          super.merge(ringback: ringback)
         end
 
         def asserted_verb_options
-          {:ringback => ringback}
+          { ringback: ringback }
         end
 
         it { run_and_assert! }

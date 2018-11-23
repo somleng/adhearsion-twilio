@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "<Reject>" do
-    # From: http://www.twilio.com/docs/api/twiml/reject
+    # From: https://www.twilio.com/docs/api/twiml/reject
 
     # The <Reject> verb rejects an incoming call to your Twilio number without billing you.
     # This is very useful for blocking unwanted calls.
@@ -40,7 +40,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       # | reason       | busy, rejected | rejected                   |
 
       describe "'reason'" do
-        # From: http://www.twilio.com/docs/api/twiml/reject
+        # From: https://www.twilio.com/docs/api/twiml/reject
 
         # The reason attribute takes the values "rejected" and "busy."
         # This tells Twilio what message to play when rejecting a call.
@@ -52,11 +52,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         let(:cassette) { :reject_with_reason }
 
         def cassette_options
-          super.merge(:reject_reason => reject_reason)
+          super.merge(reject_reason: reject_reason)
         end
 
         describe "not specified" do
-          # From: http://www.twilio.com/docs/api/twiml/reject
+          # From: https://www.twilio.com/docs/api/twiml/reject
 
           # If this attribute's value isn't set, the default is "rejected."
 
@@ -68,7 +68,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # describe "'not specified'"
 
         describe "'busy'" do
-          # From: http://www.twilio.com/docs/api/twiml/reject
+          # From: https://www.twilio.com/docs/api/twiml/reject
 
           # Selecting "busy" will play a busy signal to the caller.
 
@@ -81,11 +81,11 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
         end # describe "'busy'"
 
         describe "'rejected'" do
-          # From: http://www.twilio.com/docs/api/twiml/reject
+          # From: https://www.twilio.com/docs/api/twiml/reject
 
           # Selecting "rejected" will play a standard not-in-service response.
 
-          let(:reject_reason) {  "rejected" }
+          let(:reject_reason) { "rejected" }
           let(:asserted_reject_reason) { :decline }
 
           xit "should play a standard not-in-service response"

@@ -1,6 +1,6 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "https://demo.twilio.com/docs/voice.xml" do
     let(:cassette) { "demo.twilio.com/docs/voice.xml" }
 
@@ -11,8 +11,8 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     def default_config
       super.merge(
-        :voice_request_url => "https://demo.twilio.com/docs/voice.xml",
-        :voice_request_method => :get
+        voice_request_url: "https://demo.twilio.com/docs/voice.xml",
+        voice_request_method: :get
       )
     end
 
@@ -28,8 +28,8 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     def default_config
       super.merge(
-        :voice_request_url => "https://gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/testtwiml.xml",
-        :voice_request_method => :get
+        voice_request_url: "https://gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/testtwiml.xml",
+        voice_request_method: :get
       )
     end
 
@@ -45,8 +45,8 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
 
     def default_config
       super.merge(
-        :voice_request_url => "https://gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/testtwiml.xml",
-        :voice_request_method => :post
+        voice_request_url: "https://gist.githubusercontent.com/dwilkie/77a90816dbc241e4dec9575ffff5f2db/raw/773e4394ae32332dde663b7a8ac8079c5771d5b6/testtwiml.xml",
+        voice_request_method: :post
       )
     end
 

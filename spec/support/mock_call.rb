@@ -1,3 +1,5 @@
+# TODO: Remove file
+
 module MockCall
   def call_params
     @call_params ||= {

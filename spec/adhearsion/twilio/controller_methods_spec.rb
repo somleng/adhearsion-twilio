@@ -1,6 +1,6 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
+describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
   describe "#register_event_handlers" do
     def setup_scenario
       allow(mock_call).to receive(:register_event_handler)
@@ -15,8 +15,7 @@ describe Adhearsion::Twilio::ControllerMethods, :type => :call_controller do
       setup_scenario
     end
 
-    def assert_register_event_handlers!
-    end
+    def assert_register_event_handlers!; end
 
     it { assert_register_event_handlers! }
   end

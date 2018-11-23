@@ -4,13 +4,13 @@ require "spec_helper"
 
 describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
   describe "<Say>" do
-    # http://www.twilio.com/docs/api/twiml/say
+    # https://www.twilio.com/docs/api/twiml/say
 
     # The <Say> verb converts text to speech that is read back to the caller.
     # <Say> is useful for development or saying dynamic text that is difficult to pre-record.
 
     describe "Nouns" do
-      # From: http://www.twilio.com/docs/api/twiml/say
+      # From: https://www.twilio.com/docs/api/twiml/say
 
       # The "noun" of a TwiML verb is the stuff nested within the verb
       # that's not a verb itself; it's the stuff the verb acts upon.
@@ -25,19 +25,22 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
       #    <Say>Hello World</Say>
       # </Response>
 
-      it "calls say on the controller" do
+      it "outputs SSML" do
         controller = build_controller(allow: :say)
 
         VCR.use_cassette(:say, erb: generate_cassette_erb(words: "Hello World")) do
           controller.run
         end
 
-        expect(controller).to have_received(:say).with("Hello World", any_args).once
+        expect(controller).to have_received(:say) do |ssml|
+          expect(ssml).to be_a(RubySpeech::SSML::Speak)
+          expect(ssml.text).to eq("Hello World")
+        end
       end
     end
 
     describe "Verb Attributes" do
-      # From: http://www.twilio.com/docs/api/twiml/say
+      # From: https://www.twilio.com/docs/api/twiml/say
 
       # The <Say> verb supports the following attributes that modify its behavior:
 
@@ -47,7 +50,7 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
       # | loop           | integer >= 0              | 1             |
 
       describe "voice" do
-        # From: http://www.twilio.com/docs/api/twiml/say
+        # From: https://www.twilio.com/docs/api/twiml/say
 
         # The 'voice' attribute allows you to choose
         # a male or female voice to read text back. The default value is 'man'.
@@ -69,11 +72,13 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", voice: "man").once
+          expect(controller).to have_received(:say) do |ssml|
+            expect(fetch_ssml_attribute(ssml, :name)).to eq("man")
+          end
         end
 
         it "sets the voice to man" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+          # From: https://www.twilio.com/docs/api/twiml/say
 
           # "The 'voice' attribute allows you to choose
           # a male voice to read text back."
@@ -89,11 +94,13 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", voice: "man").once
+          expect(controller).to have_received(:say) do |ssml|
+            expect(fetch_ssml_attribute(ssml, :name)).to eq("man")
+          end
         end
 
         it "sets the voice to woman" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+          # From: https://www.twilio.com/docs/api/twiml/say
 
           # "The 'voice' attribute allows you to choose
           # a female voice to read text back."
@@ -109,12 +116,14 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", voice: "woman").once
+          expect(controller).to have_received(:say) do |ssml|
+            expect(fetch_ssml_attribute(ssml, :name)).to eq("woman")
+          end
         end
       end
 
       describe "language" do
-        # From: http://www.twilio.com/docs/api/twiml/say
+        # From: https://www.twilio.com/docs/api/twiml/say
 
         # The 'language' attribute allows you pick a voice with a
         # specific language's accent and pronunciations.
@@ -127,8 +136,8 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
         # The language option is not yet supported in adhearsion-twilio
         # so the option is ignored
 
-        it "does not set the language by default" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+        it "sets the language to en by default" do
+          # From: https://www.twilio.com/docs/api/twiml/say
 
           # "The default is English with an American accent (en)."
 
@@ -143,29 +152,33 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", hash_not_including(:language)).once
+          expect(controller).to have_received(:say) do |ssml|
+            expect(fetch_ssml_attribute(ssml, :lang)).to eq("en")
+          end
         end
 
-        it "ignores the language when specifying the language attribute" do
+        it "sets the language when specifying the language attribute" do
           controller = build_controller(allow: :say)
 
-          VCR.use_cassette(:say_with_language, erb: generate_cassette_erb(language: "de", words: "Hello World")) do
+          VCR.use_cassette(:say_with_language, erb: generate_cassette_erb(language: "pt-BR", words: "Hello World")) do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", hash_not_including(:language)).once
+          expect(controller).to have_received(:say) do |ssml|
+            expect(fetch_ssml_attribute(ssml, :lang)).to eq("pt-BR")
+          end
         end
       end
 
       describe "loop" do
-        # From: http://www.twilio.com/docs/api/twiml/say
+        # From: https://www.twilio.com/docs/api/twiml/say
 
         # The 'loop' attribute specifies how many times you'd like the text repeated.
         # The default is once.
         # Specifying '0' will cause the <Say> verb to loop until the call is hung up.
 
         it "plays only once by default" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+          # From: https://www.twilio.com/docs/api/twiml/say
 
           # "The default is once."
 
@@ -180,11 +193,11 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", any_args).once
+          expect(controller).to have_received(:say).once
         end
 
         it "loops until hung up if 0 is specified" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+          # From: https://www.twilio.com/docs/api/twiml/say
 
           # Specifying '0' will cause the <Say> verb to loop until the call is hung up.
 
@@ -200,11 +213,11 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", any_args).exactly(20).times
+          expect(controller).to have_received(:say).exactly(20).times
         end
 
         it "loops n times when n is specified" do
-          # From: http://www.twilio.com/docs/api/twiml/say
+          # From: https://www.twilio.com/docs/api/twiml/say
 
           # "The 'loop' attribute specifies how many times you'd like the text repeated."
 
@@ -219,9 +232,13 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
             controller.run
           end
 
-          expect(controller).to have_received(:say).with("Hello World", any_args).exactly(5).times
+          expect(controller).to have_received(:say).exactly(5).times
         end
       end
     end
+  end
+
+  def fetch_ssml_attribute(ssml, key)
+    ssml.voice.children.first.attributes.fetch(key.to_s).value
   end
 end

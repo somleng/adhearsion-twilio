@@ -15,6 +15,8 @@ module Adhearsion::Twilio::ControllerMethods
   SLEEP_BETWEEN_REDIRECTS = 1
   DEFAULT_TWILIO_RECORD_TIMEOUT = 5
   DEFAULT_TWILIO_MAX_LENGTH = 3600
+  DEFAULT_TWILIO_VOICE = "man".freeze
+  DEFAULT_TWILIO_LANGUAGE = "en".freeze
 
   DIAL_CALL_STATUSES = {
     no_answer: "no-answer",
@@ -253,14 +255,23 @@ module Adhearsion::Twilio::ControllerMethods
   end
 
   def twilio_say(words, options = {})
-    params = options_for_twilio_say(options)
+    voice_params = options_for_twilio_say(options)
     twilio_loop(options).each do
-      say(words, params)
+      doc = RubySpeech::SSML.draw do
+        voice(voice_params) do
+          string(words)
+        end
+      end
+
+      say(doc)
     end
   end
 
   def options_for_twilio_say(options = {})
-    { voice: options.fetch("voice") { "man" } }
+    {
+      name: options.fetch("voice") { DEFAULT_TWILIO_VOICE },
+      language: options.fetch("language") { DEFAULT_TWILIO_LANGUAGE }
+    }
   end
 
   def options_for_twilio_play(_options = {})
