@@ -244,14 +244,13 @@ module Adhearsion::Twilio::ControllerMethods
 
     digits = result.utterance if %i[match nomatch].include?(result.status)
 
-    return unless digits.present?
+    return if digits.blank? && options["actionOnEmptyResult"] != "true"
 
-    [
-      options["action"],
-      {
-        "Digits" => digits, "method" => options["method"]
-      }
-    ]
+    action_payload = {}
+    action_payload["method"] = options["method"]
+    action_payload["Digits"] = digits if digits.present?
+
+    [options["action"], action_payload]
   end
 
   def twilio_say(words, options = {})

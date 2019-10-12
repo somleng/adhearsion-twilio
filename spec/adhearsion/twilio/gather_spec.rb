@@ -22,12 +22,13 @@ RSpec.describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
 
       # The <Gather> verb supports the following attributes that modify its behavior:
 
-      # | Attribute Name | Allowed Values           | Default Value        |
-      # | action         | relative or absolute URL | current document URL |
-      # | method         | GET, POST                | POST                 |
-      # | timeout        | positive integer         | 5 seconds            |
-      # | finishOnKey    | any digit, #, *          | #                    |
-      # | numDigits      | integer >= 1             | unlimited            |
+      # | Attribute Name      | Allowed Values           | Default Value        |
+      # | action              | relative or absolute URL | current document URL |
+      # | method              | GET, POST                | POST                 |
+      # | timeout             | positive integer         | 5 seconds            |
+      # | finishOnKey         | any digit, #, *          | #                    |
+      # | numDigits           | integer >= 1             | unlimited            |
+      # | actionOnEmptyResult | true, false              | false                |
 
       describe "action" do
         # From: https://www.twilio.com/docs/api/twiml/gather
@@ -191,7 +192,7 @@ RSpec.describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
         it "executes a GET request" do
           # <?xml version="1.0" encoding="UTF-8"?>
           # <Response>
-          #   <Gather action="http://localhost:3000/some_other_endpoint.xml" method="GET"/>
+          #   <Gather action="https://www.example.com/gather_results.xml" method="GET"/>
           # </Response>
 
           controller = build_gather_controller(gather_result: "1")
@@ -494,6 +495,41 @@ RSpec.describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
           expect(controller).to have_received(:ask) do |_outputs, options|
             expect(options.fetch(:limit)).to eq(5)
           end
+        end
+      end
+
+      describe "actionOnEmptyResult" do
+        # actionOnEmptyResult allows you to force <Gather> to send a webhook to the action url
+        # even when there is no input.
+        # By default, if <Gather> times out while waiting for the input,
+        # it will continue on to the next TwiML instruction.
+
+        it "always send to status" do
+          # <?xml version="1.0" encoding="UTF-8"?>
+          # <Response>
+          #   <Gather actionOnEmptyResult="true" action="https://www.example.com/gather_results.xml">
+          #     <Say>
+          #       Please enter your account number, followed by the pound sign
+          #     </Say>
+          #   </Gather>
+          #   <Play>foo.mp3</Play>
+          # </Response>
+
+          controller = build_gather_controller(allow: :play_audio, gather_result: nil)
+          erb = generate_cassette_erb(
+            action: "https://www.example.com/gather_results.xml",
+            redirect_url: "https://www.example.com/gather_results.xml",
+            action_on_empty_result: "true"
+          )
+
+          VCR.use_cassette(:gather_with_action_on_empty_result, erb: erb) do
+            controller.run
+          end
+
+          results_request = WebMock.requests.last
+          expect(WebMock.requests.count).to eq(2)
+          expect(results_request.uri.host).to eq("www.example.com")
+          expect(results_request.uri.path).to eq("/gather_results.xml")
         end
       end
     end
