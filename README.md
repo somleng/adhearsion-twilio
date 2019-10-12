@@ -3,6 +3,7 @@
 Provides a simple way to use Adhearsion with your existing apps built for Twilio
 
 [![CircleCI](https://circleci.com/gh/somleng/adhearsion-twilio.svg?style=svg)](https://circleci.com/gh/somleng/adhearsion-twilio)
+[![codecov](https://codecov.io/gh/somleng/somleng-adhearsion/branch/develop/graph/badge.svg)](https://codecov.io/gh/somleng/somleng-adhearsion)
 
 ## Installation
 
