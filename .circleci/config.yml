@@ -24,6 +24,7 @@ jobs:
           name: Run Specs
           command: bundle exec rspec
 
+commands:
   upgrade_bundler:
     steps:
       - run:
