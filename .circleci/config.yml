@@ -16,7 +16,6 @@ jobs:
 
     steps:
       - checkout
-      - upgrade_bundler
 
       - run:
           name: Upgrade Bundler
