@@ -29,7 +29,7 @@ http_interactions:
       - thin 1.5.0 codename Knife
     body:
       encoding: US-ASCII
-      string: <?xml version="1.0" encoding="UTF-8"?><Response><Gather><Play><%=file_url%></Play></Gather></Response>
+      string: <?xml version="1.0" encoding="UTF-8"?><Response><Gather><Play loop=<%="\"#{loop}\""%>><%=file_url%></Play></Gather></Response>
     http_version: '1.1'
   recorded_at: Thu, 14 Mar 2013 15:01:49 GMT
 recorded_with: VCR 2.4.0

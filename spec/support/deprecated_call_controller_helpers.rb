@@ -21,10 +21,6 @@ module DeprecatedCallControllerHelpers
     @infinity ||= 20
   end
 
-  def words
-    @words ||= "Hello World"
-  end
-
   def file_url
     @file_url ||= "http://api.twilio.com/cowbell.mp3"
   end
@@ -141,11 +137,6 @@ module DeprecatedCallControllerHelpers
 
   def set_dummy_url_config(url_type, url_config, value)
     env_vars[:"ahn_twilio_#{url_type}_#{url_config}"] = value
-  end
-
-  def set_dummy_voices
-    env_vars[:ahn_twilio_default_male_voice] = "default_male_voice"
-    env_vars[:ahn_twilio_default_female_voice] = "default_female_voice"
   end
 
   def stub_call_controller!

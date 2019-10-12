@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
+RSpec.describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
   describe "<Say>" do
     # https://www.twilio.com/docs/api/twiml/say
 

@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_deprecated_helpers: true do
+RSpec.describe Adhearsion::Twilio::ControllerMethods, type: :call_controller do
   describe "<Hangup>" do
     # From: https://www.twilio.com/docs/api/twiml/hangup
 
@@ -14,12 +14,14 @@ describe Adhearsion::Twilio::ControllerMethods, type: :call_controller, include_
     #   <Hangup/>
     # </Response>
 
-    let(:cassette) { :hangup }
+    it "hangs up the call" do
+      controller = build_controller(allow: :hangup)
 
-    def assert_call_controller_assertions!
-      assert_hungup!
+      VCR.use_cassette(:hangup, erb: generate_cassette_erb) do
+        controller.run
+      end
+
+      expect(controller).to have_received(:hangup)
     end
-
-    it { run_and_assert! }
   end
 end
