@@ -16,9 +16,8 @@ jobs:
 
     steps:
       - checkout
-
-      - bundle_install:
-          cache_name: "adhearsion-twilio-deps"
+      - upgrade_bundler
+      - bundle install
 
       - run:
           name: Run Specs
@@ -32,35 +31,6 @@ commands:
           command: |
             gem update --system
             gem install bundler
-
-  bundle_install:
-    parameters:
-      cache_name:
-        type: string
-      bundle_install_path:
-        type: string
-        default: "."
-      cache_path:
-        type: string
-        default: "vendor/bundle"
-
-    steps:
-      - upgrade_bundler
-      - restore_cache:
-          keys:
-            - << parameters.cache_name >>-{{ checksum "Gemfile.lock" }}
-            - << parameters.cache_name >>-
-
-      - run:
-          name: Bundle Install
-          command: |
-              cd << parameters.bundle_install_path >>
-              BUNDLE_GEMFILE=Gemfile bundle install
-
-      - save_cache:
-          key: << parameters.cache_name >>-{{ checksum "Gemfile.lock" }}
-          paths:
-            - << parameters.cache_path >>
 
 workflows:
   version: 2
