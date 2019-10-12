@@ -2,9 +2,7 @@
 
 Provides a simple way to use Adhearsion with your existing apps built for Twilio
 
-[![Build Status](https://travis-ci.org/somleng/adhearsion-twilio.png)](https://travis-ci.org/somleng/adhearsion-twilio)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/53eeb3962cc799a69441/test_coverage)](https://codeclimate.com/github/somleng/adhearsion-twilio/test_coverage)
-[![Maintainability](https://api.codeclimate.com/v1/badges/53eeb3962cc799a69441/maintainability)](https://codeclimate.com/github/somleng/adhearsion-twilio/maintainability)
+[![CircleCI](https://circleci.com/gh/somleng/adhearsion-twilio.svg?style=svg)](https://circleci.com/gh/somleng/adhearsion-twilio)
 
 ## Installation
 
