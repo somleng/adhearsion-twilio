@@ -17,20 +17,21 @@ jobs:
     steps:
       - checkout
       - upgrade_bundler
-      - bundle install
 
-      - run:
-          name: Run Specs
-          command: bundle exec rspec
-
-commands:
-  upgrade_bundler:
-    steps:
       - run:
           name: Upgrade Bundler
           command: |
             gem update --system
             gem install bundler
+
+      - run:
+          name: Bundle Install
+          command: |
+            bundle install
+
+      - run:
+          name: Run Specs
+          command: bundle exec rspec
 
 workflows:
   version: 2
