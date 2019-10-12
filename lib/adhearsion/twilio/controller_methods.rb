@@ -119,7 +119,7 @@ module Adhearsion::Twilio::ControllerMethods
       when "Play"
         execute_twiml_verb(:play, true, content, options)
       when "Gather"
-        break if redirection = execute_twiml_verb(:gather, true, node, options)
+        break if (redirection = execute_twiml_verb(:gather, true, node, options))
       when "Redirect"
         redirection = execute_twiml_verb(:redirect, false, content, options)
         break
@@ -132,9 +132,9 @@ module Adhearsion::Twilio::ControllerMethods
       when "Bridge"
         not_yet_supported!
       when "Dial"
-        break if redirection = execute_twiml_verb(:dial, true, node, options)
+        break if (redirection = execute_twiml_verb(:dial, true, node, options))
       when "Record"
-        break if redirection = execute_twiml_verb(:record, true, options)
+        break if (redirection = execute_twiml_verb(:record, true, options))
       else
         raise(ArgumentError, "Invalid element '#{node.name}'")
       end
@@ -227,7 +227,7 @@ module Adhearsion::Twilio::ControllerMethods
       ask_params << Array.new(output_count, nested_verb_node.content)
     end
 
-    ask_options[:timeout] = (options["timeout"] || 5).to_i.seconds
+    ask_options[:timeout] = options.fetch("timeout", 5).to_i.seconds
 
     if options["finishOnKey"]
       ask_options[:terminator] = options["finishOnKey"] if options["finishOnKey"] =~ /^(?:\d|\*|\#)$/
@@ -244,14 +244,14 @@ module Adhearsion::Twilio::ControllerMethods
 
     digits = result.utterance if %i[match nomatch].include?(result.status)
 
-    if digits.present?
-      [
-        options["action"],
-        {
-          "Digits" => digits, "method" => options["method"]
-        }
-      ]
-    end
+    return unless digits.present?
+
+    [
+      options["action"],
+      {
+        "Digits" => digits, "method" => options["method"]
+      }
+    ]
   end
 
   def twilio_say(words, options = {})
